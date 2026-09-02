@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+.agents
+.codex
+.vscode
+coverage
+dist
+node_modules
+*.tsbuildinfo
