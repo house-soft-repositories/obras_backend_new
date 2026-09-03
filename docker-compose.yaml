@@ -2,7 +2,7 @@ services:
   api:
     build:
       context: .
-      target: runner
+      target: development
     env_file:
       - .env
     depends_on:
@@ -10,9 +10,15 @@ services:
         condition: service_healthy
     ports:
       - '${PORT:-3000}:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
 
   database:
     image: postgres:17-alpine
+    ports:
+      - '${DATABASE_PORT:-5432}:5432'
     env_file:
       - .env
     environment:

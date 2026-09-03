@@ -22,6 +22,13 @@ COPY src ./src
 
 RUN pnpm run build
 
+FROM dependencies AS development
+
+COPY nest-cli.json tsconfig.build.json tsconfig.json ./
+COPY src ./src
+
+CMD ["pnpm", "run", "start:dev"]
+
 FROM base AS production-dependencies
 
 COPY package.json pnpm-lock.yaml ./
@@ -41,4 +48,4 @@ USER node
 
 EXPOSE 3000
 
-CMD ["node", "dist/main"]
+CMD ["sh", "-c", "node ./node_modules/typeorm/cli.js -d dist/core/database/data-source.js migration:run && node dist/main"]

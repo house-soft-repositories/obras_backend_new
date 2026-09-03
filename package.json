@@ -21,17 +21,21 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "migration:run": "typeorm -d dist/src/core/database/data-source.js migration:run",
-    "migration:generate": "typeorm -d dist/src/core/database/data-source.js migration:generate src/core/database/migrations/Migration",
-    "migration:revert": "typeorm -d dist/src/core/database/data-source.js migration:revert",
-    "migration:show": "typeorm -d dist/src/core/database/data-source.js migration:show"
+    "test:integration": "jest --config ./test/jest-integration.json",
+    "migration:run": "typeorm -d dist/core/database/data-source.js migration:run",
+    "migration:generate": "typeorm -d dist/core/database/data-source.js migration:generate src/core/database/migrations/Migration",
+    "migration:revert": "typeorm -d dist/core/database/data-source.js migration:revert",
+    "migration:show": "typeorm -d dist/core/database/data-source.js migration:show"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^12.0.0",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^11.4.7",
     "@nestjs/typeorm": "^12.0.1",
+    "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "pg": "^8.23.0",
@@ -70,18 +74,22 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
+    "rootDir": ".",
+    "testRegex": "(?:src|test)/.*\\.spec\\.ts$",
+    "testPathIgnorePatterns": [
+      "/test/modules/.+/infra/repositories/"
+    ],
     "transform": {
       "^.+\\.(t|j)s$": [
         "ts-jest",
         {
-          "tsconfig": "<rootDir>/../tsconfig.test.json"
+          "tsconfig": "<rootDir>/tsconfig.test.json"
         }
       ]
     },
     "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/$1"
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^@test/(.*)$": "<rootDir>/test/$1"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

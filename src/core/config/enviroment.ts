@@ -1,7 +1,10 @@
 import { Transform } from 'class-transformer';
 import {
   IsEnum,
+  IsInt,
   IsNotEmpty,
+  Max,
+  Min,
   IsNumber,
   IsString
 } from 'class-validator';
@@ -31,11 +34,21 @@ export default class EnvironmentVariables {
   @IsNotEmpty()
   DATABASE_NAME: string;
 
+  @Transform(({ value }: { value: string | undefined }) =>
+    value === undefined ? 10 : parseInt(value, 10),
+  )
+  @IsInt()
+  @Min(1)
+  DATABASE_MAX_POOL_CONNECTIONS: number;
+
   @Transform(({ value }: { value: string }) =>
     typeof value === 'string' ? parseInt(value, 10) : value,
   )
   @IsNotEmpty()
   @IsNumber()
+  @IsInt()
+  @Min(10)
+  @Max(14)
   SALT: number;
 
   @IsNotEmpty()
