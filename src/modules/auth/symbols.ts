@@ -1,0 +1,5 @@
+export const PASSWORD_HASHER = Symbol('PASSWORD_HASHER');
+export const TOKEN_SERVICE = Symbol('TOKEN_SERVICE');
+export const USER_SESSION_REPOSITORY = Symbol('USER_SESSION_REPOSITORY');
+export const LOGIN_SERVICE = Symbol('LOGIN_SERVICE');
+export const REFRESH_TOKEN_SERVICE = Symbol('REFRESH_TOKEN_SERVICE');
