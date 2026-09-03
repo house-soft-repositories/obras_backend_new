@@ -2,6 +2,8 @@
   "js/ts.preferences.importModuleSpecifier": "non-relative",
   "js/ts.updateImportsOnFileMove.enabled": "always",
   "editor.codeActionsOnSave": {
-    "source.organizeImports": "explicit"
+    "source.organizeImports": "explicit",
+    "source.addMissingImports.ts": "always",
+    "source.fixAll.prettier": "always"
   }
 }
