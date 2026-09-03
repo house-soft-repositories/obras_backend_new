@@ -1,0 +1,3 @@
+export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
+
+export const CREATE_USER_SERVICE = Symbol('CREATE_USER_SERVICE');
