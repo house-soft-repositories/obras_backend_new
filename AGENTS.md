@@ -1,5 +1,9 @@
 @RTK.md
 
+## Git commits
+
+Não crie commits, não adicione arquivos ao índice Git e não envie alterações ao repositório remoto sem autorização explícita do usuário para aquele momento.
+
 ## Build and Test
 
 **Validação preferencial via Docker (ambiente canônico):**
@@ -50,11 +54,11 @@ Cada módulo em `src/modules/<name>/` segue este layout fixo:
 symbols.ts           ← tokens Symbol para DI
 <name>.module.ts     ← NestJS providers via useFactory (nunca useClass)
 adapters/            ← interfaces de repositórios e serviços externos (contratos)
-application/         ← implementações concretas dos use cases (Services)
+application/         ← implementações concretas dos use cases (Services implementam contratos de domain/usecase/)
 controller/          ← controllers HTTP NestJS
 domain/
   entities/          ← entidades ricas com factory estático + validações
-  usecase/           ← interfaces dos use cases (contratos)
+  usecase/           ← types dos use cases (contratos)
 dtos/                ← request/response DTOs
 exceptions/          ← domain e repository exceptions do módulo
 infra/
@@ -66,16 +70,16 @@ infra/
 
 ## Code Style
 
-| Elemento                    | Convenção                               | Exemplo                                 |
-| --------------------------- | --------------------------------------- | --------------------------------------- |
-| Arquivos                    | `snake_case`                            | `create_user.service.ts`                |
-| Classes/Interfaces          | `PascalCase`                            | `CreateUserService`                     |
-| Interfaces adapter/use case | prefixo `I`                             | `IUserRepository`, `ICreateUserUseCase` |
-| Symbols DI                  | `UPPER_SNAKE_CASE`                      | `CREATE_USER_SERVICE`                   |
-| Entidades de domínio        | sufixo `Entity`                         | `UserEntity`                            |
-| Modelos TypeORM             | sufixo `Model`                          | `UserModel`                             |
-| Mappers                     | sufixo `Mapper`                         | `UserMapper`                            |
-| Imports                     | alias `@/` → `src/`, `@test/` → `test/` | `@/core/types/either`                   |
+| Elemento                               | Convenção                               | Exemplo                                 |
+| -------------------------------------- | --------------------------------------- | --------------------------------------- |
+| Arquivos                               | `snake_case`                            | `create_user.service.ts`                |
+| Classes/Interfaces                     | `PascalCase`                            | `CreateUserService`                     |
+| Interfaces adapter / types de use case | prefixo `I`                             | `IUserRepository`, `ICreateUserUseCase` |
+| Symbols DI                             | `UPPER_SNAKE_CASE`                      | `CREATE_USER_SERVICE`                   |
+| Entidades de domínio                   | sufixo `Entity`                         | `UserEntity`                            |
+| Modelos TypeORM                        | sufixo `Model`                          | `UserModel`                             |
+| Mappers                                | sufixo `Mapper`                         | `UserMapper`                            |
+| Imports                                | alias `@/` → `src/`, `@test/` → `test/` | `@/core/types/either`                   |
 
 ## Project Conventions
 
@@ -130,6 +134,25 @@ async execute(param): AsyncResult<AppException, Response> {
 ```
 
 Referência: `src/modules/users/application/create_user.service.ts`
+
+### Services de application implementam contratos de use case
+
+Todo service em `application/` DEVE implementar um contrato correspondente em `domain/usecase/`. O contrato é um `type` que referencia o `UseCase` genérico de `core/types`, não uma interface duplicada. Não crie services concretos sem contrato: o controller injeta o símbolo do use case, e o módulo fornece a implementação via `useFactory`.
+
+```typescript
+// domain/usecase/create_tenancy.usecase.ts
+type ICreateTenancyUseCase = UseCase<CreateTenancyParam, TenancyEntity>;
+export default ICreateTenancyUseCase;
+
+// application/create_tenancy.service.ts
+export default class CreateTenancyService implements ICreateTenancyUseCase {
+  async execute(
+    param: CreateTenancyParam,
+  ): AsyncResult<AppException, TenancyEntity> {
+    // ...
+  }
+}
+```
 
 ### Repositórios: try/catch → left/right (nunca throw)
 
@@ -258,34 +281,57 @@ export default abstract class MyMapper extends BaseMapper<MyEntity, MyModel> {
 
 Referência: `src/modules/users/infra/mapper/user.mapper.ts`
 
+Todo módulo persistente DEVE ter um mapper para cada par Entity/Model. O mapper implementa `toEntity(model)` e `toModel(entity)`; repositories nunca montam objetos de domínio ou TypeORM manualmente fora dele.
+
 ### Hierarquia de exceções
 
 ```
-AppException(message, statusCode, cause?)    ← base, estende Error
+AppException(code, statusCode, message?, cause?)    ← base, estende Error
 ├── *DomainException(400)   ← throw dentro de Entity.create()
 ├── ServiceException(400)   ← return left() no application service
 └── *RepositoryException(500)  ← return left() no infra/repository
     └── *RepositoryNotFoundException(404)
 ```
 
-Alguns `RepositoryException` têm factory estáticos: `.notFound()`, `.unexpected()`. Veja `src/modules/users/exceptions/`.
+`code` é obrigatório e `message` é opcional. `AppException` é apenas a base técnica: nunca a instancie diretamente fora do core. Cada camada é proprietária de suas exceções concretas (`*DomainException`, `*ServiceException` e `*RepositoryException`), que estendem `AppException`; cada domínio declara seus códigos em `src/core/constants/error_code.constants.ts` e suas exceções só retornam códigos registrados ali. O frontend usa o código, não a mensagem, para traduzir o erro. Use nomes estáveis em `UPPER_SNAKE_CASE`, por exemplo `USER_NOT_FOUND`, `TENANCY_INVALID_SLUG` e `TENANCY_PROVISION_FAILED`.
 
-### DTOs: OmitType/PickType do Swagger para reutilização
+Construa exceções com um objeto de parâmetros nomeados, por exemplo `new UserServiceException({ code, statusCode, cause })`; nunca use argumentos posicionais ou `undefined` como preenchimento.
+
+Ao criar uma nova exceção de domínio, serviço ou repositório:
+
+1. Adicione o código correspondente a `ErrorCodeConstants`.
+2. Faça a exceção receber e propagar esse código para `AppException`.
+3. Teste o código retornado, além do status HTTP e do comportamento de falha.
+
+### DTOs: fronteira HTTP, validação e transformação
+
+DTOs pertencem a `src/modules/<name>/dtos/` e são a fronteira entre HTTP e o controller. Eles não representam entidades de domínio nem modelos TypeORM: contêm somente dados serializáveis e tipos primitivos, arrays e outros DTOs aninhados. Não aceite `Entity`, `Model`, `Date` de domínio, repository ou service em DTO.
+
+Todo campo recebido pela API deve declarar o validador `class-validator` correspondente, como `@IsString()`, `@IsNumber()`, `@IsBoolean()`, `@IsEmail()`, `@IsUUID()`, `@IsEnum()`, `@IsArray()` e `@ValidateNested()`. Combine-o com restrições de formato e negócio da fronteira, por exemplo `@IsNotEmpty()`, `@MinLength()`, `@MaxLength()`, `@Min()`, `@Max()` e `@Matches()`. Use `@IsOptional()` apenas para campos realmente opcionais.
+
+Use `class-transformer` somente para normalização de entrada e conversão explícita: `@Transform(..., { toClassOnly: true })` para `trim`, lowercase ou conversão segura; `@Type(() => NestedDto)` para objetos/arrays aninhados e valores numéricos/datas quando o contrato HTTP exigir. A transformação não substitui validação. Campos normalizados devem continuar validados.
+
+O DTO base descreve a forma pública primitiva da entidade. Especializações reutilizam os mapped types de `@nestjs/swagger`: `OmitType` para remover campos não aceitos, `PickType` para operações estreitas e `PartialType` para atualização. A classe derivada declara os decorators adicionais ou mais restritivos do endpoint. Use `as const` na lista de campos.
 
 ```typescript
 class CreateUserDto extends OmitType(UserDto, [
   'id',
   'createdAt',
   'updatedAt',
-]) {
-  @IsEmail() email: string;
-  @IsEnum(USER_ROLE) role: USER_ROLE;
+] as const) {
+  @Transform(({ value }) => value.trim().toLowerCase(), { toClassOnly: true })
+  @IsEmail()
+  declare email: string;
 }
 // Forçar role via @Equals no DTO especializado
 class CreateUserWithRoleUserDto extends CreateUserDto {
   @Equals(USER_ROLE.USER) declare role: USER_ROLE;
 }
+
+class UpdateUserDto extends PartialType(CreateUserDto) {}
 ```
+
+Controllers recebem DTOs, convertem-nos para o parâmetro primitivo do use case e nunca passam o DTO como entidade. Respostas devem expor DTOs de resposta ou objetos primitivos deliberados, sem senha, hash, token interno ou campos de infraestrutura. Configure `ValidationPipe` global com `transform: true`, `whitelist: true` e `forbidNonWhitelisted: true` antes de expor endpoints que recebem DTOs.
 
 ### TypeORM Models: herdar BaseModel correto
 
@@ -382,7 +428,8 @@ name: "Nome do Imóvel"
 
 ## Testing
 
-- Testes em `test/modules/<name>/<layer>/`. Fixtures em `test/constants/<name>/`.
+- Testes em `test/modules/<name>/<layer>/`. Fixtures em `test/constants/<name>/<layer>/` e mocks em `test/mocks/<name>/<layer>/`, espelhando o módulo e a camada de `src/modules/` que possuem o contrato ou dado representado.
+- Constants contêm dados imutáveis reutilizáveis; mocks implementam um único contrato tipado. Dados exclusivos de uma asserção podem permanecer no próprio teste.
 - **Sem `@nestjs/testing`** — services instanciados diretamente com mocks `jest.fn()`.
 - Mocks tipados como `jest.Mocked<IMyInterface>`.
 
@@ -415,7 +462,7 @@ describe('MyService', () => {
 
 **Com File Upload (multiple mocks para cada upload):**
 
-````typescript
+```typescript
 describe('CreateImovelService', () => {
   let mockUploadFileUseCase: jest.Mocked<IUploadFileUseCase>;
 
@@ -444,3 +491,4 @@ describe('CreateImovelService', () => {
     expect(mockUploadFileUseCase.execute).toHaveBeenCalledTimes(2);
   });
 });
+```
