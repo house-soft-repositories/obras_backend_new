@@ -71,6 +71,12 @@ describe('VerifiedTenantContextService', () => {
         role: UserRole.ADMIN,
         tenantId: scenario === 'tenantless non-superadmin token' ? null : tenantId,
       });
+      if (scenario === 'tenantless non-superadmin token') {
+        resolver.resolve.mockResolvedValue({
+          tenantId,
+          schemaName: 'tenant_9f8b416e2b4c4e4ab1c76beeb3d4d7dc',
+        });
+      }
       if (scenario === 'unknown tenant') resolver.resolve.mockResolvedValue(null);
     }
 
@@ -79,5 +85,8 @@ describe('VerifiedTenantContextService', () => {
       statusCode: 401,
     } satisfies Partial<TenantContextException>);
     expect(callback.mock.calls).toHaveLength(0);
+    if (scenario === 'tenantless non-superadmin token') {
+      expect(resolver.resolve.mock.calls).toHaveLength(0);
+    }
   });
 });

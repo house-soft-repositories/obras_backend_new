@@ -2,6 +2,7 @@ import ITenancyRepository from '@/modules/tenancy/adapters/tenancy_repository.in
 
 const mockTenancyRepository = (): jest.Mocked<ITenancyRepository> => ({
   provision: jest.fn(),
+  findAll: jest.fn(),
 });
 
 export default mockTenancyRepository;
