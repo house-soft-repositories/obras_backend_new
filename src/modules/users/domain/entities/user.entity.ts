@@ -1,7 +1,7 @@
-import { randomUUID } from 'node:crypto';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 import UserDomainException from '@/modules/users/exceptions/user_domain.exception';
+import { randomUUID } from 'node:crypto';
 
 export interface UserProps {
   id: string;
@@ -35,18 +35,30 @@ export default class UserEntity {
     return this.create(props, UserRole.USER, tenantId);
   }
 
-  private static create(props: CreateUserProps, role: UserRole, tenantId: string | null): UserEntity {
+  private static create(
+    props: CreateUserProps,
+    role: UserRole,
+    tenantId: string | null,
+  ): UserEntity {
     if (props.name.trim().length < 2) {
-      throw new UserDomainException({ code: ErrorCodeConstants.USER_INVALID_NAME });
+      throw new UserDomainException({
+        code: ErrorCodeConstants.USER_INVALID_NAME,
+      });
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(props.email)) {
-      throw new UserDomainException({ code: ErrorCodeConstants.USER_INVALID_EMAIL });
+      throw new UserDomainException({
+        code: ErrorCodeConstants.USER_INVALID_EMAIL,
+      });
     }
     if (!props.password) {
-      throw new UserDomainException({ code: ErrorCodeConstants.USER_INVALID_PASSWORD });
+      throw new UserDomainException({
+        code: ErrorCodeConstants.USER_INVALID_PASSWORD,
+      });
     }
     if (role !== UserRole.SUPERADMIN && !this.isUuid(tenantId)) {
-      throw new UserDomainException({ code: ErrorCodeConstants.USER_INVALID_TENANT });
+      throw new UserDomainException({
+        code: ErrorCodeConstants.USER_INVALID_TENANT,
+      });
     }
 
     const now = new Date();
@@ -63,19 +75,42 @@ export default class UserEntity {
   }
 
   private static isUuid(value: string | null): value is string {
-    return typeof value === 'string' && /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(value);
+    return (
+      typeof value === 'string' &&
+      /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(value)
+    );
   }
 
   static fromData(props: UserProps): UserEntity {
     return new UserEntity(props);
   }
 
-  get id() { return this.props.id; }
-  get name() { return this.props.name; }
-  get email() { return this.props.email; }
-  get password() { return this.props.password; }
-  get role() { return this.props.role; }
-  get tenantId() { return this.props.tenantId; }
-  get createdAt() { return this.props.createdAt; }
-  get updatedAt() { return this.props.updatedAt; }
+  toObject(): UserProps {
+    return { ...this.props };
+  }
+
+  get id() {
+    return this.props.id;
+  }
+  get name() {
+    return this.props.name;
+  }
+  get email() {
+    return this.props.email;
+  }
+  get password() {
+    return this.props.password;
+  }
+  get role() {
+    return this.props.role;
+  }
+  get tenantId() {
+    return this.props.tenantId;
+  }
+  get createdAt() {
+    return this.props.createdAt;
+  }
+  get updatedAt() {
+    return this.props.updatedAt;
+  }
 }

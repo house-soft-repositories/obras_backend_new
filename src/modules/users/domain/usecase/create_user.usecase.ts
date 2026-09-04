@@ -17,6 +17,14 @@ export interface CreateUserParam {
   creator: VerifiedCreator;
 }
 
-type ICreateUserUseCase = UseCase<CreateUserParam, UserEntity>;
+export class CreateUserResponse {
+  constructor(private readonly user: UserEntity) {}
+
+  toResponse() {
+    return this.user.toObject();
+  }
+}
+
+type ICreateUserUseCase = UseCase<CreateUserParam, CreateUserResponse>;
 
 export default ICreateUserUseCase;

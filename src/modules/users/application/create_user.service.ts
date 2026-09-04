@@ -2,12 +2,13 @@ import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import AppException from '@/core/exceptions/app_exception';
 import AsyncResult from '@/core/types/async_result';
 import { left } from '@/core/types/either';
-import IUserRepository from '@/modules/users/adapters/user_repository.interface';
 import IPasswordHasher from '@/modules/auth/adapters/password_hasher.interface';
+import IUserRepository from '@/modules/users/adapters/user_repository.interface';
 import UserEntity from '@/modules/users/domain/entities/user.entity';
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 import ICreateUserUseCase, {
   CreateUserParam,
+  CreateUserResponse,
 } from '@/modules/users/domain/usecase/create_user.usecase';
 import UserDomainException from '@/modules/users/exceptions/user_domain.exception';
 import UserServiceException from '@/modules/users/exceptions/user_service.exception';
@@ -18,7 +19,9 @@ export default class CreateUserService implements ICreateUserUseCase {
     private readonly passwordHasher: IPasswordHasher,
   ) {}
 
-  async execute(param: CreateUserParam): AsyncResult<AppException, UserEntity> {
+  async execute(
+    param: CreateUserParam,
+  ): AsyncResult<AppException, CreateUserResponse> {
     try {
       const tenantId = this.resolveTargetTenantId(param);
       if (!tenantId) {
@@ -47,7 +50,8 @@ export default class CreateUserService implements ICreateUserUseCase {
       }
 
       const user = await this.createEntity(param, tenantId);
-      return this.repository.save(user);
+      const saved = await this.repository.save(user);
+      return saved.map((entity) => new CreateUserResponse(entity));
     } catch (error) {
       if (error instanceof UserDomainException) return left(error);
       return left(

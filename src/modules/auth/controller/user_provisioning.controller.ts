@@ -1,3 +1,10 @@
+import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
+import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
+import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
+import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
+import type ICreateUserUseCase from '@/modules/users/domain/usecase/create_user.usecase';
+import CreateUserDto from '@/modules/users/dtos/create_user.dto';
+import { CREATE_USER_SERVICE } from '@/modules/users/symbols';
 import {
   Body,
   Controller,
@@ -6,13 +13,6 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
-import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
-import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
-import type ICreateUserUseCase from '@/modules/users/domain/usecase/create_user.usecase';
-import CreateUserDto from '@/modules/users/dtos/create_user.dto';
-import { CREATE_USER_SERVICE } from '@/modules/users/symbols';
-import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 
 @Controller('api/users')
 @UseGuards(AccessTokenGuard)
@@ -45,6 +45,6 @@ export default class UserProvisioningController {
         cause: result.value.cause,
       });
     }
-    return result.value;
+    return result.value.toResponse();
   }
 }
