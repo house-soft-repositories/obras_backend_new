@@ -1,5 +1,6 @@
 import TenancyEntity from '@/modules/tenancy/domain/entities/tenancy.entity';
 import TenancyModel from '@/modules/tenancy/infra/models/tenancy.model';
+import TenancyReadModel from '@/modules/tenancy/domain/read_models/tenancy.read_model';
 
 export default abstract class TenancyMapper {
   static toModel(entity: TenancyEntity): Partial<TenancyModel> {
@@ -26,5 +27,8 @@ export default abstract class TenancyMapper {
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     });
+  }
+  static toReadModel(model: TenancyModel): TenancyReadModel {
+    return { id: model.id, name: model.name, slug: model.slug, cnpj: model.cnpj, active: model.active, createdAt: model.createdAt, updatedAt: model.updatedAt };
   }
 }

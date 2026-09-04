@@ -6,7 +6,9 @@ import ITenancyRepository from '@/modules/tenancy/adapters/tenancy_repository.in
 import TenancyModel from '@/modules/tenancy/infra/models/tenancy.model';
 import TenancyRepository from '@/modules/tenancy/infra/repositories/tenancy.repository';
 import ICreateTenancyUseCase from '@/modules/tenancy/domain/usecase/create_tenancy.usecase';
-import { CREATE_TENANCY_SERVICE, TENANCY_REPOSITORY } from '@/modules/tenancy/symbols';
+import ListTenanciesService from '@/modules/tenancy/application/list_tenancies.service';
+import IListTenanciesUseCase from '@/modules/tenancy/domain/usecase/list_tenancies.usecase';
+import { CREATE_TENANCY_SERVICE, LIST_TENANCIES_SERVICE, TENANCY_REPOSITORY } from '@/modules/tenancy/symbols';
 
 @Module({
   imports: [TypeOrmModule.forFeature([TenancyModel])],
@@ -22,7 +24,13 @@ import { CREATE_TENANCY_SERVICE, TENANCY_REPOSITORY } from '@/modules/tenancy/sy
       useFactory: (repository: ITenancyRepository): ICreateTenancyUseCase =>
         new CreateTenancyService(repository),
     },
+    {
+      provide: LIST_TENANCIES_SERVICE,
+      inject: [TENANCY_REPOSITORY],
+      useFactory: (repository: ITenancyRepository): IListTenanciesUseCase =>
+        new ListTenanciesService(repository),
+    },
   ],
-  exports: [CREATE_TENANCY_SERVICE],
+  exports: [CREATE_TENANCY_SERVICE, LIST_TENANCIES_SERVICE],
 })
 export default class TenancyModule {}

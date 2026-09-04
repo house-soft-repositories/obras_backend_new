@@ -8,6 +8,7 @@ import TenancyEntity from '@/modules/tenancy/domain/entities/tenancy.entity';
 import TenancyMapper from '@/modules/tenancy/infra/mapper/tenancy.mapper';
 import TenancyModel from '@/modules/tenancy/infra/models/tenancy.model';
 import TenancyRepositoryException from '@/modules/tenancy/exceptions/tenancy_repository.exception';
+import TenancyReadModel from '@/modules/tenancy/domain/read_models/tenancy.read_model';
 
 export default class TenancyRepository implements ITenancyRepository {
   constructor(private readonly dataSource: DataSource) {}
@@ -39,5 +40,12 @@ export default class TenancyRepository implements ITenancyRepository {
         }),
       );
     }
+  }
+  async findAll(): AsyncResult<AppException, TenancyReadModel[]> {
+    try {
+      const models = await this.dataSource.getRepository(TenancyModel).find();
+      return right(models.map((model) => TenancyMapper.toReadModel(model)));
+    }
+    catch (error) { return left(new TenancyRepositoryException({ code: ErrorCodeConstants.TENANCY_PROVISION_FAILED, statusCode: 500, cause: error })); }
   }
 }

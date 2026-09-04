@@ -32,6 +32,7 @@ export default abstract class ErrorCodeConstants {
   static readonly TENANCY_CREATE_FAILED = 'TENANCY_CREATE_FAILED';
 
   static readonly TENANCY_CREATE_FORBIDDEN = 'TENANCY_CREATE_FORBIDDEN';
+  static readonly TENANCY_LIST_FORBIDDEN = 'TENANCY_LIST_FORBIDDEN';
 
   static readonly AUTH_SESSION_NOT_FOUND = 'AUTH_SESSION_NOT_FOUND';
 
