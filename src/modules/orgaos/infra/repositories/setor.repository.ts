@@ -126,6 +126,26 @@ export default class SetorRepository implements ISetorRepository {
     }
   }
 
+  async countLinkedUsers(setorId: string): AsyncResult<AppException, number> {
+    try {
+      const [result] = await this.dataSource.query<{ count: string }[]>(
+        `SELECT COUNT(*)::int AS count
+         FROM public.users
+         WHERE setor_id = $1`,
+        [setorId],
+      );
+      return right(Number(result?.count ?? 0));
+    } catch (cause) {
+      return left(
+        new SetorRepositoryException({
+          code: ErrorCodeConstants.SETOR_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
+
   private toFailure(cause: unknown): SetorRepositoryException {
     if (this.isForeignKeyViolation(cause, 'FK_setores_orgaos')) {
       return new SetorRepositoryException({

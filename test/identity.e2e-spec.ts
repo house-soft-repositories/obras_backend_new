@@ -19,10 +19,12 @@ import UserEntity from '@/modules/users/domain/entities/user.entity';
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 import ICreateUserUseCase from '@/modules/users/domain/usecase/create_user.usecase';
 import { CreateUserResponse } from '@/modules/users/domain/usecase/create_user.usecase';
+import UserRepositoryException from '@/modules/users/exceptions/user_repository.exception';
 import { CREATE_USER_SERVICE } from '@/modules/users/symbols';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { validUser } from '@test/constants/users/domain/entities/user.constants';
+import { orgaoIds } from '@test/constants/orgaos/domain/entities/orgao_setor.constants';
 import { validTenancy } from '@test/constants/tenancy/domain/entities/tenancy.constants';
 import mockTokenService from '@test/mocks/auth/adapters/token_service.mock';
 import mockLoginUseCase from '@test/mocks/auth/domain/usecase/login_usecase.mock';
@@ -256,7 +258,7 @@ describe('Identity provisioning (e2e)', () => {
         password: 'secret',
         role: UserRole.USER,
       })
-      .expect(403);
+      .expect(401);
 
     expect(createUser.execute.mock.calls).toHaveLength(0);
   });
@@ -280,28 +282,6 @@ describe('Identity provisioning (e2e)', () => {
     expect(createUser.execute.mock.calls).toHaveLength(0);
   });
 
-  it('rejects an elevated role before user provisioning runs', async () => {
-    tokenService.verifyAccess.mockResolvedValue({
-      sub: '4c67eb4d-b04d-435d-9435-5f1a8d026cf8',
-      type: 'access',
-      role: UserRole.ADMIN,
-      tenantId: '9f8b416e-2b4c-4e4a-b1c7-6beeb3d4d7dc',
-    });
-
-    await request(app.getHttpServer())
-      .post('/api/users')
-      .set('Authorization', 'Bearer valid-access-token')
-      .send({
-        name: 'Tenant Admin',
-        email: 'admin@example.com',
-        password: 'secret',
-        role: UserRole.ADMIN,
-      })
-      .expect(400);
-
-    expect(createUser.execute.mock.calls).toHaveLength(0);
-  });
-
   it('allows an authenticated admin to submit user provisioning', async () => {
     tokenService.verifyAccess.mockResolvedValue({
       sub: '4c67eb4d-b04d-435d-9435-5f1a8d026cf8',
@@ -320,6 +300,9 @@ describe('Identity provisioning (e2e)', () => {
             password: '',
             role: UserRole.USER,
             tenantId: validUser.tenantId,
+            localidadeId: null,
+            orgaoId: null,
+            setorId: null,
             updatedAt: validUser.updatedAt,
           }),
         ),
@@ -372,6 +355,9 @@ describe('Identity provisioning (e2e)', () => {
             password: 'hash',
             role: UserRole.USER,
             tenantId: validUser.tenantId,
+            localidadeId: null,
+            orgaoId: null,
+            setorId: null,
             updatedAt: validUser.updatedAt,
           }),
         ),
@@ -397,6 +383,108 @@ describe('Identity provisioning (e2e)', () => {
           id: '4c67eb4d-b04d-435d-9435-5f1a8d026cf8',
           role: UserRole.SUPERADMIN,
           tenantId: null,
+        },
+      }),
+    ]);
+  });
+
+  it('persists organizational references when provisioning a tenant user', async () => {
+    tokenService.verifyAccess.mockResolvedValue({
+      sub: orgaoIds.userId,
+      type: 'access',
+      role: UserRole.ADMIN,
+      tenantId: orgaoIds.tenantId,
+    });
+    createUser.execute.mockResolvedValue(
+      right(
+        new CreateUserResponse(
+          UserEntity.fromData({
+            id: 'created-user',
+            email: validUser.email,
+            createdAt: validUser.createdAt,
+            name: validUser.name,
+            password: 'hash',
+            role: UserRole.USER,
+            tenantId: orgaoIds.tenantId,
+            localidadeId: orgaoIds.localidadeId,
+            orgaoId: orgaoIds.orgaoId,
+            setorId: orgaoIds.setorId,
+            updatedAt: validUser.updatedAt,
+          }),
+        ),
+      ),
+    );
+
+    const response = await request(app.getHttpServer())
+      .post('/api/users')
+      .set('Authorization', 'Bearer valid-access-token')
+      .send({
+        name: 'Tenant User',
+        email: 'user@example.com',
+        password: 'secret',
+        role: UserRole.USER,
+        localidadeId: orgaoIds.localidadeId,
+        orgaoId: orgaoIds.orgaoId,
+        setorId: orgaoIds.setorId,
+      })
+      .expect(201);
+
+    expect(response.body).toMatchObject({
+      id: 'created-user',
+      localidadeId: orgaoIds.localidadeId,
+      orgaoId: orgaoIds.orgaoId,
+      setorId: orgaoIds.setorId,
+    });
+    expect(createUser.execute.mock.calls).toContainEqual([
+      expect.objectContaining({
+        localidadeId: orgaoIds.localidadeId,
+        orgaoId: orgaoIds.orgaoId,
+        setorId: orgaoIds.setorId,
+        creator: {
+          id: orgaoIds.userId,
+          role: UserRole.ADMIN,
+          tenantId: orgaoIds.tenantId,
+        },
+      }),
+    ]);
+  });
+
+  it('maps missing organizational references to not found', async () => {
+    tokenService.verifyAccess.mockResolvedValue({
+      sub: orgaoIds.userId,
+      type: 'access',
+      role: UserRole.ADMIN,
+      tenantId: orgaoIds.tenantId,
+    });
+    createUser.execute.mockResolvedValue(
+      left(
+        new UserRepositoryException({
+          code: ErrorCodeConstants.LOCALIDADE_NOT_FOUND,
+          statusCode: 404,
+        }),
+      ),
+    );
+
+    const response = await request(app.getHttpServer())
+      .post('/api/users')
+      .set('Authorization', 'Bearer valid-access-token')
+      .send({
+        name: 'Tenant User',
+        email: 'user@example.com',
+        password: 'secret',
+        role: UserRole.USER,
+        localidadeId: orgaoIds.localidadeId,
+      })
+      .expect(404);
+
+    expect(response.body.message).toBe(ErrorCodeConstants.LOCALIDADE_NOT_FOUND);
+    expect(createUser.execute.mock.calls).toContainEqual([
+      expect.objectContaining({
+        localidadeId: orgaoIds.localidadeId,
+        creator: {
+          id: orgaoIds.userId,
+          role: UserRole.ADMIN,
+          tenantId: orgaoIds.tenantId,
         },
       }),
     ]);

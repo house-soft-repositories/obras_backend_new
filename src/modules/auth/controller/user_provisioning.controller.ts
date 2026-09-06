@@ -1,6 +1,6 @@
-import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
-import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
+import RoleDecorator from '@/modules/auth/controller/role.decorator';
+import type { AllowedRolePayload } from '@/modules/auth/controller/role.pipe';
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 import type ICreateUserUseCase from '@/modules/users/domain/usecase/create_user.usecase';
 import CreateUserDto from '@/modules/users/dtos/create_user.dto';
@@ -25,12 +25,9 @@ export default class UserProvisioningController {
   @Post()
   async create(
     @Body() body: CreateUserDto,
-    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+    @RoleDecorator(UserRole.ADMIN, UserRole.SUPERADMIN)
+    user: AllowedRolePayload,
   ) {
-    if (!user) throw new HttpException('Unauthorized', 401);
-    if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPERADMIN) {
-      throw new HttpException('Forbidden', 403);
-    }
     const result = await this.createUser.execute({
       ...body,
       passwordHash: body.password,

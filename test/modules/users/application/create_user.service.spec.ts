@@ -76,6 +76,93 @@ describe('CreateUserService', () => {
     );
   });
 
+  it('persists verified organizational references from the target tenant', async () => {
+    const repository = mockUserRepository();
+    const localidadeId = '6bb7e22a-877d-41e5-8b32-9acbed8f006e';
+    const orgaoId = 'fe1e63ec-21cc-4d39-b8f6-072730c01b7f';
+    const setorId = '02cf1429-fbd9-4dcf-a32b-269296185cd2';
+    repository.findOne.mockResolvedValue(
+      left(
+        new UserRepositoryException({
+          code: ErrorCodeConstants.USER_NOT_FOUND,
+          statusCode: 404,
+        }),
+      ),
+    );
+    repository.existsLocalidade.mockResolvedValue(right(true));
+    repository.existsOrgao.mockResolvedValue(right(true));
+    repository.findSetorById.mockResolvedValue(right({ id: setorId, orgaoId }));
+    repository.save.mockImplementation((user) => Promise.resolve(right(user)));
+    const service = new CreateUserService(repository, passwordHasher());
+
+    const result = await service.execute({
+      ...baseParam,
+      localidadeId,
+      orgaoId,
+      setorId,
+      creator: {
+        id: 'creator-id',
+        role: UserRole.ADMIN,
+        tenantId: ownTenantId,
+      },
+    });
+
+    expect(result.isRight()).toBe(true);
+    expect(repository.existsLocalidade.mock.calls).toContainEqual([
+      localidadeId,
+      ownTenantId,
+    ]);
+    expect(repository.existsOrgao.mock.calls).toContainEqual([
+      orgaoId,
+      ownTenantId,
+    ]);
+    expect(repository.findSetorById.mock.calls).toContainEqual([
+      setorId,
+      ownTenantId,
+    ]);
+    expect(repository.save.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ localidadeId, orgaoId, setorId }),
+    );
+  });
+
+  it('rejects a sector that does not belong to the supplied organization', async () => {
+    const repository = mockUserRepository();
+    const orgaoId = 'fe1e63ec-21cc-4d39-b8f6-072730c01b7f';
+    const setorId = '02cf1429-fbd9-4dcf-a32b-269296185cd2';
+    repository.findOne.mockResolvedValue(
+      left(
+        new UserRepositoryException({
+          code: ErrorCodeConstants.USER_NOT_FOUND,
+          statusCode: 404,
+        }),
+      ),
+    );
+    repository.existsOrgao.mockResolvedValue(right(true));
+    repository.findSetorById.mockResolvedValue(
+      right({ id: setorId, orgaoId: '92302f92-164c-4959-b7b9-bac311b1ad79' }),
+    );
+    const service = new CreateUserService(repository, passwordHasher());
+
+    const result = await service.execute({
+      ...baseParam,
+      orgaoId,
+      setorId,
+      creator: {
+        id: 'creator-id',
+        role: UserRole.ADMIN,
+        tenantId: ownTenantId,
+      },
+    });
+
+    expect(result.isLeft()).toBe(true);
+    expect(repository.save.mock.calls).toHaveLength(0);
+    if (result.isRight()) throw new Error('Expected invalid link failure');
+    expect(result.value).toMatchObject({
+      code: ErrorCodeConstants.USER_INVALID_ORGANIZATIONAL_LINK,
+      statusCode: 400,
+    });
+  });
+
   it('rejects an admin without verified tenant context before persistence', async () => {
     const repository = mockUserRepository();
     const service = new CreateUserService(repository, passwordHasher());

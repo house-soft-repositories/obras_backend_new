@@ -92,6 +92,9 @@ describe('UserEntity', () => {
       password: '',
       role: UserRole.ADMIN,
       tenantId: null,
+      localidadeId: null,
+      orgaoId: null,
+      setorId: null,
     };
 
     const user = UserEntity.fromData(persisted);

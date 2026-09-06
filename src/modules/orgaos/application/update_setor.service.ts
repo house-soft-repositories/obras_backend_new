@@ -23,6 +23,18 @@ export default class UpdateSetorService implements IUpdateSetorUseCase {
       if (param.orgaoId !== undefined) {
         const orgao = await this.repository.existsOrgao(param.orgaoId);
         if (orgao.isLeft()) return left(orgao.value);
+        if (param.orgaoId !== current.value.orgaoId) {
+          const linkedUsers = await this.repository.countLinkedUsers(param.id);
+          if (linkedUsers.isLeft()) return left(linkedUsers.value);
+          if (linkedUsers.value > 0) {
+            return left(
+              new SetorServiceException({
+                code: ErrorCodeConstants.SETOR_HAS_LINKED_USERS,
+                statusCode: 422,
+              }),
+            );
+          }
+        }
       }
       return this.repository.save(
         current.value.update({

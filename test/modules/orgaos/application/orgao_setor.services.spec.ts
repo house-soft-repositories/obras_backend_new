@@ -289,6 +289,7 @@ describe('Setor services', () => {
     const current = SetorEntity.create(props);
     repository.findById.mockResolvedValue(right(current));
     repository.existsOrgao.mockResolvedValue(right(true));
+    repository.countLinkedUsers.mockResolvedValue(right(0));
     repository.save.mockImplementation((entity) => Promise.resolve(right(entity)));
 
     const result = await new UpdateSetorService(repository).execute({
@@ -306,6 +307,28 @@ describe('Setor services', () => {
     expect(repository.existsOrgao.mock.calls).toContainEqual([
       destinationOrgaoId,
     ]);
+  });
+
+  it('rejects moving a sector with linked users', async () => {
+    const repository = mockSetorRepository();
+    const current = SetorEntity.create(props);
+    repository.findById.mockResolvedValue(right(current));
+    repository.existsOrgao.mockResolvedValue(right(true));
+    repository.countLinkedUsers.mockResolvedValue(right(1));
+
+    const result = await new UpdateSetorService(repository).execute({
+      id: current.id,
+      orgaoId: destinationOrgaoId,
+      role: UserRole.STAFF,
+    });
+
+    expect(result.isLeft()).toBe(true);
+    expect(repository.save.mock.calls).toHaveLength(0);
+    if (result.isRight()) throw new Error('Expected linked-user failure');
+    expect(result.value).toMatchObject({
+      code: ErrorCodeConstants.SETOR_HAS_LINKED_USERS,
+      statusCode: 422,
+    });
   });
 
   it('returns missing destination organization before moving a sector', async () => {

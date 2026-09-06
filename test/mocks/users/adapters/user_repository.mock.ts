@@ -5,6 +5,9 @@ const mockUserRepository = (): jest.Mocked<IUserRepository> =>
     findOne: jest.fn(),
     findById: jest.fn(),
     save: jest.fn(),
+    existsLocalidade: jest.fn(),
+    existsOrgao: jest.fn(),
+    findSetorById: jest.fn(),
   });
 
 export default mockUserRepository;

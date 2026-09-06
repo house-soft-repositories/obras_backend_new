@@ -11,6 +11,9 @@ export default abstract class UserMapper {
       password: entity.password,
       role: entity.role,
       tenantId: entity.tenantId,
+      localidadeId: entity.localidadeId,
+      orgaoId: entity.orgaoId,
+      setorId: entity.setorId,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };
@@ -24,6 +27,9 @@ export default abstract class UserMapper {
       password: model.password,
       role: model.role as UserRole,
       tenantId: model.tenantId,
+      localidadeId: model.localidadeId,
+      orgaoId: model.orgaoId,
+      setorId: model.setorId,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     });

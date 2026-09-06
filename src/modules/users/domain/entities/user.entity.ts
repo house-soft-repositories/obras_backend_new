@@ -10,11 +10,25 @@ export interface UserProps {
   password: string;
   role: UserRole;
   tenantId: string | null;
+  localidadeId: string | null;
+  orgaoId: string | null;
+  setorId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
-type CreateUserProps = Pick<UserProps, 'name' | 'email' | 'password'>;
+type CreateUserProps = Pick<
+  UserProps,
+  'name' | 'email' | 'password'
+> &
+  Partial<Pick<UserProps, 'localidadeId' | 'orgaoId' | 'setorId'>>;
+
+export type UpdateUserProps = Partial<
+  Pick<
+    UserProps,
+    'name' | 'email' | 'password' | 'localidadeId' | 'orgaoId' | 'setorId'
+  >
+>;
 
 export default class UserEntity {
   private constructor(private readonly props: UserProps) {}
@@ -40,7 +54,7 @@ export default class UserEntity {
     role: UserRole,
     tenantId: string | null,
   ): UserEntity {
-    if (props.name.trim().length < 2) {
+  if (props.name.trim().length < 2) {
       throw new UserDomainException({
         code: ErrorCodeConstants.USER_INVALID_NAME,
       });
@@ -60,6 +74,13 @@ export default class UserEntity {
         code: ErrorCodeConstants.USER_INVALID_TENANT,
       });
     }
+    for (const value of [props.localidadeId, props.orgaoId, props.setorId]) {
+      if (value !== undefined && value !== null && !this.isUuid(value)) {
+        throw new UserDomainException({
+          code: ErrorCodeConstants.USER_INVALID_TENANT,
+        });
+      }
+    }
 
     const now = new Date();
     return new UserEntity({
@@ -69,6 +90,9 @@ export default class UserEntity {
       password: props.password,
       role,
       tenantId,
+      localidadeId: props.localidadeId ?? null,
+      orgaoId: props.orgaoId ?? null,
+      setorId: props.setorId ?? null,
       createdAt: now,
       updatedAt: now,
     });
@@ -83,6 +107,27 @@ export default class UserEntity {
 
   static fromData(props: UserProps): UserEntity {
     return new UserEntity(props);
+  }
+
+  update(props: UpdateUserProps): UserEntity {
+    const updated = UserEntity.create(
+      {
+        name: props.name ?? this.name,
+        email: props.email ?? this.email,
+        password: props.password ?? this.password,
+        localidadeId:
+          props.localidadeId === undefined ? this.localidadeId : props.localidadeId,
+        orgaoId: props.orgaoId === undefined ? this.orgaoId : props.orgaoId,
+        setorId: props.setorId === undefined ? this.setorId : props.setorId,
+      },
+      this.role,
+      this.tenantId,
+    );
+    return UserEntity.fromData({
+      ...updated.toObject(),
+      id: this.id,
+      createdAt: this.createdAt,
+    });
   }
 
   toObject(): UserProps {
@@ -106,6 +151,15 @@ export default class UserEntity {
   }
   get tenantId() {
     return this.props.tenantId;
+  }
+  get localidadeId() {
+    return this.props.localidadeId;
+  }
+  get orgaoId() {
+    return this.props.orgaoId;
+  }
+  get setorId() {
+    return this.props.setorId;
   }
   get createdAt() {
     return this.props.createdAt;

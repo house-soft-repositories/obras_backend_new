@@ -18,4 +18,13 @@ export default class UserModel extends BaseModelPrimaryColumnUuid {
 
   @Column({ name: 'tenant_id', type: 'uuid', nullable: true })
   tenantId: string | null;
+
+  @Column({ name: 'localidade_id', type: 'uuid', nullable: true })
+  localidadeId: string | null;
+
+  @Column({ name: 'orgao_id', type: 'uuid', nullable: true })
+  orgaoId: string | null;
+
+  @Column({ name: 'setor_id', type: 'uuid', nullable: true })
+  setorId: string | null;
 }

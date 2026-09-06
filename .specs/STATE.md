@@ -36,11 +36,11 @@
 
 ## Handoff
 
-- **Feature**: `.specs/features/cadastros_orgaos_setores`
-- **Phase / Task**: Phase 3, T4 complete
-- **Completed**: T1 tenant-schema bootstrap already creates `orgaos` and `setores` for new and existing tenant schemas; T2 orgao/setor entities, mappers and tenant-scoped repositories; T3 orgao/setor use cases with authorization and parent validation; T4 guarded and validated orgao/setor HTTP endpoints; test constants/mocks reorganized under `test/constants` and `test/mocks`.
+- **Feature**: `.specs/features/usuarios_vinculos_organizacionais`
+- **Phase / Task**: Validation complete, docs closed
+- **Completed**: User organizational references persist on public users via nullable `localidadeId`, `orgaoId`, and `setorId`; `CreateUserService` validates verified-tenant locality/orgao/sector references; sector moves reject linked users with HTTP 422; `RoleDecorator`/`RolePipe` gate user provisioning roles; `POST /api/users` is the only provisioning endpoint exposed after removing the out-of-scope update route; focused unit, e2e, integration, and build gates passed.
 - **In-progress** (file:line): none
 - **Next step**: Await next spec selection or explicit commit authorization.
 - **Blockers**: none.
-- **Uncommitted files**: locality foundation, plan artifacts and pre-existing identity worktree edits.
+- **Uncommitted files**: feature spec/task/validation docs, user organization migration and related implementation/test edits.
 - **Branch**: master

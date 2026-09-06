@@ -19,6 +19,9 @@ export default abstract class ErrorCodeConstants {
 
   static readonly USER_INVALID_TENANT = 'USER_INVALID_TENANT';
 
+  static readonly USER_INVALID_ORGANIZATIONAL_LINK =
+    'USER_INVALID_ORGANIZATIONAL_LINK';
+
   static readonly TENANCY_INVALID_NAME = 'TENANCY_INVALID_NAME';
 
   static readonly TENANCY_INVALID_SLUG = 'TENANCY_INVALID_SLUG';
@@ -79,4 +82,5 @@ export default abstract class ErrorCodeConstants {
   static readonly SETOR_ACCESS_FORBIDDEN = 'SETOR_ACCESS_FORBIDDEN';
   static readonly SETOR_CREATE_FAILED = 'SETOR_CREATE_FAILED';
   static readonly SETOR_UPDATE_FAILED = 'SETOR_UPDATE_FAILED';
+  static readonly SETOR_HAS_LINKED_USERS = 'SETOR_HAS_LINKED_USERS';
 }

@@ -6,5 +6,6 @@ export default function mockSetorRepository(): jest.Mocked<ISetorRepository> {
     findById: jest.fn(),
     findAllByOrgao: jest.fn(),
     existsOrgao: jest.fn(),
+    countLinkedUsers: jest.fn(),
   };
 }

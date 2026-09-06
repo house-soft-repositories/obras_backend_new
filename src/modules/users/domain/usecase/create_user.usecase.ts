@@ -12,8 +12,11 @@ export interface CreateUserParam {
   name: string;
   email: string;
   passwordHash: string;
-  role: UserRole.STAFF | UserRole.USER;
+  role: UserRole.ADMIN | UserRole.STAFF | UserRole.USER | UserRole.SUPERADMIN;
   tenantId?: string;
+  localidadeId?: string;
+  orgaoId?: string;
+  setorId?: string;
   creator: VerifiedCreator;
 }
 
@@ -21,9 +24,30 @@ export class CreateUserResponse {
   constructor(private readonly user: UserEntity) {}
 
   toResponse() {
-    const { id, name, email, role, tenantId, createdAt, updatedAt } =
-      this.user.toObject();
-    return { id, name, email, role, tenantId, createdAt, updatedAt };
+    const {
+      id,
+      name,
+      email,
+      role,
+      tenantId,
+      localidadeId,
+      orgaoId,
+      setorId,
+      createdAt,
+      updatedAt,
+    } = this.user.toObject();
+    return {
+      id,
+      name,
+      email,
+      role,
+      tenantId,
+      localidadeId,
+      orgaoId,
+      setorId,
+      createdAt,
+      updatedAt,
+    };
   }
 }
 
