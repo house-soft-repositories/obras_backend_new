@@ -10,6 +10,9 @@ describe('UserEntity', () => {
 
     expect(user.role).toBe(UserRole.SUPERADMIN);
     expect(user.tenantId).toBeNull();
+    expect(user.id).toMatch(/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i);
+    expect(user.createdAt).toBeInstanceOf(Date);
+    expect(user.updatedAt).toBe(user.createdAt);
   });
 
   it('creates an admin with a tenant', () => {
@@ -45,5 +48,54 @@ describe('UserEntity', () => {
       expect(error).toBeInstanceOf(UserDomainException);
       expect(error.code).toBe(ErrorCodeConstants.USER_INVALID_TENANT);
     }
+  });
+
+  it.each([
+    ['name', { ...validUser, name: ' ' }, ErrorCodeConstants.USER_INVALID_NAME],
+    [
+      'email',
+      { ...validUser, email: 'invalid-email' },
+      ErrorCodeConstants.USER_INVALID_EMAIL,
+    ],
+    [
+      'password',
+      { ...validUser, password: '' },
+      ErrorCodeConstants.USER_INVALID_PASSWORD,
+    ],
+  ])(
+    'rejects an invalid %s in every role factory',
+    (_field, invalidUser, errorCode) => {
+      const factories = [
+        () => UserEntity.createSuperAdmin(invalidUser),
+        () => UserEntity.createAdmin(invalidUser, validUser.tenantId),
+        () => UserEntity.createStaff(invalidUser, validUser.tenantId),
+        () => UserEntity.createUser(invalidUser, validUser.tenantId),
+      ];
+
+      for (const factory of factories) {
+        expect(factory).toThrow(UserDomainException);
+        try {
+          factory();
+        } catch (error) {
+          if (!(error instanceof UserDomainException)) throw error;
+          expect(error.code).toBe(errorCode);
+        }
+      }
+    },
+  );
+
+  it('reconstitutes persisted data without running creation validation', () => {
+    const persisted = {
+      ...validUser,
+      name: '',
+      email: 'not-an-email',
+      password: '',
+      role: UserRole.ADMIN,
+      tenantId: null,
+    };
+
+    const user = UserEntity.fromData(persisted);
+
+    expect(user.toObject()).toEqual(persisted);
   });
 });

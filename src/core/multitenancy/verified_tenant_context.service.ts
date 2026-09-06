@@ -14,7 +14,8 @@ export default class VerifiedTenantContextService {
   async run<T>(accessToken: string, callback: () => Promise<T>): Promise<T> {
     try {
       const payload = await this.tokenService.verifyAccess(accessToken);
-      if (payload.role === UserRole.SUPERADMIN) return callback();
+      if (payload.role === UserRole.SUPERADMIN && !payload.tenantId)
+        return callback();
       if (!payload.tenantId) throw new TenantContextException();
 
       const context = await this.tenantSchemaResolver.resolve(payload.tenantId);

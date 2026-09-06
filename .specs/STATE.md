@@ -36,11 +36,11 @@
 
 ## Handoff
 
-- **Feature**: `.specs/features/multi_tenant_identity`
-- **Phase / Task**: Design review
-- **Completed**: specification and tenant-isolation approach confirmation
-- **In-progress** (file:line): ` .specs/features/multi_tenant_identity/design.md:1`
-- **Next step**: Obtain design approval, then create the task plan and coverage matrix.
-- **Blockers**: confirmation of remaining authentication and tenancy-policy assumptions in the specification.
-- **Uncommitted files**: `.specs/STATE.md`, `.specs/features/multi_tenant_identity/spec.md`, `.specs/features/multi_tenant_identity/context.md`, `.specs/features/multi_tenant_identity/design.md`
+- **Feature**: `.specs/features/cadastros_orgaos_setores`
+- **Phase / Task**: Phase 3, T4 complete
+- **Completed**: T1 tenant-schema bootstrap already creates `orgaos` and `setores` for new and existing tenant schemas; T2 orgao/setor entities, mappers and tenant-scoped repositories; T3 orgao/setor use cases with authorization and parent validation; T4 guarded and validated orgao/setor HTTP endpoints; test constants/mocks reorganized under `test/constants` and `test/mocks`.
+- **In-progress** (file:line): none
+- **Next step**: Await next spec selection or explicit commit authorization.
+- **Blockers**: none.
+- **Uncommitted files**: locality foundation, plan artifacts and pre-existing identity worktree edits.
 - **Branch**: master

@@ -66,6 +66,8 @@ export default class CreateUserService implements ICreateUserUseCase {
 
   private resolveTargetTenantId(param: CreateUserParam): string | null {
     if (param.creator.role === UserRole.ADMIN) {
+      if (param.tenantId && param.tenantId !== param.creator.tenantId)
+        return null;
       return param.creator.tenantId;
     }
     return param.tenantId ?? null;

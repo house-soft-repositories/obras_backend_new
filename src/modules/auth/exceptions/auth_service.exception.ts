@@ -5,7 +5,9 @@ type AuthServiceErrorCode =
   | typeof ErrorCodeConstants.AUTH_INVALID_CREDENTIALS
   | typeof ErrorCodeConstants.AUTH_LOGIN_FAILED
   | typeof ErrorCodeConstants.AUTH_INVALID_REFRESH_TOKEN
-  | typeof ErrorCodeConstants.AUTH_REFRESH_FAILED;
+  | typeof ErrorCodeConstants.AUTH_REFRESH_FAILED
+  | typeof ErrorCodeConstants.AUTH_TENANCY_SWITCH_FORBIDDEN
+  | typeof ErrorCodeConstants.AUTH_TENANCY_SWITCH_UNAVAILABLE;
 
 export default class AuthServiceException extends AppException {
   constructor({ code, statusCode, cause }: { code: AuthServiceErrorCode; statusCode: number; cause?: unknown }) {

@@ -9,6 +9,7 @@ import TenancyMapper from '@/modules/tenancy/infra/mapper/tenancy.mapper';
 import TenancyModel from '@/modules/tenancy/infra/models/tenancy.model';
 import TenancyRepositoryException from '@/modules/tenancy/exceptions/tenancy_repository.exception';
 import TenancyReadModel from '@/modules/tenancy/domain/read_models/tenancy.read_model';
+import TenantIdentitySchema from '@/core/multitenancy/tenant_identity_schema';
 
 export default class TenancyRepository implements ITenancyRepository {
   constructor(private readonly dataSource: DataSource) {}
@@ -26,6 +27,7 @@ export default class TenancyRepository implements ITenancyRepository {
 
       const saved = await this.dataSource.transaction(async (manager) => {
         await manager.query(`CREATE SCHEMA "${tenancy.schemaName}"`);
+        await TenantIdentitySchema.create(manager, tenancy.schemaName);
         const repository = manager.getRepository(TenancyModel);
         return repository.save(repository.create(TenancyMapper.toModel(tenancy)));
       });

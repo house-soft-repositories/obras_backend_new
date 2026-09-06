@@ -9,14 +9,18 @@ Não crie commits, não adicione arquivos ao índice Git e não envie alteraçõ
 **Validação preferencial via Docker (ambiente canônico):**
 
 ```bash
-docker compose up --build -d nest-dev   # rebuilda e sobe o container da API
-docker compose logs -f nest-dev         # verificar se o container subiu corretamente
-docker compose exec nest-dev pnpm run test
-docker compose exec nest-dev pnpm run test -- test/modules/<name>/<file>.spec.ts
-docker compose exec nest-dev pnpm run build
+docker compose up --build -d api   # rebuilda e sobe o container da API
+docker compose logs -f api         # verificar se o container subiu corretamente
+docker compose exec api pnpm test
+docker compose exec api pnpm test -- test/modules/<name>/<file>.spec.ts
+docker compose exec api pnpm run test:e2e
+docker compose exec api pnpm run test:e2e -- test/modules/<name>/<file>.e2e-spec.ts
+docker compose exec api pnpm run test:integration
+docker compose exec api pnpm run test:integration -- test/modules/<name>/<layer>/<file>.spec.ts
+docker compose exec api pnpm run build
 ```
 
-Sempre que possível, rode os testes dentro do container `nest-dev`, pois ele usa o mesmo ambiente de dependências/serviços do desenvolvimento Docker. Use `docker compose logs nest-dev` ou `docker compose logs -f nest-dev` quando precisar confirmar boot, erros de runtime ou estado do container.
+Sempre que possível, rode os testes dentro do container `api`, pois ele usa o mesmo ambiente de dependências/serviços do desenvolvimento Docker. Use `docker compose logs api` ou `docker compose logs -f api` quando precisar confirmar boot, erros de runtime ou estado do container.
 
 **Fallback local (sem Docker):**
 
@@ -24,13 +28,15 @@ Sempre que possível, rode os testes dentro do container `nest-dev`, pois ele us
 pnpm install          # instalar dependências
 pnpm run build        # compilar para dist/ (NestJS CLI)
 pnpm run start:dev    # desenvolvimento com hot-reload (sem Docker: localhost:3000)
-pnpm run test         # rodar suite Jest
+pnpm test             # rodar suite Jest
+pnpm test -- test/modules/<name>/<file>.spec.ts
 pnpm run test:watch   # modo watch ao iterar em specs
 pnpm run test:e2e     # testes e2e (jest-e2e.json)
+pnpm run test:integration # testes de integração (jest-integration.json)
 pnpm run lint         # ESLint + Prettier fix
 ```
 
-**Checklist antes de abrir PR:** preferir `docker compose up --build -d nest-dev && docker compose exec nest-dev pnpm run build && docker compose exec nest-dev pnpm run test`.
+**Checklist antes de abrir PR:** preferir `docker compose up --build -d api && docker compose exec api pnpm run build && docker compose exec api pnpm run lint && docker compose exec api pnpm test`.
 
 ## Architecture
 

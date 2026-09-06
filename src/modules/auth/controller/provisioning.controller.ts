@@ -4,7 +4,10 @@ import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.deco
 import type ICreateTenancyUseCase from '@/modules/tenancy/domain/usecase/create_tenancy.usecase';
 import type IListTenanciesUseCase from '@/modules/tenancy/domain/usecase/list_tenancies.usecase';
 import CreateTenancyDto from '@/modules/tenancy/dtos/create_tenancy.dto';
-import { CREATE_TENANCY_SERVICE, LIST_TENANCIES_SERVICE } from '@/modules/tenancy/symbols';
+import {
+  CREATE_TENANCY_SERVICE,
+  LIST_TENANCIES_SERVICE,
+} from '@/modules/tenancy/symbols';
 import {
   Body,
   Controller,
@@ -30,7 +33,9 @@ export default class ProvisioningController {
     if (!user) throw new HttpException('Unauthorized', 401);
     const result = await this.listTenancies.execute({ role: user.role });
     if (result.isLeft()) {
-      throw new HttpException(result.value.message, result.value.statusCode, { cause: result.value.cause });
+      throw new HttpException(result.value.message, result.value.statusCode, {
+        cause: result.value.cause,
+      });
     }
     return result.value;
   }
@@ -51,6 +56,14 @@ export default class ProvisioningController {
         cause: result.value.cause,
       });
     }
-    return result.value;
+    return {
+      id: result.value.id,
+      name: result.value.name,
+      slug: result.value.slug,
+      cnpj: result.value.cnpj,
+      active: result.value.active,
+      createdAt: result.value.createdAt,
+      updatedAt: result.value.updatedAt,
+    };
   }
 }

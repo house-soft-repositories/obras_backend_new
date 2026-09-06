@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 6,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "surviving_mutant::token type tests must use structurally valid cross type payloads so claim shape validation cannot mask type enforcement",
+      "text": "Token-type tests must use structurally valid cross-type payloads so claim-shape validation cannot mask type enforcement.",
+      "signal": "surviving_mutant",
+      "scope": "auth",
+      "status": "candidate",
+      "features": [
+        "multi_tenant_identity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "src/modules/auth/infra/token/jwt_token.service.ts:26 (M1) (auth)"
+      ],
+      "created": "2026-09-04T11:02:40Z",
+      "last_seen": "2026-09-04T11:02:40Z"
+    },
+    {
+      "id": "L-002",
+      "key": "surviving_mutant::authorization branch tests must configure downstream dependencies to succeed so the asserted guard condition is the only rejection cause",
+      "text": "Authorization branch tests must configure downstream dependencies to succeed so the asserted guard condition is the only rejection cause.",
+      "signal": "surviving_mutant",
+      "scope": "multitenancy",
+      "status": "candidate",
+      "features": [
+        "multi_tenant_identity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "src/core/multitenancy/verified_tenant_context.service.ts:18 (M2) (multitenancy)"
+      ],
+      "created": "2026-09-04T11:02:40Z",
+      "last_seen": "2026-09-04T11:02:40Z"
+    },
+    {
+      "id": "L-003",
+      "key": "surviving_mutant::security configuration tests must assert the exact configured parameter reaches the cryptographic operation",
+      "text": "Security configuration tests must assert the exact configured parameter reaches the cryptographic operation.",
+      "signal": "surviving_mutant",
+      "scope": "auth",
+      "status": "candidate",
+      "features": [
+        "multi_tenant_identity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "src/modules/auth/infra/password/bcrypt_password_hasher.ts:8 (M5) (auth)"
+      ],
+      "created": "2026-09-04T11:02:40Z",
+      "last_seen": "2026-09-04T11:02:40Z"
+    },
+    {
+      "id": "L-004",
+      "key": "gate_fail::when a dependency ships as esm keep the e2e jest transform and module loading configuration executable before relying on route coverage",
+      "text": "When a dependency ships as ESM, keep the e2e Jest transform and module-loading configuration executable before relying on route coverage.",
+      "signal": "gate_fail",
+      "scope": "test",
+      "status": "candidate",
+      "features": [
+        "multi_tenant_identity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "test/app.e2e-spec.ts:5 (test)"
+      ],
+      "created": "2026-09-04T11:02:40Z",
+      "last_seen": "2026-09-04T11:02:40Z"
+    },
+    {
+      "id": "L-005",
+      "key": "ac_gap::migration integration tests must assert the complete specified column set not a representative subset",
+      "text": "Migration integration tests must assert the complete specified column set, not a representative subset.",
+      "signal": "ac_gap",
+      "scope": "database migrations",
+      "status": "candidate",
+      "features": [
+        "multi_tenant_identity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "test/modules/core/infra/migrations/identity_foundation.migration.spec.ts:94-128 (database migrations)"
+      ],
+      "created": "2026-09-04T12:22:47Z",
+      "last_seen": "2026-09-04T12:22:47Z"
+    }
+  ]
+}

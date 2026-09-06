@@ -26,17 +26,8 @@ describe('CreateUserService', () => {
     return hasher;
   };
 
-  it('allows an admin to create staff in its verified tenant, ignoring target input', async () => {
+  it('rejects an admin that targets a tenancy other than its verified tenant', async () => {
     const repository = mockUserRepository();
-    repository.findOne.mockResolvedValue(
-      left(
-        new UserRepositoryException({
-          code: ErrorCodeConstants.USER_NOT_FOUND,
-          statusCode: 404,
-        }),
-      ),
-    );
-    repository.save.mockImplementation((user) => Promise.resolve(right(user)));
     const service: ICreateUserUseCase = new CreateUserService(
       repository,
       passwordHasher(),
@@ -53,10 +44,11 @@ describe('CreateUserService', () => {
       },
     });
 
-    expect(result.isRight()).toBe(true);
-    expect(repository.save.mock.calls[0][0]).toEqual(
-      expect.objectContaining({ role: UserRole.STAFF, tenantId: ownTenantId }),
-    );
+    expect(result.isLeft()).toBe(true);
+    expect(repository.findOne.mock.calls).toHaveLength(0);
+    expect(repository.save.mock.calls).toHaveLength(0);
+    if (result.isRight()) throw new Error('Expected authorization failure');
+    expect(result.value.code).toBe(ErrorCodeConstants.USER_CREATE_FORBIDDEN);
   });
 
   it('allows a superadmin to create a user in the explicitly selected tenant', async () => {

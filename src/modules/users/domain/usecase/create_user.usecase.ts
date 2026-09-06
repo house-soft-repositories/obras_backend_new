@@ -21,7 +21,9 @@ export class CreateUserResponse {
   constructor(private readonly user: UserEntity) {}
 
   toResponse() {
-    return this.user.toObject();
+    const { id, name, email, role, tenantId, createdAt, updatedAt } =
+      this.user.toObject();
+    return { id, name, email, role, tenantId, createdAt, updatedAt };
   }
 }
 
