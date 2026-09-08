@@ -4,7 +4,6 @@ import FonteDomainException from '@/modules/fontes/exceptions/fonte_domain.excep
 
 export interface FonteProps {
   id: string;
-  tenantId: string;
   nome: string;
   descricao: string | null;
   codigo: string | null;
@@ -16,7 +15,10 @@ export interface FonteProps {
   updatedAt: Date;
 }
 
-export type CreateFonteProps = Omit<FonteProps, 'id' | 'createdAt' | 'updatedAt' | 'ativo'> & {
+export type CreateFonteProps = Omit<
+  FonteProps,
+  'id' | 'createdAt' | 'updatedAt' | 'ativo'
+> & {
   ativo?: boolean;
 };
 
@@ -24,7 +26,10 @@ export default class FonteEntity {
   private constructor(private readonly props: FonteProps) {}
 
   static create(props: CreateFonteProps): FonteEntity {
-    if (!props.nome?.trim()) throw new FonteDomainException({ code: ErrorCodeConstants.FONTE_INVALID_NAME });
+    if (!props.nome?.trim())
+      throw new FonteDomainException({
+        code: ErrorCodeConstants.FONTE_INVALID_NAME,
+      });
     const now = new Date();
     return new FonteEntity({
       id: randomUUID(),
@@ -35,23 +40,45 @@ export default class FonteEntity {
       valorPrevisto: props.valorPrevisto || null,
       vigencia: props.vigencia?.trim() || null,
       ativo: props.ativo ?? true,
-      tenantId: props.tenantId,
       createdAt: now,
       updatedAt: now,
     });
   }
 
-  static fromData(props: FonteProps): FonteEntity { return new FonteEntity(props); }
-  toObject(): FonteProps { return { ...this.props }; }
-  get id() { return this.props.id; }
-  get tenantId() { return this.props.tenantId; }
-  get nome() { return this.props.nome; }
-  get descricao() { return this.props.descricao; }
-  get codigo() { return this.props.codigo; }
-  get tipo() { return this.props.tipo; }
-  get valorPrevisto() { return this.props.valorPrevisto; }
-  get vigencia() { return this.props.vigencia; }
-  get ativo() { return this.props.ativo; }
-  get createdAt() { return this.props.createdAt; }
-  get updatedAt() { return this.props.updatedAt; }
+  static fromData(props: FonteProps): FonteEntity {
+    return new FonteEntity(props);
+  }
+  toObject(): FonteProps {
+    return { ...this.props };
+  }
+  get id() {
+    return this.props.id;
+  }
+  get nome() {
+    return this.props.nome;
+  }
+  get descricao() {
+    return this.props.descricao;
+  }
+  get codigo() {
+    return this.props.codigo;
+  }
+  get tipo() {
+    return this.props.tipo;
+  }
+  get valorPrevisto() {
+    return this.props.valorPrevisto;
+  }
+  get vigencia() {
+    return this.props.vigencia;
+  }
+  get ativo() {
+    return this.props.ativo;
+  }
+  get createdAt() {
+    return this.props.createdAt;
+  }
+  get updatedAt() {
+    return this.props.updatedAt;
+  }
 }

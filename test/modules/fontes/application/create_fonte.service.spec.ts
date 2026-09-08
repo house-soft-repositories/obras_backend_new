@@ -15,7 +15,6 @@ const makeRepo = (): jest.Mocked<IFonteRepository> =>
 
 describe('CreateFonteService', () => {
   const base = {
-    tenantId: '9f8b416e-2b4c-4e4a-b1c7-6beeb3d4d7dc',
     nome: 'Tesouro Municipal',
     codigo: 'F-001',
   };
@@ -40,7 +39,7 @@ describe('CreateFonteService', () => {
     repo.save.mockImplementation((e) => Promise.resolve(right(e)));
 
     const service = new CreateFonteService(repo);
-    const result = await service.execute({ tenantId: base.tenantId, nome: 'Sem Código', codigo: null } as any);
+    const result = await service.execute({ nome: 'Sem Código', codigo: null } as any);
 
     expect(result.isRight()).toBe(true);
     expect(repo.findByCodigo).not.toHaveBeenCalled();
@@ -49,7 +48,7 @@ describe('CreateFonteService', () => {
 
   it('returns duplicate code error 409 when codigo already exists', async () => {
     const repo = makeRepo();
-    const existing = FonteEntity.create({ tenantId: base.tenantId, nome: 'Outra', codigo: 'F-001' });
+    const existing = FonteEntity.create({ nome: 'Outra', codigo: 'F-001' });
     repo.findByCodigo.mockResolvedValue(right(existing));
 
     const service = new CreateFonteService(repo);
@@ -80,7 +79,7 @@ describe('CreateFonteService', () => {
     repo.findByCodigo.mockResolvedValue(right(null));
 
     const service = new CreateFonteService(repo);
-    const result = await service.execute({ tenantId: base.tenantId, nome: '  ', codigo: 'F-002' } as any);
+    const result = await service.execute({ nome: '  ', codigo: 'F-002' } as any);
 
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('expected failure');

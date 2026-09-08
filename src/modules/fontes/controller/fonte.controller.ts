@@ -18,7 +18,7 @@ export default class FonteController {
   @Post()
   async createFonte(@Body() body: CreateFonteDto, @AuthenticatedUser() user: AccessTokenPayload | undefined){
     return this.withTenant(user, async()=>{
-      const r=await this.create.execute({ ...body, tenantId: (user as any)?.tenantId ?? '' });
+      const r=await this.create.execute({ ...body });
       return FonteResponseDto.fromEntity(this.unwrap(r));
     });
   }

@@ -19,7 +19,7 @@ const makeRepo = (): jest.Mocked<IFonteRepository> =>
 describe('ListFontesService', () => {
   it('delegates to repository with pagination options and returns ordered page', async () => {
     const repo = makeRepo();
-    const entidade = FonteEntity.create({ tenantId: 't1', nome: 'A Fonte' });
+    const entidade = FonteEntity.create({ nome: 'A Fonte' });
     const page = new PageEntity([entidade], new PageMetaEntity({ pageOptions: new PageOptionsEntity('ASC', 1, 10), itemCount: 1 }));
     repo.findAll.mockResolvedValue(right(page));
 

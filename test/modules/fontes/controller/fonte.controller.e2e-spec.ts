@@ -32,7 +32,7 @@ describe('Fontes API (e2e)', () => {
   };
 
   const fonte = (nome: string, codigo: string | null = null) =>
-    FonteEntity.create({ tenantId, nome, codigo, descricao: 'desc' } as any);
+    FonteEntity.create({ nome, codigo, descricao: 'desc' } as any);
 
   beforeEach(async () => {
     tokenService = { signAccess: jest.fn(), signRefresh: jest.fn(), verifyAccess: jest.fn(), verifyRefresh: jest.fn() } as any;
@@ -62,7 +62,7 @@ describe('Fontes API (e2e)', () => {
     createFonte.execute.mockResolvedValue(right(entity));
     const res = await request(app.getHttpServer()).post('/api/fontes').set('Authorization','Bearer token').send({ nome:' Tesouro Municipal ', codigo:'F-001', tipo:'TESOURO' }).expect(201);
     expect(res.body).toMatchObject({ nome:'Tesouro Municipal', codigo:'F-001', ativo:true });
-    expect(createFonte.execute).toHaveBeenCalledWith(expect.objectContaining({ nome:'Tesouro Municipal', tenantId }));
+    expect(createFonte.execute).toHaveBeenCalledWith(expect.objectContaining({ nome:'Tesouro Municipal' }));
   });
 
   it('rejects duplicate codigo 409 via service', async () => {
