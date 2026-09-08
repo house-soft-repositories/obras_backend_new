@@ -1,0 +1,2 @@
+export const OBRA_REPOSITORY = Symbol('OBRA_REPOSITORY');
+export const CREATE_OBRA_SERVICE = Symbol('CREATE_OBRA_SERVICE');
