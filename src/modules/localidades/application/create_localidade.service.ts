@@ -3,7 +3,6 @@ import AppException from '@/core/exceptions/app_exception';
 import AsyncResult from '@/core/types/async_result';
 import { left } from '@/core/types/either';
 import ILocalidadeRepository from '@/modules/localidades/adapters/localidade_repository.interface';
-import { denyUnlessWriter } from '@/modules/localidades/application/localidade_authorization';
 import LocalidadeEntity from '@/modules/localidades/domain/entities/localidade.entity';
 import ICreateLocalidadeUseCase, {
   CreateLocalidadeParam,
@@ -18,8 +17,6 @@ export default class CreateLocalidadeService implements ICreateLocalidadeUseCase
     param: CreateLocalidadeParam,
   ): AsyncResult<AppException, LocalidadeEntity> {
     try {
-      const denied = denyUnlessWriter(param.role);
-      if (denied) return left(denied);
       return this.repository.save(
         LocalidadeEntity.create({
           nome: param.nome,
