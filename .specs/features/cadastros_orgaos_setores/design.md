@@ -49,27 +49,27 @@ graph TD
 - **Dependencies**: module domain exception.
 - **Reuses**: Localidade entity style.
 
-### Tenant Repositories
+### Tenant Repositories (global list with orgao JOIN)
 
 - **Purpose**: Persist, list and lookup orgaos/setores through explicit schema-qualified SQL.
 - **Location**: `src/modules/orgaos/infra/`
-- **Interfaces**: `save`, `findById`, `findAll`; setor repository also lists by `orgaoId`.
+- **Interfaces**: `save`, `findById`, `findAll`; setor repository `findAllByOrgao(pageOptions)` agora lista tenant-global (sem `orgaoId`) retornando `PageEntity<SetorWithOrgaoReadModel>` via `JOIN`.
 - **Dependencies**: `DataSource` and `TenantContext`.
 - **Reuses**: Localidade repository pattern.
 
 ### Application Use Cases
 
-- **Purpose**: Enforce role rules and validate tenant-local relationships before persistence.
+- **Purpose**: Enforce role rules for writes and tenant-global listing for setores (sem `denyUnlessSetorReader`).
 - **Location**: `src/modules/orgaos/application/`
-- **Interfaces**: create/list/update orgao; create/list/update setor.
-- **Dependencies**: orgao, setor and localidade repositories.
-- **Reuses**: Localidade service authorization pattern.
+- **Interfaces**: `createOrgao`/`listOrgaos`/`updateOrgao`; `createSetor`/`updateSetor` (com `denyUnlessSetorReader`/`existsOrgao`); `listSetores` (tenant-global, sem `denyUnlessSetorReader`/`existsOrgao`, retorna `PageEntity<SetorWithOrgaoReadModel>`).
+- **Dependencies**: orgao/setor/localidade repositories; `listSetores` depende só de `ISetorRepository.findAllByOrgao(pageOptions)` (global).
+- **Reuses**: Localidade service authorization pattern para writes; `listSetores` reutiliza apenas `AccessTokenGuard` + `TenantRequestContextService` (sem `denyUnlessSetorReader`).
 
 ### HTTP Controllers
 
 - **Purpose**: Validate primitive DTO payloads, establish request tenant context and map application failures to HTTP.
 - **Location**: `src/modules/orgaos/controller/`
-- **Interfaces**: `/api/orgaos` and `/api/orgaos/:orgaoId/setores`.
+- **Interfaces**: `/api/orgaos`, `POST /api/orgaos/:orgaoId/setores` e `GET /api/orgaos/setores` (listagem global).
 - **Dependencies**: use case symbols and `TenantRequestContextService`.
 - **Reuses**: Localidade controller pattern.
 
@@ -110,6 +110,21 @@ interface Setor {
 
 **Relationships**: belongs to one tenant-local orgao.
 
+### Setor List Read-Model
+
+```typescript
+interface SetorListItem {
+  id: string;
+  nome: string;
+  ativo: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  orgao: { id: string; nome: string };
+}
+```
+
+**Rules**: `GET /api/orgaos/setores` retorna `PageEntity<SetorWithOrgaoReadModel>` tenant-global ordenado por `s.nome` ASC com `JOIN s.orgao_id = o.id` restrito ao schema verificado, sem `orgaoId` no path/query e sem expor `orgaoId` plano na resposta (`orgao:{id,nome}`); `POST /api/orgaos/:orgaoId/setores` e `PATCH` continuam com `orgaoId` plano no payload/entidade (`SetorDto`/`SetorEntity` inalterados); `page.toObject()` serializa `data`+`meta`.
+
 ## Error Handling Strategy
 
 | Error Scenario | Handling | User Impact |
@@ -132,4 +147,4 @@ interface Setor {
 | Decision | Choice | Rationale |
 | --- | --- | --- |
 | Module placement | Use `src/modules/orgaos/` for both orgaos and nested setores. | Setores are always scoped by orgao in the public route. |
-| Relationship validation | Use repositories to check tenant-local parent records before writes. | Foreign-tenant IDs resolve as not found in the current schema. |
+| Relationship validation (write vs global list) | `POST`/`PATCH` validam `orgaoId` via `existsOrgao` + `denyUnless*`; `GET /api/orgaos/setores` removido `denyUnlessSetorReader` e `existsOrgao`, lista tenant-global via `JOIN setor→orgao` ordenado (`s.nome ASC`) e paginado (`PageMeta`). | `denyUnlessSetorReader` removido propositalmente para não exigir órgão na listagem; writes mantêm 403/404 tenant-isolated. |

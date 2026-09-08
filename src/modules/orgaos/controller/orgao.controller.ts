@@ -124,25 +124,19 @@ export default class OrgaoController {
     });
   }
 
-  @Get(':orgaoId/setores')
+  @Get('setores')
   async listSetoresForOrgao(
-    @Param('orgaoId', ParseUUIDPipe) orgaoId: string,
     @Query() query: PaginationOptionsDto,
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
   ) {
     return this.withTenant(user, async () => {
       const result = await this.listSetores.execute({
-        orgaoId,
         ...query,
         role: user!.role,
       });
       const page = this.unwrap(result);
-      return {
-        data: page.pageData.map((entity) =>
-          SetorResponseDto.fromEntity(entity),
-        ),
-        meta: page.pageMeta,
-      };
+      
+      return page.toObject()
     });
   }
 

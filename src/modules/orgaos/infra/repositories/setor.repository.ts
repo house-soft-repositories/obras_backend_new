@@ -1,4 +1,3 @@
-import { DataSource } from 'typeorm';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import AppException from '@/core/exceptions/app_exception';
 import TenantContext from '@/core/multitenancy/tenant_context';
@@ -12,6 +11,8 @@ import SetorEntity from '@/modules/orgaos/domain/entities/setor.entity';
 import SetorRepositoryException from '@/modules/orgaos/exceptions/setor_repository.exception';
 import SetorMapper from '@/modules/orgaos/infra/mapper/setor.mapper';
 import SetorModel from '@/modules/orgaos/infra/models/setor.model';
+import { SetorWithOrgaoReadModel } from '@/modules/orgaos/infra/read-models/setor_with_orgao_read_model';
+import { DataSource } from 'typeorm';
 
 export default class SetorRepository implements ISetorRepository {
   constructor(
@@ -79,25 +80,24 @@ export default class SetorRepository implements ISetorRepository {
   }
 
   async findAllByOrgao(
-    orgaoId: string,
     pageOptions: PageOptionsEntity,
-  ): AsyncResult<AppException, PageEntity<SetorEntity>> {
+  ): AsyncResult<AppException, PageEntity<SetorWithOrgaoReadModel>> {
     try {
       const schema = this.tenantContext.require().schemaName;
-      const rows = await this.dataSource.query<SetorModel[]>(
-        `SELECT id, orgao_id AS "orgaoId", nome, ativo,
-           created_at AS "createdAt", updated_at AS "updatedAt"
-         FROM "${schema}"."setores"
-         WHERE orgao_id = $1
-         ORDER BY nome ${pageOptions.order}
-         LIMIT $2 OFFSET $3`,
-        [orgaoId, pageOptions.take, pageOptions.skip],
+      type Row = SetorModel & { orgaoNome: string };
+      const rows = await this.dataSource.query<Row[]>(
+        `SELECT s.id, s.orgao_id AS "orgaoId", s.nome, s.ativo,
+           s.created_at AS "createdAt", s.updated_at AS "updatedAt",
+           o.nome AS "orgaoNome"
+         FROM "${schema}"."setores" s
+         JOIN "${schema}"."orgaos" o ON o.id = s.orgao_id
+         ORDER BY s.nome ${pageOptions.order}
+         LIMIT $1 OFFSET $2`,
+        [pageOptions.take, pageOptions.skip],
       );
       const [countResult] = await this.dataSource.query<{ count: string }[]>(
         `SELECT COUNT(*)::int AS count
-         FROM "${schema}"."setores"
-         WHERE orgao_id = $1`,
-        [orgaoId],
+         FROM "${schema}"."setores"`,
       );
       const meta = new PageMetaEntity({
         pageOptions,
@@ -105,7 +105,17 @@ export default class SetorRepository implements ISetorRepository {
       });
       return right(
         new PageEntity(
-          rows.map((row) => SetorMapper.toEntity(row)),
+          rows.map((row) =>
+            SetorMapper.toReadModelWithOrgao({
+              id: row.id,
+              nome: row.nome,
+              ativo: row.ativo,
+              createdAt: row.createdAt,
+              updatedAt: row.updatedAt,
+              orgaoNome: row.orgaoNome,
+              orgaoId: row.orgaoId,
+            }),
+          ),
           meta,
         ),
       );

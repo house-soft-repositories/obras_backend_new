@@ -8,6 +8,10 @@ import UpdateOrgaoService from '@/modules/orgaos/application/update_orgao.servic
 import UpdateSetorService from '@/modules/orgaos/application/update_setor.service';
 import OrgaoEntity from '@/modules/orgaos/domain/entities/orgao.entity';
 import SetorEntity from '@/modules/orgaos/domain/entities/setor.entity';
+import PageEntity from '@/core/pagination/domain/entities/page.entity';
+import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
+import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
+import SetorReadModel from '@/modules/orgaos/domain/read-models/setor_read_model';
 import OrgaoRepositoryException from '@/modules/orgaos/exceptions/orgao_repository.exception';
 import SetorRepositoryException from '@/modules/orgaos/exceptions/setor_repository.exception';
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
@@ -246,16 +250,24 @@ describe('Setor services', () => {
     'allows %s to list sectors for an existing organization',
     async (role) => {
       const repository = mockSetorRepository();
-      const setor = SetorEntity.create(props);
+      const readModel = SetorReadModel.fromData({
+        id: 'setor-1',
+        nome: validSetor.nome,
+        ativo: validSetor.ativo,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        orgao: { id: orgaoIds.orgaoId, nome: validOrgao.nome },
+      });
+      const page = new PageEntity([readModel], new PageMetaEntity({ pageOptions: new PageOptionsEntity('ASC', 1, 10), itemCount: 1 }));
       repository.existsOrgao.mockResolvedValue(right(true));
-      repository.findAllByOrgao.mockResolvedValue(right([setor]));
+      repository.findAllByOrgao.mockResolvedValue(right(page));
 
       const result = await new ListSetoresService(repository).execute({
         orgaoId: orgaoIds.orgaoId,
         role,
       });
 
-      expect(result.getOrThrow()).toEqual([setor]);
+      expect(result.getOrThrow().pageData[0].orgao).toEqual({ id: orgaoIds.orgaoId, nome: validOrgao.nome });
       expect(repository.existsOrgao.mock.calls).toContainEqual([
         orgaoIds.orgaoId,
       ]);

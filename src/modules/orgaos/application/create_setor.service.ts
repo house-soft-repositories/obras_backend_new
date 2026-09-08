@@ -3,7 +3,6 @@ import AppException from '@/core/exceptions/app_exception';
 import AsyncResult from '@/core/types/async_result';
 import { left } from '@/core/types/either';
 import ISetorRepository from '@/modules/orgaos/adapters/setor_repository.interface';
-import { denyUnlessSetorWriter } from '@/modules/orgaos/application/orgao_authorization';
 import SetorEntity from '@/modules/orgaos/domain/entities/setor.entity';
 import ICreateSetorUseCase, {
   CreateSetorParam,
@@ -14,10 +13,10 @@ import SetorServiceException from '@/modules/orgaos/exceptions/setor_service.exc
 export default class CreateSetorService implements ICreateSetorUseCase {
   constructor(private readonly repository: ISetorRepository) {}
 
-  async execute(param: CreateSetorParam): AsyncResult<AppException, SetorEntity> {
+  async execute(
+    param: CreateSetorParam,
+  ): AsyncResult<AppException, SetorEntity> {
     try {
-      const denied = denyUnlessSetorWriter(param.role);
-      if (denied) return left(denied);
       const orgao = await this.repository.existsOrgao(param.orgaoId);
       if (orgao.isLeft()) return left(orgao.value);
       return this.repository.save(

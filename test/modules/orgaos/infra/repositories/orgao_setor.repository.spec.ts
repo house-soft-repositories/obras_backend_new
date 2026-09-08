@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import TenantContext from '@/core/multitenancy/tenant_context';
+import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import TenantIdentitySchema from '@/core/multitenancy/tenant_identity_schema';
 import LocalidadeEntity from '@/modules/localidades/domain/entities/localidade.entity';
 import { TipoLocalidade } from '@/modules/localidades/domain/enums/tipo_localidade.enum';
@@ -58,14 +59,15 @@ describe('OrgaoRepository and SetorRepository', () => {
 
       await repositories.orgaos.save(zeta);
       await repositories.orgaos.save(alpha);
-      return repositories.orgaos.findAll();
+      return repositories.orgaos.findAll(new PageOptionsEntity('ASC', 1, 10));
     });
 
-    expect(result.getOrThrow().map((item) => item.nome)).toEqual([
+    const page = result.getOrThrow();
+    expect(page.pageData.map((item) => item.nome)).toEqual([
       'Alpha',
       'Zeta',
     ]);
-    expect(result.getOrThrow()[0]).toMatchObject({
+    expect(page.pageData[0]).toMatchObject({
       tipo: TipoOrgao.SECRETARIA,
       ativo: true,
     });
@@ -118,6 +120,7 @@ describe('OrgaoRepository and SetorRepository', () => {
     const tenancy = await createTenantSchema(dataSource, schemas);
     const repositories = repositoriesFor(context, dataSource);
 
+    let createdOrgaoId = '';
     const result = await context.run(tenantContext(tenancy), async () => {
       const localidade = await repositories.localidades.save(
         LocalidadeEntity.create(localidadeProps('Fortaleza')),
@@ -125,21 +128,24 @@ describe('OrgaoRepository and SetorRepository', () => {
       const orgao = await repositories.orgaos.save(
         OrgaoEntity.create(orgaoProps(localidade.getOrThrow().id, 'Secretaria')),
       );
+      createdOrgaoId = orgao.getOrThrow().id;
       await repositories.setores.save(
-        SetorEntity.create(setorProps(orgao.getOrThrow().id, 'Zeladoria')),
+        SetorEntity.create(setorProps(createdOrgaoId, 'Zeladoria')),
       );
       await repositories.setores.save(
-        SetorEntity.create(setorProps(orgao.getOrThrow().id, 'Arquitetura')),
+        SetorEntity.create(setorProps(createdOrgaoId, 'Arquitetura')),
       );
 
-      return repositories.setores.findAllByOrgao(orgao.getOrThrow().id);
+      return repositories.setores.findAllByOrgao(new PageOptionsEntity('ASC', 1, 10));
     });
 
-    expect(result.getOrThrow().map((item) => item.nome)).toEqual([
+    const page = result.getOrThrow();
+    expect(page.pageData.map((item) => item.nome)).toEqual([
       'Arquitetura',
       'Zeladoria',
     ]);
-    expect(result.getOrThrow()[0]).toMatchObject({ ativo: true });
+    expect(page.pageData[0]).toMatchObject({ ativo: true, orgao: { id: createdOrgaoId, nome: 'Secretaria' } });
+    expect(page.pageMeta.itemCount).toBe(2);
   });
 
   it('maps missing organization references to not found in the verified schema', async () => {

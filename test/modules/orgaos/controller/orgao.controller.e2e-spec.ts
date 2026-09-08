@@ -9,6 +9,10 @@ import ITokenService, {
 import { TOKEN_SERVICE } from '@/modules/auth/symbols';
 import OrgaoEntity from '@/modules/orgaos/domain/entities/orgao.entity';
 import SetorEntity from '@/modules/orgaos/domain/entities/setor.entity';
+import PageEntity from '@/core/pagination/domain/entities/page.entity';
+import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
+import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
+import SetorReadModel from '@/modules/orgaos/domain/read-models/setor_read_model';
 import { TipoOrgao } from '@/modules/orgaos/domain/enums/tipo_orgao.enum';
 import ICreateOrgaoUseCase from '@/modules/orgaos/domain/usecase/create_orgao.usecase';
 import ICreateSetorUseCase from '@/modules/orgaos/domain/usecase/create_setor.usecase';
@@ -53,9 +57,9 @@ type OrgaoResponse = {
 
 type SetorResponse = {
   id: string;
-  orgaoId: string;
   nome: string;
   ativo: boolean;
+  orgao: { id: string; nome: string };
 };
 
 describe('Orgaos API (e2e)', () => {
@@ -324,7 +328,7 @@ describe('Orgaos API (e2e)', () => {
     tokenFor(UserRole.STAFF);
     createSetor.execute.mockResolvedValue(right(setor({ nome: 'Engenharia' })));
     listSetores.execute.mockResolvedValue(
-      right([setor({ nome: 'Arquitetura' }), setor({ nome: 'Zeladoria' })]),
+      right(pageOfSetores([setorRead({ nome: 'Arquitetura' }), setorRead({ nome: 'Zeladoria' })])),
     );
     updateSetor.execute.mockResolvedValue(
       right(setor({ nome: 'Projetos', ativo: false })),
@@ -346,17 +350,18 @@ describe('Orgaos API (e2e)', () => {
       .expect(200);
 
     const createdBody = created.body as unknown as SetorResponse;
-    const listedBody = listed.body as unknown as SetorResponse[];
+    const listedBody = listed.body as unknown as { data: SetorResponse[]; meta: unknown };
     const updatedBody = updated.body as unknown as SetorResponse;
     expect(createdBody).toMatchObject({
       id: orgaoIds.setorId,
       orgaoId: orgaoIds.orgaoId,
       nome: 'Engenharia',
     });
-    expect(listedBody.map((item) => item.nome)).toEqual([
+    expect(listedBody.data.map((item) => item.nome)).toEqual([
       'Arquitetura',
       'Zeladoria',
     ]);
+    expect(listedBody.data[0].orgao).toEqual({ id: orgaoIds.orgaoId, nome: 'Secretaria' });
     expect(updatedBody).toMatchObject({
       id: orgaoIds.setorId,
       orgaoId: orgaoIds.orgaoId,
@@ -530,4 +535,19 @@ function setor(props: { nome: string; ativo?: boolean }): SetorEntity {
     createdAt: validSetor.createdAt,
     updatedAt: validSetor.updatedAt,
   });
+}
+
+function setorRead(props: { nome: string; ativo?: boolean }): SetorReadModel {
+  return SetorReadModel.fromData({
+    id: orgaoIds.setorId,
+    nome: props.nome,
+    ativo: props.ativo ?? true,
+    createdAt: validSetor.createdAt,
+    updatedAt: validSetor.updatedAt,
+    orgao: { id: orgaoIds.orgaoId, nome: 'Secretaria' },
+  });
+}
+
+function pageOfSetores(items: SetorReadModel[]): PageEntity<SetorReadModel> {
+  return new PageEntity(items, new PageMetaEntity({ pageOptions: new PageOptionsEntity('ASC', 1, 10), itemCount: items.length }));
 }

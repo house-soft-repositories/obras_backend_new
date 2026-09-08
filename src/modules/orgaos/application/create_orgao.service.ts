@@ -3,7 +3,6 @@ import AppException from '@/core/exceptions/app_exception';
 import AsyncResult from '@/core/types/async_result';
 import { left } from '@/core/types/either';
 import IOrgaoRepository from '@/modules/orgaos/adapters/orgao_repository.interface';
-import { denyUnlessOrgaoWriter } from '@/modules/orgaos/application/orgao_authorization';
 import OrgaoEntity from '@/modules/orgaos/domain/entities/orgao.entity';
 import ICreateOrgaoUseCase, {
   CreateOrgaoParam,
@@ -14,10 +13,10 @@ import OrgaoServiceException from '@/modules/orgaos/exceptions/orgao_service.exc
 export default class CreateOrgaoService implements ICreateOrgaoUseCase {
   constructor(private readonly repository: IOrgaoRepository) {}
 
-  async execute(param: CreateOrgaoParam): AsyncResult<AppException, OrgaoEntity> {
+  async execute(
+    param: CreateOrgaoParam,
+  ): AsyncResult<AppException, OrgaoEntity> {
     try {
-      const denied = denyUnlessOrgaoWriter(param.role);
-      if (denied) return left(denied);
       const localidade = await this.repository.existsLocalidade(
         param.localidadeId,
       );

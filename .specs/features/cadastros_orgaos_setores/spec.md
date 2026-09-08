@@ -22,8 +22,9 @@ Obras precisa de órgãos e setores tenant-isolados para identificar a responsab
 
 | Assumption / decision | Chosen default | Rationale | Confirmed? |
 | --- | --- | --- |
-| Roles | `ADMIN` escreve todos; `STAFF` escreve localidades e setores; `USER` lê; `SUPERADMIN` sem tenant é bloqueado. | Mapeamento confirmado do legado. | y |
-| Routes | `/api/orgaos` e `/api/orgaos/:orgaoId/setores`. | Preserva o contrato legado. | y |
+| Roles | `ADMIN` escreve todos; `STAFF` escreve localidades e setores; `USER` lê; `SUPERADMIN` sem tenant é bloqueado. **Listagem de setores (`GET /api/orgaos/setores`) é tenant-global autenticada (qualquer `USER`/`STAFF`/`ADMIN` com tenant verificado via `AccessTokenGuard` + `TenantRequestContextService`), sem `denyUnlessSetorReader`/`existsOrgao` — proposital para alimentar selects de Obras. | Mapeamento legado mantido para writes; listagem global remove verificação de leitor/orgão para não depender de órgão. | y |
+| Routes | `/api/orgaos`, `POST /api/orgaos/:orgaoId/setores` e `GET /api/orgaos/setores`. | Criação permanece aninhada ao órgão; listagem tornou-se tenant-global para alimentar selects de Obras sem depender de órgão. | y |
+| Setor list read-model | `GET /api/orgaos/setores` retorna read-model global (sem `orgaoId` no path/query) com `orgao: { id, nome }` no lugar de `orgaoId` plano, mantendo `id`, `nome`, `ativo`, `createdAt`, `updatedAt` e ordenação por `nome` ASC com paginação. | Lista tenant-global evita dependência do órgão na seleção de setores e preserva tenant-isolation via `JOIN` restrito ao schema verificado. | y |
 
 **Open questions:** none.
 
@@ -51,7 +52,7 @@ Obras precisa de órgãos e setores tenant-isolados para identificar a responsab
 **Acceptance Criteria**:
 
 1. WHEN an authorized writer creates a sector under a verified-tenant organization THEN the system SHALL persist `nome`, `ativo`, and `orgaoId`. <!-- event-driven -->
-2. WHEN an authorized tenant user lists sectors for an organization THEN the system SHALL return only its verified-tenant sectors ordered by `nome` ascending. <!-- event-driven -->
+2. WHEN any authenticated tenant user (`USER`/`STAFF`/`ADMIN` com tenant verificado) lists sectors via `GET /api/orgaos/setores` (tenant-global, sem `orgaoId` no path/query) THEN the system SHALL return a tenant-scoped, `nome`-ordered `Page<SetorWithOrgaoReadModel>` where each sector exposes `orgao: { id, nome }` instead of flat `orgaoId`, preserving `id`, `nome`, `ativo`, `createdAt`, `updatedAt` and `PageMeta`, **sem** `denyUnlessSetorReader` nem `existsOrgao` — apenas `AccessTokenGuard` + `TenantRequestContextService`. <!-- event-driven -->
 3. WHEN an authorized writer updates a sector THEN the system SHALL persist supplied `nome`, `ativo`, or a verified-tenant destination `orgaoId`. <!-- event-driven -->
 4. IF a parent, sector, or destination organization is absent from the verified tenant THEN the system SHALL return HTTP 404 with a registered code. <!-- unwanted-behavior -->
 
