@@ -1,6 +1,7 @@
 import AppException from '@/core/exceptions/app_exception';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import TenantRequestContextService from '@/core/multitenancy/tenant_request_context.service';
+import PaginationOptionsDto from '@/core/pagination/dto/pagination_options.dto';
 import type { Either } from '@/core/types/either';
 import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
@@ -26,6 +27,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -58,13 +60,21 @@ export default class LocalidadeController {
 
   @Get()
   async list(
+    @Query() query: PaginationOptionsDto,
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
-  ): Promise<LocalidadeResponseDto[]> {
+  ) {
     return this.withTenant(user, async () => {
-      const result = await this.listLocalidades.execute({ role: user!.role });
-      return this.unwrap(result).map((entity) =>
-        LocalidadeResponseDto.fromEntity(entity),
-      );
+      const result = await this.listLocalidades.execute({
+        ...query,
+        role: user!.role,
+      });
+      const page = this.unwrap(result);
+      return {
+        data: page.pageData.map((entity) =>
+          LocalidadeResponseDto.fromEntity(entity),
+        ),
+        meta: page.pageMeta,
+      };
     });
   }
 

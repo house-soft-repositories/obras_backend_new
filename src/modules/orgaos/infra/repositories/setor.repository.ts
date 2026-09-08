@@ -2,6 +2,9 @@ import { DataSource } from 'typeorm';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import AppException from '@/core/exceptions/app_exception';
 import TenantContext from '@/core/multitenancy/tenant_context';
+import PageEntity from '@/core/pagination/domain/entities/page.entity';
+import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
+import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import ISetorRepository from '@/modules/orgaos/adapters/setor_repository.interface';
@@ -77,7 +80,8 @@ export default class SetorRepository implements ISetorRepository {
 
   async findAllByOrgao(
     orgaoId: string,
-  ): AsyncResult<AppException, SetorEntity[]> {
+    pageOptions: PageOptionsEntity,
+  ): AsyncResult<AppException, PageEntity<SetorEntity>> {
     try {
       const schema = this.tenantContext.require().schemaName;
       const rows = await this.dataSource.query<SetorModel[]>(
@@ -85,10 +89,26 @@ export default class SetorRepository implements ISetorRepository {
            created_at AS "createdAt", updated_at AS "updatedAt"
          FROM "${schema}"."setores"
          WHERE orgao_id = $1
-         ORDER BY nome ASC`,
+         ORDER BY nome ${pageOptions.order}
+         LIMIT $2 OFFSET $3`,
+        [orgaoId, pageOptions.take, pageOptions.skip],
+      );
+      const [countResult] = await this.dataSource.query<{ count: string }[]>(
+        `SELECT COUNT(*)::int AS count
+         FROM "${schema}"."setores"
+         WHERE orgao_id = $1`,
         [orgaoId],
       );
-      return right(rows.map((row) => SetorMapper.toEntity(row)));
+      const meta = new PageMetaEntity({
+        pageOptions,
+        itemCount: Number(countResult?.count ?? 0),
+      });
+      return right(
+        new PageEntity(
+          rows.map((row) => SetorMapper.toEntity(row)),
+          meta,
+        ),
+      );
     } catch (cause) {
       return left(
         new SetorRepositoryException({

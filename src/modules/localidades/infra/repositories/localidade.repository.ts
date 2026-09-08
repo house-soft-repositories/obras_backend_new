@@ -2,6 +2,9 @@ import { DataSource } from 'typeorm';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import AppException from '@/core/exceptions/app_exception';
+import PageEntity from '@/core/pagination/domain/entities/page.entity';
+import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
+import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import ILocalidadeRepository from '@/modules/localidades/adapters/localidade_repository.interface';
@@ -11,9 +14,14 @@ import LocalidadeMapper from '@/modules/localidades/infra/mapper/localidade.mapp
 import LocalidadeModel from '@/modules/localidades/infra/models/localidade.model';
 
 export default class LocalidadeRepository implements ILocalidadeRepository {
-  constructor(private readonly dataSource: DataSource, private readonly tenantContext: TenantContext) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly tenantContext: TenantContext,
+  ) {}
 
-  async save(entity: LocalidadeEntity): AsyncResult<AppException, LocalidadeEntity> {
+  async save(
+    entity: LocalidadeEntity,
+  ): AsyncResult<AppException, LocalidadeEntity> {
     try {
       const schema = this.tenantContext.require().schemaName;
       const value = LocalidadeMapper.toModel(entity);
@@ -29,27 +37,86 @@ export default class LocalidadeRepository implements ILocalidadeRepository {
            observacoes = EXCLUDED.observacoes,
            updated_at = EXCLUDED.updated_at
          RETURNING id, nome, uf, codigo_ibge AS "codigoIbge", tipo, municipio, observacoes, created_at AS "createdAt", updated_at AS "updatedAt"`,
-        [value.id, value.nome, value.uf, value.codigoIbge, value.tipo, value.municipio, value.observacoes, value.createdAt, value.updatedAt],
+        [
+          value.id,
+          value.nome,
+          value.uf,
+          value.codigoIbge,
+          value.tipo,
+          value.municipio,
+          value.observacoes,
+          value.createdAt,
+          value.updatedAt,
+        ],
       );
       return right(LocalidadeMapper.toEntity(saved));
-    } catch (cause) { return left(new LocalidadeRepositoryException({ code: ErrorCodeConstants.LOCALIDADE_REPOSITORY_FAILED, statusCode: 500, cause })); }
+    } catch (cause) {
+      return left(
+        new LocalidadeRepositoryException({
+          code: ErrorCodeConstants.LOCALIDADE_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
   }
 
   async findById(id: string): AsyncResult<AppException, LocalidadeEntity> {
     try {
       const schema = this.tenantContext.require().schemaName;
       const [found] = await this.dataSource.query<LocalidadeModel[]>(
-        `SELECT id, nome, uf, codigo_ibge AS "codigoIbge", tipo, municipio, observacoes, created_at AS "createdAt", updated_at AS "updatedAt" FROM "${schema}"."localidades" WHERE id = $1`, [id],
+        `SELECT id, nome, uf, codigo_ibge AS "codigoIbge", tipo, municipio, observacoes, created_at AS "createdAt", updated_at AS "updatedAt" FROM "${schema}"."localidades" WHERE id = $1`,
+        [id],
       );
-      return found ? right(LocalidadeMapper.toEntity(found)) : left(new LocalidadeRepositoryException({ code: ErrorCodeConstants.LOCALIDADE_NOT_FOUND, statusCode: 404 }));
-    } catch (cause) { return left(new LocalidadeRepositoryException({ code: ErrorCodeConstants.LOCALIDADE_REPOSITORY_FAILED, statusCode: 500, cause })); }
+      return found
+        ? right(LocalidadeMapper.toEntity(found))
+        : left(
+            new LocalidadeRepositoryException({
+              code: ErrorCodeConstants.LOCALIDADE_NOT_FOUND,
+              statusCode: 404,
+            }),
+          );
+    } catch (cause) {
+      return left(
+        new LocalidadeRepositoryException({
+          code: ErrorCodeConstants.LOCALIDADE_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
   }
 
-  async findAll(): AsyncResult<AppException, LocalidadeEntity[]> {
+  async findAll(
+    pageOptions: PageOptionsEntity,
+  ): AsyncResult<AppException, PageEntity<LocalidadeEntity>> {
     try {
       const schema = this.tenantContext.require().schemaName;
-      const rows = await this.dataSource.query<LocalidadeModel[]>(`SELECT id, nome, uf, codigo_ibge AS "codigoIbge", tipo, municipio, observacoes, created_at AS "createdAt", updated_at AS "updatedAt" FROM "${schema}"."localidades" ORDER BY nome ASC`);
-      return right(rows.map((row) => LocalidadeMapper.toEntity(row)));
-    } catch (cause) { return left(new LocalidadeRepositoryException({ code: ErrorCodeConstants.LOCALIDADE_REPOSITORY_FAILED, statusCode: 500, cause })); }
+      const rows = await this.dataSource.query<LocalidadeModel[]>(
+        `SELECT id, nome, uf, codigo_ibge AS "codigoIbge", tipo, municipio, observacoes, created_at AS "createdAt", updated_at AS "updatedAt" FROM "${schema}"."localidades" ORDER BY nome ${pageOptions.order} LIMIT $1 OFFSET $2`,
+        [pageOptions.take, pageOptions.skip],
+      );
+      const [countResult] = await this.dataSource.query<{ count: string }[]>(
+        `SELECT COUNT(*)::int AS count FROM "${schema}"."localidades"`,
+      );
+      const meta = new PageMetaEntity({
+        pageOptions,
+        itemCount: Number(countResult?.count ?? 0),
+      });
+      return right(
+        new PageEntity(
+          rows.map((row) => LocalidadeMapper.toEntity(row)),
+          meta,
+        ),
+      );
+    } catch (cause) {
+      return left(
+        new LocalidadeRepositoryException({
+          code: ErrorCodeConstants.LOCALIDADE_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
   }
 }

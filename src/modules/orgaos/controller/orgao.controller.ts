@@ -1,5 +1,6 @@
 import AppException from '@/core/exceptions/app_exception';
 import TenantRequestContextService from '@/core/multitenancy/tenant_request_context.service';
+import PaginationOptionsDto from '@/core/pagination/dto/pagination_options.dto';
 import type { Either } from '@/core/types/either';
 import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
@@ -34,6 +35,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -72,13 +74,21 @@ export default class OrgaoController {
 
   @Get()
   async list(
+    @Query() query: PaginationOptionsDto,
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
-  ): Promise<OrgaoResponseDto[]> {
+  ) {
     return this.withTenant(user, async () => {
-      const result = await this.listOrgaos.execute({ role: user!.role });
-      return this.unwrap(result).map((entity) =>
-        OrgaoResponseDto.fromEntity(entity),
-      );
+      const result = await this.listOrgaos.execute({
+        ...query,
+        role: user!.role,
+      });
+      const page = this.unwrap(result);
+      return {
+        data: page.pageData.map((entity) =>
+          OrgaoResponseDto.fromEntity(entity),
+        ),
+        meta: page.pageMeta,
+      };
     });
   }
 
@@ -117,16 +127,22 @@ export default class OrgaoController {
   @Get(':orgaoId/setores')
   async listSetoresForOrgao(
     @Param('orgaoId', ParseUUIDPipe) orgaoId: string,
+    @Query() query: PaginationOptionsDto,
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
-  ): Promise<SetorResponseDto[]> {
+  ) {
     return this.withTenant(user, async () => {
       const result = await this.listSetores.execute({
         orgaoId,
+        ...query,
         role: user!.role,
       });
-      return this.unwrap(result).map((entity) =>
-        SetorResponseDto.fromEntity(entity),
-      );
+      const page = this.unwrap(result);
+      return {
+        data: page.pageData.map((entity) =>
+          SetorResponseDto.fromEntity(entity),
+        ),
+        meta: page.pageMeta,
+      };
     });
   }
 

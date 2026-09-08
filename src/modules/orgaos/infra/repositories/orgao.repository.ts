@@ -2,6 +2,9 @@ import { DataSource } from 'typeorm';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import AppException from '@/core/exceptions/app_exception';
 import TenantContext from '@/core/multitenancy/tenant_context';
+import PageEntity from '@/core/pagination/domain/entities/page.entity';
+import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
+import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import IOrgaoRepository from '@/modules/orgaos/adapters/orgao_repository.interface';
@@ -85,16 +88,32 @@ export default class OrgaoRepository implements IOrgaoRepository {
     }
   }
 
-  async findAll(): AsyncResult<AppException, OrgaoEntity[]> {
+  async findAll(
+    pageOptions: PageOptionsEntity,
+  ): AsyncResult<AppException, PageEntity<OrgaoEntity>> {
     try {
       const schema = this.tenantContext.require().schemaName;
       const rows = await this.dataSource.query<OrgaoModel[]>(
         `SELECT id, localidade_id AS "localidadeId", nome, sigla, tipo, responsavel, email, telefone, ativo,
            created_at AS "createdAt", updated_at AS "updatedAt"
          FROM "${schema}"."orgaos"
-         ORDER BY nome ASC`,
+         ORDER BY nome ${pageOptions.order}
+         LIMIT $1 OFFSET $2`,
+        [pageOptions.take, pageOptions.skip],
       );
-      return right(rows.map((row) => OrgaoMapper.toEntity(row)));
+      const [countResult] = await this.dataSource.query<{ count: string }[]>(
+        `SELECT COUNT(*)::int AS count FROM "${schema}"."orgaos"`,
+      );
+      const meta = new PageMetaEntity({
+        pageOptions,
+        itemCount: Number(countResult?.count ?? 0),
+      });
+      return right(
+        new PageEntity(
+          rows.map((row) => OrgaoMapper.toEntity(row)),
+          meta,
+        ),
+      );
     } catch (cause) {
       return left(
         new OrgaoRepositoryException({
@@ -106,7 +125,9 @@ export default class OrgaoRepository implements IOrgaoRepository {
     }
   }
 
-  async existsLocalidade(localidadeId: string): AsyncResult<AppException, true> {
+  async existsLocalidade(
+    localidadeId: string,
+  ): AsyncResult<AppException, true> {
     try {
       const schema = this.tenantContext.require().schemaName;
       const [found] = await this.dataSource.query<{ id: string }[]>(
