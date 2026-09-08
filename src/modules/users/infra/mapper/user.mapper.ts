@@ -1,6 +1,16 @@
 import UserEntity from '@/modules/users/domain/entities/user.entity';
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 import UserModel from '@/modules/users/infra/models/user.model';
+import { UsuarioWithOrganizationalReadModel } from '@/modules/users/infra/read-models/usuario_with_organizational_read_model';
+
+type UsuarioRow = UserModel & {
+  localidadeNome: string | null;
+  localidadeUf: string | null;
+  orgaoNome: string | null;
+  orgaoSigla: string | null;
+  setorNome: string | null;
+  setorOrgaoId: string | null;
+};
 
 export default abstract class UserMapper {
   static toModel(entity: UserEntity): Partial<UserModel> {
@@ -33,5 +43,29 @@ export default abstract class UserMapper {
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     });
+  }
+
+  static toReadModelWithOrganizational(row: UsuarioRow): UsuarioWithOrganizationalReadModel {
+    return {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      role: row.role as UserRole,
+      tenantId: row.tenantId,
+      localidade:
+        row.localidadeId && row.localidadeNome && row.localidadeUf
+          ? { id: row.localidadeId, nome: row.localidadeNome, uf: row.localidadeUf }
+          : null,
+      orgao:
+        row.orgaoId && row.orgaoNome
+          ? { id: row.orgaoId, nome: row.orgaoNome, sigla: row.orgaoSigla ?? null }
+          : null,
+      setor:
+        row.setorId && row.setorNome && row.setorOrgaoId
+          ? { id: row.setorId, nome: row.setorNome, orgaoId: row.setorOrgaoId }
+          : null,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
   }
 }

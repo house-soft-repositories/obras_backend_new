@@ -1,4 +1,5 @@
 import AppException from '@/core/exceptions/app_exception';
+import PaginationOptionsDto from '@/core/pagination/dto/pagination_options.dto';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import RoleDecorator from '@/modules/auth/controller/role.decorator';
 import TenantRequestContextService from '@/core/multitenancy/tenant_request_context.service';
@@ -18,6 +19,7 @@ import {
   HttpException,
   Inject,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -34,9 +36,26 @@ export default class UserProvisioningController {
 
   @Get()
   async list(
+    @Query() query: PaginationOptionsDto,
     @RoleDecorator(UserRole.ADMIN, UserRole.STAFF, UserRole.SUPERADMIN)
     user: AllowedRolePayload,
   ) {
+    if (!user.tenantId) {
+      const result = await this.listUsers.execute({
+        requester: {
+          id: user.sub,
+          role: user.role,
+          tenantId: null,
+        },
+        ...query,
+      });
+      if (result.isLeft()) {
+        throw new HttpException(result.value.message, result.value.statusCode, {
+          cause: result.value.cause,
+        });
+      }
+      return result.value.toObject();
+    }
     return this.withTenant(user, async () => {
       const result = await this.listUsers.execute({
         requester: {
@@ -44,28 +63,30 @@ export default class UserProvisioningController {
           role: user.role,
           tenantId: user.tenantId,
         },
+        ...query,
       });
       if (result.isLeft()) {
         throw new HttpException(result.value.message, result.value.statusCode, {
           cause: result.value.cause,
         });
       }
-      return result.value.toResponse();
+      return result.value.toObject();
     });
   }
 
   @Post()
   async create(
     @Body() body: CreateUserDto,
-    @RoleDecorator(UserRole.ADMIN, UserRole.SUPERADMIN)
-    user: AllowedRolePayload & { role: UserRole.ADMIN | UserRole.SUPERADMIN },
+    @RoleDecorator(UserRole.ADMIN, UserRole.STAFF, UserRole.SUPERADMIN)
+    user: AllowedRolePayload,
   ) {
     const result = await this.createUser.execute({
       ...body,
       passwordHash: body.password,
       creator: {
         id: user.sub,
-        role: user.role,
+        role: user.role as
+          UserRole.ADMIN | UserRole.STAFF | UserRole.SUPERADMIN,
         tenantId: user.tenantId,
       },
     });

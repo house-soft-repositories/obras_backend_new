@@ -11,6 +11,9 @@ export default interface ISetorRepository {
   findAllByOrgao(
     pageOptions: PageOptionsEntity,
   ): AsyncResult<AppException, PageEntity<SetorWithOrgaoReadModel>>;
+  findAllByOrgaoId(
+    orgaoId: string,
+  ): AsyncResult<AppException, SetorWithOrgaoReadModel[]>;
   existsOrgao(orgaoId: string): AsyncResult<AppException, true>;
   countLinkedUsers(setorId: string): AsyncResult<AppException, number>;
 }

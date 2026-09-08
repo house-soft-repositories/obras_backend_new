@@ -9,6 +9,7 @@ import type ICreateOrgaoUseCase from '@/modules/orgaos/domain/usecase/create_org
 import type ICreateSetorUseCase from '@/modules/orgaos/domain/usecase/create_setor.usecase';
 import type IListOrgaosUseCase from '@/modules/orgaos/domain/usecase/list_orgaos.usecase';
 import type IListSetoresUseCase from '@/modules/orgaos/domain/usecase/list_setores.usecase';
+import type IListSetoresByOrgaoUseCase from '@/modules/orgaos/domain/usecase/list_setores_by_orgao.usecase';
 import type IUpdateOrgaoUseCase from '@/modules/orgaos/domain/usecase/update_orgao.usecase';
 import type IUpdateSetorUseCase from '@/modules/orgaos/domain/usecase/update_setor.usecase';
 import CreateOrgaoDto from '@/modules/orgaos/dtos/create_orgao.dto';
@@ -22,6 +23,7 @@ import {
   CREATE_SETOR_SERVICE,
   LIST_ORGAOS_SERVICE,
   LIST_SETORES_SERVICE,
+  LIST_SETORES_BY_ORGAO_SERVICE,
   UPDATE_ORGAO_SERVICE,
   UPDATE_SETOR_SERVICE,
 } from '@/modules/orgaos/symbols';
@@ -53,6 +55,8 @@ export default class OrgaoController {
     private readonly createSetor: ICreateSetorUseCase,
     @Inject(LIST_SETORES_SERVICE)
     private readonly listSetores: IListSetoresUseCase,
+    @Inject(LIST_SETORES_BY_ORGAO_SERVICE)
+    private readonly listSetoresByOrgaoUseCase: IListSetoresByOrgaoUseCase,
     @Inject(UPDATE_SETOR_SERVICE)
     private readonly updateSetor: IUpdateSetorUseCase,
     private readonly tenantRequestContext: TenantRequestContextService,
@@ -121,6 +125,20 @@ export default class OrgaoController {
         role: user!.role,
       });
       return SetorResponseDto.fromEntity(this.unwrap(result));
+    });
+  }
+
+  @Get(':orgaoId/setores')
+  async listSetoresByOrgao(
+    @Param('orgaoId', ParseUUIDPipe) orgaoId: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.withTenant(user, async () => {
+      const result = await this.listSetoresByOrgaoUseCase.execute({
+        orgaoId,
+        role: user!.role,
+      });
+      return this.unwrap(result);
     });
   }
 

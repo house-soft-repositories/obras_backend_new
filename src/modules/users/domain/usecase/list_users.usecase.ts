@@ -1,6 +1,7 @@
+import PageEntity from '@/core/pagination/domain/entities/page.entity';
 import type UseCase from '@/core/types/use_case';
-import UserEntity from '@/modules/users/domain/entities/user.entity';
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
+import { UsuarioWithOrganizationalReadModel } from '@/modules/users/infra/read-models/usuario_with_organizational_read_model';
 
 export interface ListUsersParam {
   requester: {
@@ -8,41 +9,11 @@ export interface ListUsersParam {
     role: UserRole;
     tenantId: string | null;
   };
+  order?: 'ASC' | 'DESC';
+  page?: number;
+  take?: number;
 }
 
-export class ListUsersResponse {
-  constructor(private readonly users: UserEntity[]) {}
-
-  toResponse() {
-    return this.users.map((user) => {
-      const {
-        id,
-        name,
-        email,
-        role,
-        tenantId,
-        localidadeId,
-        orgaoId,
-        setorId,
-        createdAt,
-        updatedAt,
-      } = user.toObject();
-      return {
-        id,
-        name,
-        email,
-        role,
-        tenantId,
-        localidadeId,
-        orgaoId,
-        setorId,
-        createdAt,
-        updatedAt,
-      };
-    });
-  }
-}
-
-type IListUsersUseCase = UseCase<ListUsersParam, ListUsersResponse>;
+type IListUsersUseCase = UseCase<ListUsersParam, PageEntity<UsuarioWithOrganizationalReadModel>>;
 
 export default IListUsersUseCase;

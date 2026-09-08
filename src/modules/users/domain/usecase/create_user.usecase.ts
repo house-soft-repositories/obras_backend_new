@@ -4,7 +4,7 @@ import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 
 export interface VerifiedCreator {
   id: string;
-  role: UserRole.ADMIN | UserRole.SUPERADMIN;
+  role: UserRole.ADMIN | UserRole.STAFF | UserRole.SUPERADMIN;
   tenantId: string | null;
 }
 

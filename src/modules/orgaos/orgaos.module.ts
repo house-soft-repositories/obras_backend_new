@@ -7,6 +7,7 @@ import CreateOrgaoService from '@/modules/orgaos/application/create_orgao.servic
 import CreateSetorService from '@/modules/orgaos/application/create_setor.service';
 import ListOrgaosService from '@/modules/orgaos/application/list_orgaos.service';
 import ListSetoresService from '@/modules/orgaos/application/list_setores.service';
+import ListSetoresByOrgaoService from '@/modules/orgaos/application/list_setores_by_orgao.service';
 import UpdateOrgaoService from '@/modules/orgaos/application/update_orgao.service';
 import UpdateSetorService from '@/modules/orgaos/application/update_setor.service';
 import OrgaoController from '@/modules/orgaos/controller/orgao.controller';
@@ -14,6 +15,7 @@ import ICreateOrgaoUseCase from '@/modules/orgaos/domain/usecase/create_orgao.us
 import ICreateSetorUseCase from '@/modules/orgaos/domain/usecase/create_setor.usecase';
 import IListOrgaosUseCase from '@/modules/orgaos/domain/usecase/list_orgaos.usecase';
 import IListSetoresUseCase from '@/modules/orgaos/domain/usecase/list_setores.usecase';
+import IListSetoresByOrgaoUseCase from '@/modules/orgaos/domain/usecase/list_setores_by_orgao.usecase';
 import IUpdateOrgaoUseCase from '@/modules/orgaos/domain/usecase/update_orgao.usecase';
 import IUpdateSetorUseCase from '@/modules/orgaos/domain/usecase/update_setor.usecase';
 import OrgaoModel from '@/modules/orgaos/infra/models/orgao.model';
@@ -25,6 +27,7 @@ import {
   CREATE_SETOR_SERVICE,
   LIST_ORGAOS_SERVICE,
   LIST_SETORES_SERVICE,
+  LIST_SETORES_BY_ORGAO_SERVICE,
   ORGAO_REPOSITORY,
   SETOR_REPOSITORY,
   UPDATE_ORGAO_SERVICE,
@@ -85,6 +88,14 @@ import { DataSource } from 'typeorm';
         new ListSetoresService(repository),
     },
     {
+      provide: LIST_SETORES_BY_ORGAO_SERVICE,
+      inject: [SETOR_REPOSITORY],
+      useFactory: (
+        repository: ISetorRepository,
+      ): IListSetoresByOrgaoUseCase =>
+        new ListSetoresByOrgaoService(repository),
+    },
+    {
       provide: UPDATE_SETOR_SERVICE,
       inject: [SETOR_REPOSITORY],
       useFactory: (repository: ISetorRepository): IUpdateSetorUseCase =>
@@ -99,6 +110,7 @@ import { DataSource } from 'typeorm';
     UPDATE_ORGAO_SERVICE,
     CREATE_SETOR_SERVICE,
     LIST_SETORES_SERVICE,
+    LIST_SETORES_BY_ORGAO_SERVICE,
     UPDATE_SETOR_SERVICE,
   ],
 })

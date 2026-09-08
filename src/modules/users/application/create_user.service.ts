@@ -84,7 +84,10 @@ export default class CreateUserService implements ICreateUserUseCase {
   private resolveTargetTenantId(
     param: CreateUserParam,
   ): string | null {
-    if (param.creator.role === UserRole.ADMIN) {
+    if (
+      param.creator.role === UserRole.ADMIN ||
+      param.creator.role === UserRole.STAFF
+    ) {
       if (!param.creator.tenantId) return null;
       if (param.role === UserRole.SUPERADMIN) return null;
       if (param.tenantId && param.tenantId !== param.creator.tenantId)
@@ -97,7 +100,11 @@ export default class CreateUserService implements ICreateUserUseCase {
 
   private canCreateRole(param: CreateUserParam): boolean {
     if (param.creator.role === UserRole.SUPERADMIN) return true;
-    return param.role !== UserRole.SUPERADMIN;
+    if (param.creator.role === UserRole.ADMIN)
+      return param.role !== UserRole.SUPERADMIN;
+    if (param.creator.role === UserRole.STAFF)
+      return param.role === UserRole.USER;
+    return false;
   }
 
   private async createEntity(

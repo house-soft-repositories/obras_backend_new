@@ -130,6 +130,46 @@ export default class SetorRepository implements ISetorRepository {
     }
   }
 
+  async findAllByOrgaoId(
+    orgaoId: string,
+  ): AsyncResult<AppException, SetorWithOrgaoReadModel[]> {
+    try {
+      const schema = this.tenantContext.require().schemaName;
+      type Row = SetorModel & { orgaoNome: string };
+      const rows = await this.dataSource.query<Row[]>(
+        `SELECT s.id, s.orgao_id AS "orgaoId", s.nome, s.ativo,
+           s.created_at AS "createdAt", s.updated_at AS "updatedAt",
+           o.nome AS "orgaoNome"
+         FROM "${schema}"."setores" s
+         JOIN "${schema}"."orgaos" o ON o.id = s.orgao_id
+         WHERE s.orgao_id = $1
+         ORDER BY s.nome ASC`,
+        [orgaoId],
+      );
+      return right(
+        rows.map((row) =>
+          SetorMapper.toReadModelWithOrgao({
+            id: row.id,
+            nome: row.nome,
+            ativo: row.ativo,
+            createdAt: row.createdAt,
+            updatedAt: row.updatedAt,
+            orgaoNome: row.orgaoNome,
+            orgaoId: row.orgaoId,
+          }),
+        ),
+      );
+    } catch (cause) {
+      return left(
+        new SetorRepositoryException({
+          code: ErrorCodeConstants.SETOR_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
+
   async existsOrgao(orgaoId: string): AsyncResult<AppException, true> {
     try {
       const schema = this.tenantContext.require().schemaName;
