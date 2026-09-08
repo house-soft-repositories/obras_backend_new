@@ -1,13 +1,13 @@
 # Multi-tenant Identity Foundation Design
 
 **Spec**: `.specs/features/multi_tenant_identity/spec.md`
-**Status**: Draft
+**Status**: Approved
 
 ---
 
 ## Architecture Overview
 
-The application will use one TypeORM `DataSource`. It owns public-schema migrations and global repositories. The authentication module issues a one-hour access token and a seven-day refresh token, then stores only the bcrypt hash of the refresh token in a global session record. A JWT guard accepts only verified access tokens, then middleware stores the trusted tenant ID and generated schema name in `AsyncLocalStorage`. Future tenant repositories receive this context and qualify their table paths with the resolved schema. They never accept a schema identifier from an HTTP request.
+The application will use one TypeORM `DataSource`. It owns public-schema migrations and global repositories. The authentication module issues a one-hour access token and a seven-day refresh token, then stores only the bcrypt hash of the refresh token in a global session record. A JWT guard accepts only verified access tokens, then middleware stores the trusted tenant ID and generated schema name in `AsyncLocalStorage`. For `SUPERADMIN`, the tenant context exists only for the active authenticated session after an explicit switch; it is not a permanent property of the user record. Future tenant repositories receive this context and qualify their table paths with the resolved schema. They never accept a schema identifier from an HTTP request.
 
 ```mermaid
 graph TD
@@ -173,6 +173,7 @@ interface GenerateAccessTokenParam extends AccessTokenPayload {}
 interface RefreshTokenPayload {
   sub: string;
   sid: string;
+  tenantId: string | null;
   type: 'refresh';
 }
 
@@ -184,7 +185,7 @@ interface TenantContextValue {
 }
 ```
 
-`JwtService.signAsync<T extends object>(payload: T, options)` accepts these interfaces directly. The infrastructure adapter fixes the expiration at `1h` for `GenerateAccessTokenParam` and `7d` for `GenerateRefreshTokenParam`; application services never construct untyped payload objects.
+`JwtService.signAsync<T extends object>(payload: T, options)` accepts these interfaces directly. The infrastructure adapter fixes the expiration at `1h` for `GenerateAccessTokenParam` and `7d` for `GenerateRefreshTokenParam`; application services never construct untyped payload objects. Refresh tokens keep the selected tenant in-session so refresh rotation restores the same tenant context after a switch.
 
 ### User session
 

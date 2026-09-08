@@ -10,6 +10,7 @@ export interface AccessTokenPayload {
 export interface RefreshTokenPayload {
   sub: string;
   sid: string;
+  tenantId: string | null;
   type: 'refresh';
 }
 

@@ -1,3 +1,4 @@
 export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
 
 export const CREATE_USER_SERVICE = Symbol('CREATE_USER_SERVICE');
+export const LIST_USERS_SERVICE = Symbol('LIST_USERS_SERVICE');

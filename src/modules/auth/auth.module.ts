@@ -98,12 +98,19 @@ import { Repository } from 'typeorm';
     },
     {
       provide: SWITCH_TENANCY_SERVICE,
-      inject: [LIST_TENANCIES_SERVICE, TOKEN_SERVICE],
+      inject: [
+        LIST_TENANCIES_SERVICE,
+        TOKEN_SERVICE,
+        PASSWORD_HASHER,
+        USER_SESSION_REPOSITORY,
+      ],
       useFactory: (
         listTenancies: IListTenanciesUseCase,
         tokens: ITokenService,
+        passwords: IPasswordHasher,
+        sessions: IUserSessionRepository,
       ): ISwitchTenancyUseCase =>
-        new SwitchTenancyService(listTenancies, tokens),
+        new SwitchTenancyService(listTenancies, tokens, passwords, sessions),
     },
   ],
   exports: [TOKEN_SERVICE],

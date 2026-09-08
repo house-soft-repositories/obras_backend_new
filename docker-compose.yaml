@@ -10,6 +10,7 @@ services:
         condition: service_healthy
     ports:
       - '${PORT:-3000}:3000'
+      - '9229:9229'
     volumes:
       - .:/app
       - /app/node_modules

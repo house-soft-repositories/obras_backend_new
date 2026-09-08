@@ -42,6 +42,7 @@ export default class RefreshTokenService implements IRefreshTokenUseCase {
       const refreshToken = await this.tokenService.signRefresh({
         sub: user.value.id,
         sid: nextSessionId,
+        tenantId: payload.tenantId,
       });
       const refreshTokenHash = await this.passwordHasher.hash(refreshToken);
       const saved = await this.sessionRepository.save(
@@ -57,7 +58,7 @@ export default class RefreshTokenService implements IRefreshTokenUseCase {
       const accessToken = await this.tokenService.signAccess({
         sub: user.value.id,
         role: user.value.role,
-        tenantId: user.value.tenantId,
+        tenantId: payload.tenantId,
       });
       return right({ accessToken, refreshToken });
     } catch (error) {

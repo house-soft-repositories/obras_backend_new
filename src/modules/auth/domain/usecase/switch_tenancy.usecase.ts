@@ -9,6 +9,7 @@ export interface SwitchTenancyParam {
 
 export interface SwitchTenancyResponse {
   accessToken: string;
+  refreshToken: string;
   tenancy: TenancyReadModel;
 }
 

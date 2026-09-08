@@ -44,6 +44,7 @@ export default class LoginService implements ILoginUseCase {
       const refreshToken = await this.tokenService.signRefresh({
         sub: user.value.id,
         sid: sessionId,
+        tenantId: user.value.tenantId,
       });
       const refreshTokenHash = await this.passwordHasher.hash(refreshToken);
       const session = UserSessionEntity.create({

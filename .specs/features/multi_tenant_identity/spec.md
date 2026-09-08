@@ -31,9 +31,9 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | --- | --- | --- | --- |
 | Tenant data model | Preserve the legacy tenant shape: `id`, `name`, unique `slug`, optional `cnpj`, `active`, `schemaName`, `createdAt`, and `updatedAt`; `slug` and `schemaName` are unique. | Retains the established business identity while adding the safe schema identifier required by the new isolation design. | y |
 | Tenant schema naming | Generate and persist `tenant_<uuid-without-hyphens>`; never interpolate a caller-provided schema name into SQL. | Prevents SQL identifier injection and makes names deterministic. | y |
-| Tenant resolution | Verify JWT first, then derive the request tenant from its `tenantId` claim; `SUPERADMIN` has no tenant context. | A client-controlled header or subdomain alone would permit tenant switching. | y |
+| Tenant resolution | Verify JWT first, then derive the request tenant from its `tenantId` claim; `SUPERADMIN` only carries a tenant context after an explicit switch for the active session. | A client-controlled header or subdomain alone would permit tenant switching, while a permanent tenant assignment would incorrectly mutate the identity record. | y |
 | Tenant and user provisioning policy | Only a `SUPERADMIN` can create tenancies and create users in a different tenancy. An `ADMIN` can create only `USER` and `STAFF` users in the authenticated creator's own tenancy; no public self-registration route exists. | Tenant ownership and role elevation must derive from verified identity rather than caller-controlled values. | y |
-| JWT claims | Access tokens use `sub` as the user UUID, `type: 'access'`, `role`, and `tenantId: string | null`. Refresh tokens use `sub`, `sid`, and `type: 'refresh'`. Neither token contains password, email, or name. | `sub` identifies the principal; a null tenant ID represents a superadmin explicitly; `sid` binds refresh rotation to a revocable session; distinct type claims prevent cross-token use. | y |
+| JWT claims | Access tokens use `sub` as the user UUID, `type: 'access'`, `role`, and `tenantId: string | null`. Refresh tokens use `sub`, `sid`, `tenantId: string | null`, and `type: 'refresh'`. Neither token contains password, email, or name. | `sub` identifies the principal; a null tenant ID represents an unswitched superadmin session; `sid` binds refresh rotation to a revocable session; distinct type claims prevent cross-token use. | y |
 | Token lifecycle | Access tokens expire after one hour. Refresh tokens expire after seven days, rotate on refresh, and are persisted only as a bcrypt hash in a global session record. | The chosen durations balance API usability and revocation capability without retaining a reusable token. | y |
 | JWT signing secret | Both token types use the required `JWT_SECRET` with distinct `type` claims. | The current environment contract provides one secret; token type is validated on every use. | y |
 | Duplicate email policy | Email is unique within a tenancy; platform accounts with null `tenantId` are unique among platform accounts. | Matches the legacy identity model while preventing duplicate login identities inside the same tenant scope. | y |
@@ -55,7 +55,7 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 1. WHEN TypeORM runs the initial identity migration THEN the application SHALL create `public.tenancies`, `public.users`, and `public.user_sessions` with UUID primary keys and reversible `down` operations. <!-- event-driven -->
 2. The application SHALL persist tenancy `id`, `name`, `slug`, optional `cnpj`, `active`, `schemaName`, `createdAt`, and `updatedAt` in `public.tenancies`, with unique `slug` and `schemaName`. <!-- ubiquitous -->
 3. The application SHALL persist user `id`, `name`, `email`, `password`, `role`, `tenantId`, `createdAt`, and `updatedAt` in `public.users`, with an email unique within its tenancy and a separate uniqueness constraint for platform accounts. <!-- ubiquitous -->
-4. IF a user role is `SUPERADMIN` THEN the application SHALL persist a null `tenantId`. <!-- unwanted-behavior -->
+4. IF a user role is `SUPERADMIN` THEN the application SHALL persist a null `tenantId` and SHALL NOT store any permanent tenant assignment on the user record. <!-- unwanted-behavior -->
 5. IF a user role is `ADMIN`, `STAFF`, or `USER` THEN the application SHALL persist a non-null `tenantId` that references an existing tenancy. <!-- unwanted-behavior -->
 
 6. The application SHALL persist only a bcrypt hash, expiry timestamp, and revocation state for each refresh-token session in `public.user_sessions`. <!-- ubiquitous -->
@@ -73,11 +73,12 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 **Acceptance Criteria**:
 
 1. WHEN a verified `SUPERADMIN` creates a tenancy THEN the application SHALL permit the provisioning workflow. <!-- event-driven -->
-2. WHEN a verified `SUPERADMIN` creates a user THEN the application SHALL permit a target tenancy different from the creator's tenancy. <!-- event-driven -->
-3. WHEN a verified `ADMIN` creates a user for its own verified `tenantId` THEN the application SHALL permit the workflow. <!-- event-driven -->
-4. WHEN a verified `ADMIN` creates a user in its own tenancy THEN the application SHALL permit only the `USER` and `STAFF` roles. <!-- event-driven -->
-5. IF an `ADMIN` attempts to create a user for another tenancy or with the `ADMIN` or `SUPERADMIN` role, or a non-authenticated caller attempts tenancy or user provisioning, THEN the application SHALL reject the request before persistence. <!-- unwanted-behavior -->
-6. The application SHALL derive the creator tenant from a verified access-token claim and SHALL NOT trust a caller-provided tenant scope for authorization. <!-- ubiquitous -->
+2. WHEN a verified `SUPERADMIN` switches tenancy for the active session THEN the application SHALL issue new access and refresh tokens carrying the selected tenant context. <!-- event-driven -->
+3. WHEN a verified `SUPERADMIN` creates a user THEN the application SHALL permit a target tenancy different from the creator's tenancy. <!-- event-driven -->
+4. WHEN a verified `ADMIN` creates a user for its own verified `tenantId` THEN the application SHALL permit the workflow. <!-- event-driven -->
+5. WHEN a verified `ADMIN` creates a user in its own tenancy THEN the application SHALL permit only the `USER` and `STAFF` roles. <!-- event-driven -->
+6. IF an `ADMIN` attempts to create a user for another tenancy or with the `ADMIN` or `SUPERADMIN` role, or a non-authenticated caller attempts tenancy or user provisioning, THEN the application SHALL reject the request before persistence. <!-- unwanted-behavior -->
+7. The application SHALL derive the creator tenant from a verified access-token claim and SHALL NOT trust a caller-provided tenant scope for authorization. <!-- ubiquitous -->
 
 **Independent Test**: Unit-test each creator role and target-tenancy combination, asserting that rejected combinations do not invoke persistence.
 
@@ -110,8 +111,8 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 
 1. WHEN a non-superadmin user is created or has a password set THEN the application SHALL hash the password with bcrypt using the validated `SALT` environment value before persistence. <!-- event-driven -->
 2. WHEN valid email and password credentials are submitted THEN the authentication module SHALL return an access token that expires after one hour and a refresh token that expires after seven days, both signed with `JWT_SECRET`. <!-- event-driven -->
-3. The application SHALL issue access tokens with `sub`, `type: 'access'`, `role`, and `tenantId: string | null`, and SHALL issue refresh tokens with `sub`, `sid`, and `type: 'refresh'`. <!-- ubiquitous -->
-4. WHEN a valid refresh token is submitted THEN the authentication module SHALL verify `type: 'refresh'`, its session hash and expiry, revoke the prior session token, and return a new access/refresh token pair. <!-- event-driven -->
+3. The application SHALL issue access tokens with `sub`, `type: 'access'`, `role`, and `tenantId: string | null`, and SHALL issue refresh tokens with `sub`, `sid`, `tenantId: string | null`, and `type: 'refresh'`. <!-- ubiquitous -->
+4. WHEN a valid refresh token is submitted THEN the authentication module SHALL verify `type: 'refresh'`, its session hash and expiry, revoke the prior session token, and return a new access/refresh token pair preserving the selected tenant context from the active session. <!-- event-driven -->
 5. IF a refresh token is expired, revoked, malformed, has a non-refresh type, or does not match its session hash THEN the authentication module SHALL reject it without issuing tokens. <!-- unwanted-behavior -->
 6. IF credentials are invalid THEN the authentication module SHALL return an unauthorized application error without exposing whether the email exists. <!-- unwanted-behavior -->
 7. WHEN a request presents a valid access JWT for a non-superadmin THEN the application SHALL establish request tenant context from the verified `tenantId` claim before tenant-scoped work executes. <!-- event-driven -->

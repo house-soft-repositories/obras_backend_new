@@ -7,13 +7,19 @@ import { Repository } from 'typeorm';
 import { DataSource } from 'typeorm';
 import IUserRepository from '@/modules/users/adapters/user_repository.interface';
 import CreateUserService from '@/modules/users/application/create_user.service';
+import ListUsersService from '@/modules/users/application/list_users.service';
 import IPasswordHasher from '@/modules/auth/adapters/password_hasher.interface';
 import PasswordModule from '@/modules/auth/password.module';
 import { PASSWORD_HASHER } from '@/modules/auth/symbols';
 import ICreateUserUseCase from '@/modules/users/domain/usecase/create_user.usecase';
+import IListUsersUseCase from '@/modules/users/domain/usecase/list_users.usecase';
 import UserModel from '@/modules/users/infra/models/user.model';
 import UserRepository from '@/modules/users/infra/repositories/user.repository';
-import { CREATE_USER_SERVICE, USER_REPOSITORY } from '@/modules/users/symbols';
+import {
+  CREATE_USER_SERVICE,
+  LIST_USERS_SERVICE,
+  USER_REPOSITORY,
+} from '@/modules/users/symbols';
 
 @Module({
   imports: [CoreModule, TypeOrmModule.forFeature([UserModel]), PasswordModule],
@@ -37,7 +43,13 @@ import { CREATE_USER_SERVICE, USER_REPOSITORY } from '@/modules/users/symbols';
       ): ICreateUserUseCase =>
         new CreateUserService(repository, passwordHasher),
     },
+    {
+      provide: LIST_USERS_SERVICE,
+      inject: [USER_REPOSITORY],
+      useFactory: (repository: IUserRepository): IListUsersUseCase =>
+        new ListUsersService(repository),
+    },
   ],
-  exports: [USER_REPOSITORY, CREATE_USER_SERVICE],
+  exports: [USER_REPOSITORY, CREATE_USER_SERVICE, LIST_USERS_SERVICE],
 })
 export default class UsersModule {}

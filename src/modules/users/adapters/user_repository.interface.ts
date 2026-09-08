@@ -15,6 +15,7 @@ export interface FindUserQuery {
 export default interface IUserRepository {
   findOne(query: FindUserQuery): AsyncResult<AppException, UserEntity>;
   findById(id: string): AsyncResult<AppException, UserEntity>;
+  listByTenantId(tenantId: string): AsyncResult<AppException, UserEntity[]>;
   save(user: UserEntity): AsyncResult<AppException, UserEntity>;
   existsLocalidade(localidadeId: string, tenantId: string): AsyncResult<AppException, true>;
   existsOrgao(orgaoId: string, tenantId: string): AsyncResult<AppException, true>;

@@ -1,5 +1,15 @@
 # Cadastros de Identidade Specification
 
+**Status**: Superseded
+
+Esta spec agregadora foi desdobrada em specs menores e já validadas:
+
+- `.specs/features/cadastros_localidades/spec.md`
+- `.specs/features/cadastros_orgaos_setores/spec.md`
+- `.specs/features/usuarios_vinculos_organizacionais/spec.md`
+
+Use as specs desdobradas como fonte de verdade para design, tarefas e validação.
+
 ## Problem Statement
 
 O backend novo ainda não oferece os cadastros estruturais de localidades, órgãos e setores existentes no legado. Esses dados pertencem a cada tenant e serão referências obrigatórias para os futuros módulos de obras e de gestão de usuários.

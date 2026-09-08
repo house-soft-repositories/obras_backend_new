@@ -84,6 +84,45 @@ describe('UserRepository', () => {
     );
   });
 
+  it('lists only users from the requested tenant ordered by name', async () => {
+    const firstTenantId = await createTenant(dataSource, tenantIds, 'list-first');
+    const secondTenantId = await createTenant(dataSource, tenantIds, 'list-second');
+    const repository = new UserRepository(
+      dataSource.getRepository(UserModel),
+      dataSource,
+      new TenantSchemaResolver(dataSource),
+    );
+    const bruno = UserEntity.createUser(
+      { ...validUser, name: 'Bruno', email: 'bruno@example.com' },
+      firstTenantId,
+    );
+    const ana = UserEntity.createStaff(
+      { ...validUser, name: 'Ana', email: 'ana@example.com' },
+      firstTenantId,
+    );
+    const foreign = UserEntity.createUser(
+      { ...validUser, name: 'Caio', email: 'caio@example.com' },
+      secondTenantId,
+    );
+    userIds.push(bruno.id, ana.id, foreign.id);
+
+    expect((await repository.save(bruno)).isRight()).toBe(true);
+    expect((await repository.save(ana)).isRight()).toBe(true);
+    expect((await repository.save(foreign)).isRight()).toBe(true);
+
+    const result = await repository.listByTenantId(firstTenantId);
+
+    expect(result.isRight()).toBe(true);
+    expect(result.getOrThrow().map((user) => user.name)).toEqual([
+      'Ana',
+      'Bruno',
+    ]);
+    expect(result.getOrThrow().map((user) => user.tenantId)).toEqual([
+      firstTenantId,
+      firstTenantId,
+    ]);
+  });
+
   it('returns a concrete not-found exception within the tenant scope', async () => {
     const repository = new UserRepository(
       dataSource.getRepository(UserModel),

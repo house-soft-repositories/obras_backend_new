@@ -19,8 +19,11 @@ import UserEntity from '@/modules/users/domain/entities/user.entity';
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 import ICreateUserUseCase from '@/modules/users/domain/usecase/create_user.usecase';
 import { CreateUserResponse } from '@/modules/users/domain/usecase/create_user.usecase';
+import IListUsersUseCase, {
+  ListUsersResponse,
+} from '@/modules/users/domain/usecase/list_users.usecase';
 import UserRepositoryException from '@/modules/users/exceptions/user_repository.exception';
-import { CREATE_USER_SERVICE } from '@/modules/users/symbols';
+import { CREATE_USER_SERVICE, LIST_USERS_SERVICE } from '@/modules/users/symbols';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { validUser } from '@test/constants/users/domain/entities/user.constants';
@@ -31,6 +34,7 @@ import mockLoginUseCase from '@test/mocks/auth/domain/usecase/login_usecase.mock
 import mockRefreshTokenUseCase from '@test/mocks/auth/domain/usecase/refresh_token_usecase.mock';
 import mockCreateTenancyUseCase from '@test/mocks/tenancy/domain/usecase/create_tenancy_usecase.mock';
 import mockCreateUserUseCase from '@test/mocks/users/domain/usecase/create_user_usecase.mock';
+import mockListUsersUseCase from '@test/mocks/users/domain/usecase/list_users_usecase.mock';
 import request from 'supertest';
 import { App } from 'supertest/types';
 
@@ -42,6 +46,7 @@ describe('Identity provisioning (e2e)', () => {
   let switchTenancy: jest.Mocked<ISwitchTenancyUseCase>;
   let createTenancy: jest.Mocked<ICreateTenancyUseCase>;
   let createUser: jest.Mocked<ICreateUserUseCase>;
+  let listUsers: jest.Mocked<IListUsersUseCase>;
 
   beforeEach(async () => {
     tokenService = mockTokenService();
@@ -50,6 +55,7 @@ describe('Identity provisioning (e2e)', () => {
     switchTenancy = { execute: jest.fn() };
     createTenancy = mockCreateTenancyUseCase();
     createUser = mockCreateUserUseCase();
+    listUsers = mockListUsersUseCase();
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -66,6 +72,8 @@ describe('Identity provisioning (e2e)', () => {
       .useValue(createTenancy)
       .overrideProvider(CREATE_USER_SERVICE)
       .useValue(createUser)
+      .overrideProvider(LIST_USERS_SERVICE)
+      .useValue(listUsers)
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -141,7 +149,11 @@ describe('Identity provisioning (e2e)', () => {
       tenantId: null,
     });
     switchTenancy.execute.mockResolvedValue(
-      right({ accessToken: 'tenant-access-token', tenancy }),
+      right({
+        accessToken: 'tenant-access-token',
+        refreshToken: 'tenant-refresh-token',
+        tenancy,
+      }),
     );
 
     const response = await request(app.getHttpServer())
@@ -152,6 +164,7 @@ describe('Identity provisioning (e2e)', () => {
 
     expect(response.body).toMatchObject({
       accessToken: 'tenant-access-token',
+      refreshToken: 'tenant-refresh-token',
       tenancy: {
         id: tenancy.id,
         name: tenancy.name,
@@ -334,6 +347,59 @@ describe('Identity provisioning (e2e)', () => {
           tenantId: '9f8b416e-2b4c-4e4a-b1c7-6beeb3d4d7dc',
         },
       }),
+    ]);
+  });
+
+  it('lists users from the authenticated tenant for an admin', async () => {
+    tokenService.verifyAccess.mockResolvedValue({
+      sub: '4c67eb4d-b04d-435d-9435-5f1a8d026cf8',
+      type: 'access',
+      role: UserRole.ADMIN,
+      tenantId: '9f8b416e-2b4c-4e4a-b1c7-6beeb3d4d7dc',
+    });
+    listUsers.execute.mockResolvedValue(
+      right(
+        new ListUsersResponse([
+          UserEntity.fromData({
+            id: 'user-1',
+            name: 'Ana',
+            email: 'ana@example.com',
+            password: 'hashed',
+            role: UserRole.USER,
+            tenantId: '9f8b416e-2b4c-4e4a-b1c7-6beeb3d4d7dc',
+            localidadeId: null,
+            orgaoId: null,
+            setorId: null,
+            createdAt: validUser.createdAt,
+            updatedAt: validUser.updatedAt,
+          }),
+        ]),
+      ),
+    );
+
+    const response = await request(app.getHttpServer())
+      .get('/api/users')
+      .set('Authorization', 'Bearer valid-access-token')
+      .expect(200);
+
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        id: 'user-1',
+        name: 'Ana',
+        email: 'ana@example.com',
+        role: UserRole.USER,
+        tenantId: '9f8b416e-2b4c-4e4a-b1c7-6beeb3d4d7dc',
+      }),
+    ]);
+    expect(response.body[0]).not.toHaveProperty('password');
+    expect(listUsers.execute.mock.calls).toContainEqual([
+      {
+        requester: {
+          id: '4c67eb4d-b04d-435d-9435-5f1a8d026cf8',
+          role: UserRole.ADMIN,
+          tenantId: '9f8b416e-2b4c-4e4a-b1c7-6beeb3d4d7dc',
+        },
+      },
     ]);
   });
 

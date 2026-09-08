@@ -1,3 +1,6 @@
+import type AppException from '@/core/exceptions/app_exception';
+import type { Either } from '@/core/types/either';
+import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
 import UserRequestContextPipe from '@/modules/auth/controller/user_request_context.pipe';
@@ -12,9 +15,6 @@ import {
   REFRESH_TOKEN_SERVICE,
   SWITCH_TENANCY_SERVICE,
 } from '@/modules/auth/symbols';
-import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
-import type AppException from '@/core/exceptions/app_exception';
-import type { Either } from '@/core/types/either';
 import UserRequestContext from '@/modules/users/dtos/user_request_context.dto';
 import {
   Body,

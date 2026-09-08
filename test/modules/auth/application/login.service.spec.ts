@@ -87,6 +87,7 @@ describe('LoginService', () => {
     expect(tokens.signRefresh.mock.calls).toContainEqual([{
       sub: user.id,
       sid: sessions.save.mock.calls[0][0].id,
+      tenantId: user.tenantId,
     }]);
     if (result.isLeft()) throw result.value;
     expect(result.value).toEqual({ accessToken: 'access-token', refreshToken: 'refresh-token' });

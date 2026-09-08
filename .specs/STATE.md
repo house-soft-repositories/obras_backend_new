@@ -34,6 +34,14 @@
 - **Date**: 2026-09-02
 - **Status**: active
 
+### AD-005
+- **Decision**: A superadmin-selected tenant applies only for the active authenticated session and is not a permanent user property.
+- **Reason**: Superadmins must be able to work inside a chosen tenant context without mutating the stored identity record or persisting a long-lived tenant assignment.
+- **Trade-off**: Authentication and refresh flows must carry the selected tenant through the token/session lifecycle, and tenant-aware requests must validate the current session context.
+- **Scope**: Auth login/switch/refresh flows, tenant context resolution, and superadmin-facing tenant-bound requests.
+- **Date**: 2026-09-08
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: `.specs/features/usuarios_vinculos_organizacionais`

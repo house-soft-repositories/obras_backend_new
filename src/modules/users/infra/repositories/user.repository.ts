@@ -84,6 +84,26 @@ export default class UserRepository implements IUserRepository {
     }
   }
 
+  async listByTenantId(
+    tenantId: string,
+  ): AsyncResult<AppException, UserEntity[]> {
+    try {
+      const models = await this.repository.find({
+        where: { tenantId },
+        order: { name: 'ASC' },
+      });
+      return right(models.map((model) => UserMapper.toEntity(model)));
+    } catch (error) {
+      return left(
+        new UserRepositoryException({
+          code: ErrorCodeConstants.USER_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause: error,
+        }),
+      );
+    }
+  }
+
   async save(user: UserEntity): AsyncResult<AppException, UserEntity> {
     try {
       const saved = await this.repository.save(

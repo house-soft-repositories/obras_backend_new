@@ -14,7 +14,7 @@ export default class TenantRequestContextService {
     user: AccessTokenPayload | undefined,
     callback: () => Promise<T>,
   ): Promise<T> {
-    if (!user || user.role === UserRole.SUPERADMIN || !user.tenantId) {
+    if (!user || !user.tenantId) {
       throw new TenantContextException();
     }
     const tenant = await this.resolver.resolve(user.tenantId);

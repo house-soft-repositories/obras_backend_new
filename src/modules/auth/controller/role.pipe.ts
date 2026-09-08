@@ -3,7 +3,7 @@ import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.i
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 
 export type AllowedRolePayload = Omit<AccessTokenPayload, 'role'> & {
-  role: UserRole.ADMIN | UserRole.SUPERADMIN;
+  role: UserRole;
 };
 
 @Injectable()
@@ -16,6 +16,6 @@ export default class RolePipe
     if (!payload || !this.allowedRoles.includes(payload.role)) {
       throw new HttpException('Unauthorized', 401);
     }
-    return payload as AllowedRolePayload;
+    return payload;
   }
 }

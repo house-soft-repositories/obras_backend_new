@@ -23,7 +23,12 @@ describe('RefreshTokenService', () => {
       refreshTokenHash: 'stored-hash',
       expiresAt: new Date(Date.now() + 60_000),
     });
-    tokens.verifyRefresh.mockResolvedValue({ sub: user.id, sid: session.id, type: 'refresh' });
+    tokens.verifyRefresh.mockResolvedValue({
+      sub: user.id,
+      sid: session.id,
+      tenantId: user.tenantId,
+      type: 'refresh',
+    });
     sessions.findActiveById.mockResolvedValue(right(session));
     passwords.compare.mockResolvedValue(true);
     users.findById.mockResolvedValue(right(user));
@@ -46,6 +51,20 @@ describe('RefreshTokenService', () => {
       accessToken: 'rotated-access-token',
       refreshToken: 'rotated-refresh-token',
     });
+    expect(tokens.signRefresh.mock.calls).toContainEqual([
+      {
+        sub: user.id,
+        sid: expect.any(String),
+        tenantId: user.tenantId,
+      },
+    ]);
+    expect(tokens.signAccess.mock.calls).toContainEqual([
+      {
+        sub: user.id,
+        role: user.role,
+        tenantId: user.tenantId,
+      },
+    ]);
   });
 
   it.each([
@@ -69,13 +88,19 @@ describe('RefreshTokenService', () => {
         refreshTokenHash: 'stored-hash',
         expiresAt: new Date(Date.now() + 60_000),
       });
-      tokens.verifyRefresh.mockResolvedValue({ sub: session.userId, sid: session.id, type: 'refresh' });
+      tokens.verifyRefresh.mockResolvedValue({
+        sub: session.userId,
+        sid: session.id,
+        tenantId: validUser.tenantId,
+        type: 'refresh',
+      });
       sessions.findActiveById.mockResolvedValue(right(session));
       passwords.compare.mockResolvedValue(false);
     } else {
       tokens.verifyRefresh.mockResolvedValue({
         sub: '4c67eb4d-b04d-435d-9435-5f1a8d026cf8',
         sid: '0c4d7c37-2455-4634-9ce4-37ce30bd8f78',
+        tenantId: validUser.tenantId,
         type: 'refresh',
       });
       sessions.findActiveById.mockResolvedValue(
