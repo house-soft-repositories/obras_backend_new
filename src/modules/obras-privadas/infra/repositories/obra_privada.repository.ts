@@ -1,0 +1,22 @@
+import { DataSource } from 'typeorm';
+import ErrorCodeConstants from '@/core/constants/error_code.constants';
+import TenantContext from '@/core/multitenancy/tenant_context';
+import AppException from '@/core/exceptions/app_exception';
+import AsyncResult from '@/core/types/async_result';
+import { left, right } from '@/core/types/either';
+import IObraPrivadaRepository from '@/modules/obras-privadas/adapters/obra_privada_repository.interface';
+import ObraPrivadaEntity from '@/modules/obras-privadas/domain/entities/obra_privada.entity';
+import ObraPrivadaMapper from '@/modules/obras-privadas/infra/mapper/obra_privada.mapper';
+import ObraPrivadaModel from '@/modules/obras-privadas/infra/models/obra_privada.model';
+import ObraPrivadaRepositoryException from '@/modules/obras-privadas/exceptions/obra_privada_repository.exception';
+export default class ObraPrivadaRepository implements IObraPrivadaRepository {
+  constructor(private readonly ds:DataSource, private readonly tc:TenantContext){}
+  async save(e:ObraPrivadaEntity):AsyncResult<AppException,ObraPrivadaEntity>{
+    try{ const s=this.tc.require().schemaName; const v=ObraPrivadaMapper.toModel(e) as any;
+      const [saved]=await this.ds.query<ObraPrivadaModel[]>(`INSERT INTO "${s}"."obras_privadas" (id,codigo,descricao,observacoes,proprietario_pessoa_id,orgao_id,inscricao_imobiliaria,matricula_rgi,cartorio,cep,logradouro,numero,complemento,bairro,localidade_id,uf,latitude,longitude,geo_origem,situacao_alvara,andamento,habite_se,data_inicio,data_prevista_conclusao,created_at,updated_at,deleted_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27) ON CONFLICT (id) DO UPDATE SET descricao=EXCLUDED.descricao, updated_at=EXCLUDED.updated_at RETURNING id,codigo,descricao,observacoes,proprietario_pessoa_id AS "proprietarioPessoaId",orgao_id AS "orgaoId",inscricao_imobiliaria AS "inscricaoImobiliaria",matricula_rgi AS "matriculaRgi",cartorio,cep,logradouro,numero,complemento,bairro,localidade_id AS "localidadeId",uf,latitude,longitude,geo_origem AS "geoOrigem",situacao_alvara AS "situacaoAlvara",andamento,habite_se AS "habiteSe",data_inicio AS "dataInicio",data_prevista_conclusao AS "dataPrevistaConclusao",created_at AS "createdAt",updated_at AS "updatedAt",deleted_at AS "deletedAt"`,[v.id,v.codigo,v.descricao,v.observacoes,v.proprietarioPessoaId,v.orgaoId,v.inscricaoImobiliaria,v.matriculaRgi,v.cartorio,v.cep,v.logradouro,v.numero,v.complemento,v.bairro,v.localidadeId,v.uf,v.latitude,v.longitude,v.geoOrigem,v.situacaoAlvara,v.andamento,v.habiteSe,v.dataInicio,v.dataPrevistaConclusao,v.createdAt,v.updatedAt,v.deletedAt]);
+      return right(ObraPrivadaMapper.toEntity(saved as any));
+    }catch(cause:any){ if(cause?.code==='23505') return left(new ObraPrivadaRepositoryException({code:ErrorCodeConstants.OBRA_PRIVADA_DUPLICATE_CODIGO,statusCode:409,cause})); return left(new ObraPrivadaRepositoryException({code:ErrorCodeConstants.OBRA_PRIVADA_REPOSITORY_FAILED,statusCode:500,cause})); }
+  }
+  async findLastCodigo(y:number):AsyncResult<AppException,string|null>{ try{ const s=this.tc.require().schemaName; const p=`OBP-${y}-`; const [r]=await this.ds.query<{codigo:string}[]>(`SELECT codigo FROM "${s}"."obras_privadas" WHERE codigo LIKE $1 ORDER BY codigo DESC LIMIT 1`,[`${p}%`]); return right(r?.codigo??null);}catch(cause){ return left(new ObraPrivadaRepositoryException({code:ErrorCodeConstants.OBRA_PRIVADA_REPOSITORY_FAILED,statusCode:500,cause})); } }
+  async findById(id:string):AsyncResult<AppException,ObraPrivadaEntity|null>{ try{ const s=this.tc.require().schemaName; const [r]=await this.ds.query<ObraPrivadaModel[]>(`SELECT id,codigo,descricao,observacoes,proprietario_pessoa_id AS "proprietarioPessoaId",orgao_id AS "orgaoId",inscricao_imobiliaria AS "inscricaoImobiliaria",matricula_rgi AS "matriculaRgi",cartorio,cep,logradouro,numero,complemento,bairro,localidade_id AS "localidadeId",uf,latitude,longitude,geo_origem AS "geoOrigem",situacao_alvara AS "situacaoAlvara",andamento,habite_se AS "habiteSe",data_inicio AS "dataInicio",data_prevista_conclusao AS "dataPrevistaConclusao",created_at AS "createdAt",updated_at AS "updatedAt",deleted_at AS "deletedAt" FROM "${s}"."obras_privadas" WHERE id=$1`,[id]); return right(r?ObraPrivadaMapper.toEntity(r as any):null);}catch(cause){ return left(new ObraPrivadaRepositoryException({code:ErrorCodeConstants.OBRA_PRIVADA_REPOSITORY_FAILED,statusCode:500,cause})); } }
+}
