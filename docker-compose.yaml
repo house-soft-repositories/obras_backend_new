@@ -15,6 +15,7 @@ services:
       - .:/app
       - /app/node_modules
       - /app/dist
+    command: sh -c "pnpm run build && node ./node_modules/typeorm/cli.js -d dist/core/database/data-source.js migration:run && pnpm run start:dev"
 
   database:
     image: postgres:17-alpine
