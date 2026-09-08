@@ -83,5 +83,143 @@ export default abstract class TenantIdentitySchema {
     await executor.query(
       `CREATE INDEX${ifNotExists} "IDX_setores_orgao_nome" ON "${schemaName}"."setores" ("orgao_id", "nome")`,
     );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."fontes" (
+        "id" uuid NOT NULL,
+        "nome" character varying NOT NULL,
+        "descricao" character varying,
+        "codigo" character varying,
+        "tipo" character varying,
+        "valor_previsto" character varying,
+        "vigencia" character varying,
+        "ativo" boolean NOT NULL DEFAULT true,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_fontes" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE UNIQUE INDEX${ifNotExists} "UQ_fontes_codigo" ON "${schemaName}"."fontes" ("codigo") WHERE "codigo" IS NOT NULL`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."pessoas" (
+        "id" uuid NOT NULL,
+        "tipo" character varying NOT NULL,
+        "documento" character varying NOT NULL,
+        "nome" character varying NOT NULL,
+        "nome_fantasia" character varying,
+        "rg" character varying,
+        "orgao_expedidor" character varying,
+        "email" character varying,
+        "telefone" character varying,
+        "cep" character varying,
+        "logradouro" character varying,
+        "numero" character varying,
+        "complemento" character varying,
+        "bairro" character varying,
+        "cidade" character varying,
+        "uf" character varying(2),
+        "ativo" boolean NOT NULL DEFAULT true,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_pessoas" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE UNIQUE INDEX${ifNotExists} "UQ_pessoas_documento" ON "${schemaName}"."pessoas" ("documento")`,
+    );
+    await executor.query(`CREATE INDEX${ifNotExists} "IDX_pessoas_nome" ON "${schemaName}"."pessoas" ("nome")`);
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."obras" (
+        "id" uuid NOT NULL,
+        "codigo" character varying NOT NULL,
+        "nome" character varying NOT NULL,
+        "descricao" character varying,
+        "tipo" character varying NOT NULL,
+        "status" character varying NOT NULL DEFAULT 'EM_ABERTO',
+        "orgao_id" uuid NOT NULL,
+        "setor_id" uuid,
+        "localidade_id" uuid,
+        "subclassificacao_id" uuid,
+        "eixo_id" uuid,
+        "classificacao_id" uuid,
+        "tipologia_id" uuid,
+        "subtipologia_id" uuid,
+        "seguir_automatico" boolean NOT NULL DEFAULT false,
+        "criado_por_usuario_id" uuid NOT NULL,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "deleted_at" TIMESTAMP WITH TIME ZONE,
+        CONSTRAINT "PK_obras" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(`CREATE UNIQUE INDEX${ifNotExists} "UQ_obras_codigo" ON "${schemaName}"."obras" ("codigo")`);
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."obra_responsaveis" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_id" uuid NOT NULL,
+        "usuario_id" uuid NOT NULL,
+        "tipo" character varying NOT NULL,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_obra_responsaveis" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."obra_orcamentos" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_id" uuid NOT NULL,
+        "fonte_id" uuid NOT NULL,
+        "valor" character varying NOT NULL,
+        CONSTRAINT "PK_obra_orcamentos" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."obra_seguidores" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_id" uuid NOT NULL,
+        "usuario_id" uuid NOT NULL,
+        "seguido_em" TIMESTAMP WITH TIME ZONE NOT NULL,
+        CONSTRAINT "PK_obra_seguidores" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."obras_privadas" (
+        "id" uuid NOT NULL,
+        "codigo" character varying NOT NULL,
+        "descricao" text NOT NULL,
+        "observacoes" text,
+        "proprietario_pessoa_id" uuid NOT NULL,
+        "orgao_id" uuid,
+        "inscricao_imobiliaria" character varying,
+        "matricula_rgi" character varying,
+        "cartorio" character varying,
+        "cep" character varying,
+        "logradouro" character varying NOT NULL,
+        "numero" character varying,
+        "complemento" character varying,
+        "bairro" character varying,
+        "localidade_id" uuid,
+        "uf" character varying(2) NOT NULL,
+        "latitude" character varying,
+        "longitude" character varying,
+        "geo_origem" character varying,
+        "situacao_alvara" character varying NOT NULL DEFAULT 'SEM_ALVARA',
+        "andamento" character varying,
+        "habite_se" character varying,
+        "data_inicio" character varying,
+        "data_prevista_conclusao" character varying,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "deleted_at" TIMESTAMP WITH TIME ZONE,
+        CONSTRAINT "PK_obras_privadas" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(`CREATE UNIQUE INDEX${ifNotExists} "UQ_obras_privadas_codigo" ON "${schemaName}"."obras_privadas" ("codigo")`);
+    await executor.query(`CREATE INDEX${ifNotExists} "IDX_obras_privadas_proprietario" ON "${schemaName}"."obras_privadas" ("proprietario_pessoa_id")`);
+    await executor.query(`CREATE INDEX${ifNotExists} "IDX_obras_privadas_inscricao" ON "${schemaName}"."obras_privadas" ("inscricao_imobiliaria")`);
+    await executor.query(`CREATE INDEX${ifNotExists} "IDX_obras_privadas_geo" ON "${schemaName}"."obras_privadas" ("latitude", "longitude")`);
   }
 }
