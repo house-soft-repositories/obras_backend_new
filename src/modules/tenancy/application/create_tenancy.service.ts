@@ -24,6 +24,16 @@ export default class CreateTenancyService implements ICreateTenancyUseCase {
           }),
         );
       }
+      const alreadyExists = await this.repository.existsBySlugOrCnpj(param.slug,param.cnpj);
+      if (alreadyExists.isLeft()) return left(alreadyExists.value);
+      if (alreadyExists.value) {
+        return left(
+          new TenancyServiceException({
+            code: ErrorCodeConstants.TENANCY_CREATE_DUPLICATE,
+            statusCode: 409,
+          }),
+        );
+      }
       return this.repository.provision(TenancyEntity.create(param));
     } catch (error) {
       if (error instanceof TenancyDomainException) return left(error);

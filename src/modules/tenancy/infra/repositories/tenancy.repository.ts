@@ -14,16 +14,31 @@ import TenantIdentitySchema from '@/core/multitenancy/tenant_identity_schema';
 export default class TenancyRepository implements ITenancyRepository {
   constructor(private readonly dataSource: DataSource) {}
 
+
+
+
+  async existsBySlugOrCnpj(slug: string, cnpj: string | null): AsyncResult<AppException, boolean> {
+    try {
+      const qb = this.dataSource.getRepository(TenancyModel).createQueryBuilder('tenancy').where('tenancy.slug = :slug', { slug });
+      if (cnpj) {
+        qb.orWhere('tenancy.cnpj = :cnpj', { cnpj });
+      }
+      const exists = await qb.getExists();
+      return right(exists);
+    } catch (error) {
+      return left(
+        new TenancyRepositoryException({
+          code: ErrorCodeConstants.TENANCY_PROVISION_FAILED,
+          statusCode: 500,
+          cause: error,
+        }),
+      );
+    }
+  }
+
   async provision(tenancy: TenancyEntity): AsyncResult<AppException, TenancyEntity> {
     try {
-      if (!/^tenant_[0-9a-f]{32}$/.test(tenancy.schemaName)) {
-        return left(
-          new TenancyRepositoryException({
-            code: ErrorCodeConstants.TENANCY_INVALID_SCHEMA,
-            statusCode: 400,
-          }),
-        );
-      }
+     
 
       const saved = await this.dataSource.transaction(async (manager) => {
         await manager.query(`CREATE SCHEMA "${tenancy.schemaName}"`);

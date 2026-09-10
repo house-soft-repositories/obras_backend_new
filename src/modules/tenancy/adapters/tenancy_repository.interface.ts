@@ -4,6 +4,10 @@ import TenancyEntity from '@/modules/tenancy/domain/entities/tenancy.entity';
 import TenancyReadModel from '@/modules/tenancy/domain/read_models/tenancy.read_model';
 
 export default interface ITenancyRepository {
+  existsBySlugOrCnpj(
+    slug: string,
+    cnpj: string | null,
+  ): AsyncResult<AppException, boolean>;
   provision(tenancy: TenancyEntity): AsyncResult<AppException, TenancyEntity>;
   findAll(): AsyncResult<AppException, TenancyReadModel[]>;
 }
