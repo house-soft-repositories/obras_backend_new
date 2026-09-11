@@ -3,6 +3,7 @@ import ConfigurationService from '@/core/services/configuration.service';
 import IPasswordHasher from '@/modules/auth/adapters/password_hasher.interface';
 import ITokenService from '@/modules/auth/adapters/token_service.interface';
 import IUserSessionRepository from '@/modules/auth/adapters/user_session_repository.interface';
+import GetMeService from '@/modules/auth/application/get_me.service';
 import LoginService from '@/modules/auth/application/login.service';
 import RefreshTokenService from '@/modules/auth/application/refresh_token.service';
 import SwitchTenancyService from '@/modules/auth/application/switch_tenancy.service';
@@ -11,6 +12,7 @@ import AuthController from '@/modules/auth/controller/auth.controller';
 import ProvisioningController from '@/modules/auth/controller/provisioning.controller';
 import UserProvisioningController from '@/modules/auth/controller/user_provisioning.controller';
 import UserRequestContextPipe from '@/modules/auth/controller/user_request_context.pipe';
+import IGetMeUseCase from '@/modules/auth/domain/usecase/get_me.usecase';
 import ILoginUseCase from '@/modules/auth/domain/usecase/login.usecase';
 import IRefreshTokenUseCase from '@/modules/auth/domain/usecase/refresh_token.usecase';
 import ISwitchTenancyUseCase from '@/modules/auth/domain/usecase/switch_tenancy.usecase';
@@ -19,6 +21,7 @@ import UserSessionRepository from '@/modules/auth/infra/repositories/user_sessio
 import JwtTokenService from '@/modules/auth/infra/token/jwt_token.service';
 import PasswordModule from '@/modules/auth/password.module';
 import {
+  GET_ME_SERVICE,
   LOGIN_SERVICE,
   PASSWORD_HASHER,
   REFRESH_TOKEN_SERVICE,
@@ -32,9 +35,9 @@ import { LIST_TENANCIES_SERVICE } from '@/modules/tenancy/symbols';
 import IUserRepository from '@/modules/users/adapters/user_repository.interface';
 import { USER_REPOSITORY } from '@/modules/users/symbols';
 import UsersModule from '@/modules/users/users.module';
+import { DataSource, Repository } from 'typeorm';
 import { Module } from '@nestjs/common';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
 @Module({
   imports: [
@@ -111,6 +114,14 @@ import { Repository } from 'typeorm';
         sessions: IUserSessionRepository,
       ): ISwitchTenancyUseCase =>
         new SwitchTenancyService(listTenancies, tokens, passwords, sessions),
+    },
+    {
+      provide: GET_ME_SERVICE,
+      inject: [USER_REPOSITORY, DataSource],
+      useFactory: (
+        users: IUserRepository,
+        dataSource: DataSource,
+      ): IGetMeUseCase => new GetMeService(users, dataSource),
     },
   ],
   exports: [TOKEN_SERVICE],

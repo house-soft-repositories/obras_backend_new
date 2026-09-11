@@ -6,5 +6,6 @@ export default function mockOrgaoRepository(): jest.Mocked<IOrgaoRepository> {
     findById: jest.fn(),
     findAll: jest.fn(),
     existsLocalidade: jest.fn(),
+    findAllByLocalidadeId: jest.fn(),
   };
 }

@@ -137,6 +137,21 @@ export default abstract class TenantIdentitySchema {
         "descricao" character varying,
         "tipo" character varying NOT NULL,
         "status" character varying NOT NULL DEFAULT 'EM_ABERTO',
+        "tipo_financiamento" character varying NOT NULL DEFAULT 'SEM_OGU',
+        "modo_duracao" character varying NOT NULL DEFAULT 'DEFINIDO_PELO_USUARIO',
+        "data_inicio" date,
+        "data_prazo" date,
+        "acao_conveniada" character varying NOT NULL DEFAULT 'NAO',
+        "prioritaria" boolean NOT NULL DEFAULT false,
+        "exibir_camera_ao_vivo" boolean NOT NULL DEFAULT false,
+        "camera_url" character varying,
+        "privado" boolean NOT NULL DEFAULT false,
+        "invisivel" boolean NOT NULL DEFAULT false,
+        "considerar_sabado" boolean NOT NULL DEFAULT false,
+        "considerar_domingo" boolean NOT NULL DEFAULT false,
+        "seguir_automatico" boolean NOT NULL DEFAULT false,
+        "vincular_pagamento_percentual" boolean NOT NULL DEFAULT false,
+        "corresponsaveis_podem_editar" boolean NOT NULL DEFAULT false,
         "orgao_id" uuid NOT NULL,
         "setor_id" uuid,
         "localidade_id" uuid,
@@ -145,7 +160,13 @@ export default abstract class TenantIdentitySchema {
         "classificacao_id" uuid,
         "tipologia_id" uuid,
         "subtipologia_id" uuid,
-        "seguir_automatico" boolean NOT NULL DEFAULT false,
+        "programa_ppa" character varying,
+        "acao_estrategica" character varying,
+        "acao_orcamentaria" character varying,
+        "unidade_medida" character varying,
+        "quantidade" numeric(18,4),
+        "secretario" character varying,
+        "data_pactuada" date,
         "criado_por_usuario_id" uuid NOT NULL,
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -153,7 +174,7 @@ export default abstract class TenantIdentitySchema {
         CONSTRAINT "PK_obras" PRIMARY KEY ("id")
       )
     `);
-    await executor.query(`CREATE UNIQUE INDEX${ifNotExists} "UQ_obras_codigo" ON "${schemaName}"."obras" ("codigo")`);
+    await executor.query(`CREATE UNIQUE INDEX${ifNotExists} "UQ_obras_codigo" ON "${schemaName}"."obras" ("codigo") WHERE "deleted_at" IS NULL`);
     await executor.query(`
       CREATE TABLE${ifNotExists} "${schemaName}"."obra_responsaveis" (
         "id" uuid NOT NULL,
@@ -185,6 +206,42 @@ export default abstract class TenantIdentitySchema {
         CONSTRAINT "PK_obra_seguidores" PRIMARY KEY ("id")
       )
     `);
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."tag" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "nome" character varying NOT NULL,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_tag" PRIMARY KEY ("id"),
+        CONSTRAINT "UQ_tag_tenant_nome" UNIQUE ("tenant_id", "nome")
+      )
+    `);
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."obra_tag" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_id" uuid NOT NULL,
+        "tag_id" uuid NOT NULL,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_obra_tag" PRIMARY KEY ("id"),
+        CONSTRAINT "UQ_obra_tag" UNIQUE ("obra_id", "tag_id")
+      )
+    `);
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."observacao" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_id" uuid NOT NULL,
+        "texto" text NOT NULL,
+        "autor_usuario_id" uuid NOT NULL,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_observacao" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(`CREATE INDEX${ifNotExists} "IDX_observacao_obra" ON "${schemaName}"."observacao" ("obra_id")`);
+    await executor.query(`CREATE INDEX${ifNotExists} "IDX_obra_tag_obra" ON "${schemaName}"."obra_tag" ("obra_id")`);
+    await executor.query(`CREATE INDEX${ifNotExists} "IDX_tag_tenant" ON "${schemaName}"."tag" ("tenant_id")`);
     await executor.query(`
       CREATE TABLE${ifNotExists} "${schemaName}"."obras_privadas" (
         "id" uuid NOT NULL,

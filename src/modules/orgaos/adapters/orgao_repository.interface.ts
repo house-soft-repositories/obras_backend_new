@@ -11,4 +11,5 @@ export default interface IOrgaoRepository {
     pageOptions: PageOptionsEntity,
   ): AsyncResult<AppException, PageEntity<OrgaoEntity>>;
   existsLocalidade(localidadeId: string): AsyncResult<AppException, true>;
+  findAllByLocalidadeId(localidadeId: string): AsyncResult<AppException, OrgaoEntity[]>;
 }

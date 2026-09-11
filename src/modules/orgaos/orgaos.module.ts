@@ -5,6 +5,7 @@ import IOrgaoRepository from '@/modules/orgaos/adapters/orgao_repository.interfa
 import ISetorRepository from '@/modules/orgaos/adapters/setor_repository.interface';
 import CreateOrgaoService from '@/modules/orgaos/application/create_orgao.service';
 import CreateSetorService from '@/modules/orgaos/application/create_setor.service';
+import ListOrgaosByLocalidadeService from '@/modules/orgaos/application/list_orgaos_by_localidade.service';
 import ListOrgaosService from '@/modules/orgaos/application/list_orgaos.service';
 import ListSetoresService from '@/modules/orgaos/application/list_setores.service';
 import ListSetoresByOrgaoService from '@/modules/orgaos/application/list_setores_by_orgao.service';
@@ -13,6 +14,7 @@ import UpdateSetorService from '@/modules/orgaos/application/update_setor.servic
 import OrgaoController from '@/modules/orgaos/controller/orgao.controller';
 import ICreateOrgaoUseCase from '@/modules/orgaos/domain/usecase/create_orgao.usecase';
 import ICreateSetorUseCase from '@/modules/orgaos/domain/usecase/create_setor.usecase';
+import IListOrgaosByLocalidadeUseCase from '@/modules/orgaos/domain/usecase/list_orgaos_by_localidade.usecase';
 import IListOrgaosUseCase from '@/modules/orgaos/domain/usecase/list_orgaos.usecase';
 import IListSetoresUseCase from '@/modules/orgaos/domain/usecase/list_setores.usecase';
 import IListSetoresByOrgaoUseCase from '@/modules/orgaos/domain/usecase/list_setores_by_orgao.usecase';
@@ -25,6 +27,7 @@ import SetorRepository from '@/modules/orgaos/infra/repositories/setor.repositor
 import {
   CREATE_ORGAO_SERVICE,
   CREATE_SETOR_SERVICE,
+  LIST_ORGAOS_BY_LOCALIDADE_SERVICE,
   LIST_ORGAOS_SERVICE,
   LIST_SETORES_SERVICE,
   LIST_SETORES_BY_ORGAO_SERVICE,
@@ -70,6 +73,14 @@ import { DataSource } from 'typeorm';
         new ListOrgaosService(repository),
     },
     {
+      provide: LIST_ORGAOS_BY_LOCALIDADE_SERVICE,
+      inject: [ORGAO_REPOSITORY],
+      useFactory: (
+        repository: IOrgaoRepository,
+      ): IListOrgaosByLocalidadeUseCase =>
+        new ListOrgaosByLocalidadeService(repository),
+    },
+    {
       provide: UPDATE_ORGAO_SERVICE,
       inject: [ORGAO_REPOSITORY],
       useFactory: (repository: IOrgaoRepository): IUpdateOrgaoUseCase =>
@@ -106,6 +117,7 @@ import { DataSource } from 'typeorm';
     ORGAO_REPOSITORY,
     SETOR_REPOSITORY,
     CREATE_ORGAO_SERVICE,
+    LIST_ORGAOS_BY_LOCALIDADE_SERVICE,
     LIST_ORGAOS_SERVICE,
     UPDATE_ORGAO_SERVICE,
     CREATE_SETOR_SERVICE,

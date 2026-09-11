@@ -1,5 +1,5 @@
-import { Column, Entity } from 'typeorm';
 import { BaseModelPrimaryColumnUuid } from '@/core/interface/base_model';
+import { Column, Entity } from 'typeorm';
 
 @Entity({ name: 'setores' })
 export default class SetorModel extends BaseModelPrimaryColumnUuid {

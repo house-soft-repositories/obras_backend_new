@@ -1,0 +1,41 @@
+import { IsEnum, IsOptional, IsString, IsUUID, IsBoolean, IsNumberString, IsDateString, MinLength } from 'class-validator';
+import { TipoFinanciamento } from '@/modules/obras/domain/enums/tipo_financiamento.enum';
+import { ModoDuracao } from '@/modules/obras/domain/enums/modo_duracao.enum';
+import { AcaoConveniada } from '@/modules/obras/domain/enums/acao_conveniada.enum';
+
+export default class UpdateObraDto {
+  @IsOptional() @IsString() @MinLength(2) nome?: string;
+  @IsOptional() @IsString() tipo?: string;
+  @IsOptional() @IsString() status?: string;
+  @IsOptional() @IsUUID() orgaoId?: string;
+  @IsOptional() @IsUUID() setorId?: string | null;
+  @IsOptional() @IsUUID() localidadeId?: string | null;
+  @IsOptional() @IsUUID() subclassificacaoId?: string | null;
+  @IsOptional() @IsUUID() eixoId?: string | null;
+  @IsOptional() @IsUUID() classificacaoId?: string | null;
+  @IsOptional() @IsUUID() tipologiaId?: string | null;
+  @IsOptional() @IsUUID() subtipologiaId?: string | null;
+  @IsOptional() @IsString() descricao?: string | null;
+  @IsOptional() @IsBoolean() seguirAutomatico?: boolean;
+  @IsOptional() @IsEnum(TipoFinanciamento) tipoFinanciamento?: TipoFinanciamento;
+  @IsOptional() @IsEnum(ModoDuracao) modoDuracao?: ModoDuracao;
+  @IsOptional() @IsDateString() dataInicio?: string | null;
+  @IsOptional() @IsDateString() dataPrazo?: string | null;
+  @IsOptional() @IsEnum(AcaoConveniada) acaoConveniada?: AcaoConveniada;
+  @IsOptional() @IsBoolean() prioritaria?: boolean;
+  @IsOptional() @IsBoolean() exibirCameraAoVivo?: boolean;
+  @IsOptional() @IsString() cameraUrl?: string | null;
+  @IsOptional() @IsBoolean() privado?: boolean;
+  @IsOptional() @IsBoolean() invisivel?: boolean;
+  @IsOptional() @IsBoolean() considerarSabado?: boolean;
+  @IsOptional() @IsBoolean() considerarDomingo?: boolean;
+  @IsOptional() @IsBoolean() vincularPagamentoPercentual?: boolean;
+  @IsOptional() @IsBoolean() corresponsaveisPodemEditar?: boolean;
+  @IsOptional() @IsString() programaPpa?: string | null;
+  @IsOptional() @IsString() acaoEstrategica?: string | null;
+  @IsOptional() @IsString() acaoOrcamentaria?: string | null;
+  @IsOptional() @IsString() unidadeMedida?: string | null;
+  @IsOptional() @IsNumberString() quantidade?: string | null;
+  @IsOptional() @IsString() secretario?: string | null;
+  @IsOptional() @IsDateString() dataPactuada?: string | null;
+}

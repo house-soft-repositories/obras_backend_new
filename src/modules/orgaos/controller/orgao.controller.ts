@@ -7,6 +7,7 @@ import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
 import type ICreateOrgaoUseCase from '@/modules/orgaos/domain/usecase/create_orgao.usecase';
 import type ICreateSetorUseCase from '@/modules/orgaos/domain/usecase/create_setor.usecase';
+import type IListOrgaosByLocalidadeUseCase from '@/modules/orgaos/domain/usecase/list_orgaos_by_localidade.usecase';
 import type IListOrgaosUseCase from '@/modules/orgaos/domain/usecase/list_orgaos.usecase';
 import type IListSetoresUseCase from '@/modules/orgaos/domain/usecase/list_setores.usecase';
 import type IListSetoresByOrgaoUseCase from '@/modules/orgaos/domain/usecase/list_setores_by_orgao.usecase';
@@ -21,6 +22,7 @@ import UpdateSetorDto from '@/modules/orgaos/dtos/update_setor.dto';
 import {
   CREATE_ORGAO_SERVICE,
   CREATE_SETOR_SERVICE,
+  LIST_ORGAOS_BY_LOCALIDADE_SERVICE,
   LIST_ORGAOS_SERVICE,
   LIST_SETORES_SERVICE,
   LIST_SETORES_BY_ORGAO_SERVICE,
@@ -49,6 +51,8 @@ export default class OrgaoController {
     private readonly createOrgao: ICreateOrgaoUseCase,
     @Inject(LIST_ORGAOS_SERVICE)
     private readonly listOrgaos: IListOrgaosUseCase,
+    @Inject(LIST_ORGAOS_BY_LOCALIDADE_SERVICE)
+    private readonly listOrgaosByLocalidade: IListOrgaosByLocalidadeUseCase,
     @Inject(UPDATE_ORGAO_SERVICE)
     private readonly updateOrgao: IUpdateOrgaoUseCase,
     @Inject(CREATE_SETOR_SERVICE)
@@ -96,6 +100,22 @@ export default class OrgaoController {
     });
   }
 
+  @Get('localidade/:localidadeId')
+  async listByLocalidade(
+    @Param('localidadeId', ParseUUIDPipe) localidadeId: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ): Promise<OrgaoResponseDto[]> {
+    return this.withTenant(user, async () => {
+      const result = await this.listOrgaosByLocalidade.execute({
+        localidadeId,
+        role: user!.role,
+      });
+      return this.unwrap(result).map((entity) =>
+        OrgaoResponseDto.fromEntity(entity),
+      );
+    });
+  }
+
   @Patch(':id')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -109,6 +129,22 @@ export default class OrgaoController {
         role: user!.role,
       });
       return OrgaoResponseDto.fromEntity(this.unwrap(result));
+    });
+  }
+
+  @Get('setores')
+  async listSetoresForOrgao(
+    @Query() query: PaginationOptionsDto,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.withTenant(user, async () => {
+      const result = await this.listSetores.execute({
+        ...query,
+        role: user!.role,
+      });
+      const page = this.unwrap(result);
+
+      return page.toObject();
     });
   }
 
@@ -139,22 +175,6 @@ export default class OrgaoController {
         role: user!.role,
       });
       return this.unwrap(result);
-    });
-  }
-
-  @Get('setores')
-  async listSetoresForOrgao(
-    @Query() query: PaginationOptionsDto,
-    @AuthenticatedUser() user: AccessTokenPayload | undefined,
-  ) {
-    return this.withTenant(user, async () => {
-      const result = await this.listSetores.execute({
-        ...query,
-        role: user!.role,
-      });
-      const page = this.unwrap(result);
-      
-      return page.toObject()
     });
   }
 

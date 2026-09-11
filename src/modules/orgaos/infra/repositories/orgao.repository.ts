@@ -125,6 +125,31 @@ export default class OrgaoRepository implements IOrgaoRepository {
     }
   }
 
+  async findAllByLocalidadeId(
+    localidadeId: string,
+  ): AsyncResult<AppException, OrgaoEntity[]> {
+    try {
+      const schema = this.tenantContext.require().schemaName;
+      const rows = await this.dataSource.query<OrgaoModel[]>(
+        `SELECT id, localidade_id AS "localidadeId", nome, sigla, tipo, responsavel, email, telefone, ativo,
+           created_at AS "createdAt", updated_at AS "updatedAt"
+         FROM "${schema}"."orgaos"
+         WHERE localidade_id = $1
+         ORDER BY nome ASC`,
+        [localidadeId],
+      );
+      return right(rows.map((row) => OrgaoMapper.toEntity(row)));
+    } catch (cause) {
+      return left(
+        new OrgaoRepositoryException({
+          code: ErrorCodeConstants.ORGAO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
+
   async existsLocalidade(
     localidadeId: string,
   ): AsyncResult<AppException, true> {

@@ -23,7 +23,10 @@ import IListUsersUseCase, {
   ListUsersResponse,
 } from '@/modules/users/domain/usecase/list_users.usecase';
 import UserRepositoryException from '@/modules/users/exceptions/user_repository.exception';
-import { CREATE_USER_SERVICE, LIST_USERS_SERVICE } from '@/modules/users/symbols';
+import {
+  CREATE_USER_SERVICE,
+  LIST_USERS_SERVICE,
+} from '@/modules/users/symbols';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { validUser } from '@test/constants/users/domain/entities/user.constants';

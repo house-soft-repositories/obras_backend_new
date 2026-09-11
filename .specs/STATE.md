@@ -44,11 +44,12 @@
 
 ## Handoff
 
-- **Feature**: `.specs/features/usuarios_vinculos_organizacionais`
-- **Phase / Task**: Validation complete, docs closed
-- **Completed**: User organizational references persist on public users via nullable `localidadeId`, `orgaoId`, and `setorId`; `CreateUserService` validates verified-tenant locality/orgao/sector references; sector moves reject linked users with HTTP 422; `RoleDecorator`/`RolePipe` gate user provisioning roles; `POST /api/users` is the only provisioning endpoint exposed after removing the out-of-scope update route; focused unit, e2e, integration, and build gates passed.
-- **In-progress** (file:line): none
-- **Next step**: Await next spec selection or explicit commit authorization.
+- **Feature**: `.specs/features/obras_gestao_completa`
+- **Feature**: `.specs/features/obras_gestao_completa`
+- **Phase / Task**: Execute T7+T8 Done → Verify
+- **Completed**: T1..T8 completos: migration 20+ cols + domain enums/entities + repos + P1 list/get/update + HTTP + duplicate + equipe/tags/observacoes (16 rotas novas) + build/test verdes, boot sem UnknownDependencies
+- **In-progress** (file:line): `Verify: pnpm run build && pnpm test test/modules/obras`
+- **Next step**: Verifier + atualizar validation.md + decidir commit (aguardando autorização)
 - **Blockers**: none.
-- **Uncommitted files**: feature spec/task/validation docs, user organization migration and related implementation/test edits.
+- **Uncommitted files**: `src/core/multitenancy/tenant_identity_schema.ts`, `src/core/database/migrations/1781210000000-obra_gestao_completa.ts`, `.specs/features/obras_gestao_completa/tasks.md`, `.specs/STATE.md`
 - **Branch**: master
