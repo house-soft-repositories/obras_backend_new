@@ -44,12 +44,11 @@
 
 ## Handoff
 
-- **Feature**: `.specs/features/obras_gestao_completa`
-- **Feature**: `.specs/features/obras_gestao_completa`
-- **Phase / Task**: Execute T7+T8 Done → Verify
-- **Completed**: T1..T8 completos: migration 20+ cols + domain enums/entities + repos + P1 list/get/update + HTTP + duplicate + equipe/tags/observacoes (16 rotas novas) + build/test verdes, boot sem UnknownDependencies
-- **In-progress** (file:line): `Verify: pnpm run build && pnpm test test/modules/obras`
-- **Next step**: Verifier + atualizar validation.md + decidir commit (aguardando autorização)
-- **Blockers**: none.
-- **Uncommitted files**: `src/core/multitenancy/tenant_identity_schema.ts`, `src/core/database/migrations/1781210000000-obra_gestao_completa.ts`, `.specs/features/obras_gestao_completa/tasks.md`, `.specs/STATE.md`
+- **Feature**: Cronograma e medições — P1 em implementação
+- **Phase / Task**: Execute — P1 foundation and core routes
+- **Completed**: cronograma P1 foundation: migration, stage entity, tenant-scoped repository, service, controller wiring, obra validation, atomic lote, serializable route responses, build, focused unit tests and repository transaction tests.
+- **In-progress**: e2e coverage for P1 routes, then P2/P3.
+- **Next step**: add focused HTTP tests for P1 CRUD/lote/predefinidos/reorder and tenant 404/401/400 cases.
+- **Blockers**: full Docker verification and lint are still pending.
+- **Uncommitted files**: cronograma implementation and specs remain uncommitted, conforme instrução do usuário.
 - **Branch**: master

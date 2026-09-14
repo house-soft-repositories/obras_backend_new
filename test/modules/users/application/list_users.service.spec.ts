@@ -1,4 +1,7 @@
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
+import PageEntity from '@/core/pagination/domain/entities/page.entity';
+import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
+import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import { left, right } from '@/core/types/either';
 import ListUsersService from '@/modules/users/application/list_users.service';
 import UserEntity from '@/modules/users/domain/entities/user.entity';
@@ -26,7 +29,27 @@ describe('ListUsersService', () => {
       },
       validUser.tenantId,
     );
-    repository.listByTenantId.mockResolvedValue(right([first, second]));
+    const pageOptions = new PageOptionsEntity(undefined, undefined, undefined);
+    const users = [first, second].map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantId,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      localidade: null,
+      orgao: null,
+      setor: null,
+    }));
+    repository.listWithOrganizational.mockResolvedValue(
+      right(
+        new PageEntity(
+          users,
+          new PageMetaEntity({ pageOptions, itemCount: users.length }),
+        ),
+      ),
+    );
     const service = new ListUsersService(repository);
 
     const result = await service.execute({
@@ -38,31 +61,17 @@ describe('ListUsersService', () => {
     });
 
     expect(result.isRight()).toBe(true);
-    expect(repository.listByTenantId.mock.calls).toContainEqual([
+    expect(repository.listWithOrganizational).toHaveBeenCalledWith(
+      expect.any(PageOptionsEntity),
       validUser.tenantId,
-    ]);
-    expect(result.getOrThrow().toResponse()).toEqual([
-      expect.objectContaining({
-        id: first.id,
-        name: first.name,
-        email: first.email,
-        role: UserRole.USER,
-        tenantId: validUser.tenantId,
-      }),
-      expect.objectContaining({
-        id: second.id,
-        name: second.name,
-        email: second.email,
-        role: UserRole.STAFF,
-        tenantId: validUser.tenantId,
-      }),
-    ]);
-    expect(result.getOrThrow().toResponse()[0]).not.toHaveProperty('password');
+    );
+    expect(result.getOrThrow().toObject().data).toEqual(users);
+    expect(result.getOrThrow().toObject().data[0]).not.toHaveProperty('password');
   });
 
   it('propagates repository failures', async () => {
     const repository = mockUserRepository();
-    repository.listByTenantId.mockResolvedValue(
+    repository.listWithOrganizational.mockResolvedValue(
       left(
         new UserRepositoryException({
           code: ErrorCodeConstants.USER_REPOSITORY_FAILED,

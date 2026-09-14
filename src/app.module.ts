@@ -9,8 +9,10 @@ import LocalidadesModule from '@/modules/localidades/localidades.module';
 import FontesModule from '@/modules/fontes/fontes.module';
 import PessoasModule from '@/modules/pessoas/pessoas.module';
 import ObrasModule from '@/modules/obras/obras.module';
+import ContratosModule from '@/modules/contratos/contratos.module';
 import ObrasPrivadasModule from '@/modules/obras-privadas/obras_privadas.module';
 import OrgaosModule from '@/modules/orgaos/orgaos.module';
+import CronogramaModule from '@/modules/cronograma/cronograma.module';
 
 @Module({
   imports: [
@@ -22,8 +24,10 @@ import OrgaosModule from '@/modules/orgaos/orgaos.module';
     FontesModule,
     PessoasModule,
     ObrasModule,
+    ContratosModule,
     ObrasPrivadasModule,
     OrgaosModule,
+    CronogramaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

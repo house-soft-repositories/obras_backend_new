@@ -28,6 +28,7 @@ import TenantRequestContextService from '@/core/multitenancy/tenant_request_cont
         username: config.get('DATABASE_USERNAME'),
         password: config.get('DATABASE_PASSWORD'),
         database: config.get('DATABASE_NAME'),
+        autoLoadEntities: true,
         entities: [TenancyModel, UserModel, UserSessionModel],
         extra: {
           max: config.get('DATABASE_MAX_POOL_CONNECTIONS'),

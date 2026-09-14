@@ -99,9 +99,9 @@ O legado orquestra o cronograma físico da obra via `estagios` com estados, `aco
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| CRO-01 | P1: Estágios e reordenação | Design | Pending |
-| CRO-02 | P1: Estágios e reordenação | Design | Pending |
-| CRO-03 | P1: Estágios e reordenação | Design | Pending |
+| CRO-01 | P1: Estágios e reordenação | Implementation | In progress |
+| CRO-02 | P1: Estágios e reordenação | Implementation | In progress |
+| CRO-03 | P1: Estágios e reordenação | Implementation | In progress |
 | CRO-04 | P1: Estágios e reordenação | Design | Pending |
 | CRO-05 | P1: Estágios e reordenação | Design | Pending |
 | CRO-06 | P1: Estágios e reordenação | Design | Pending |
@@ -123,4 +123,3 @@ O legado orquestra o cronograma físico da obra via `estagios` com estados, `aco
 - [ ] Tenant cria/reordena estágios, registra acompanhamentos/comentários e medições isolados por tenant.
 - [ ] `estagio-atual, conclusao-estagio, calculo-datas, duplicar-estagio` reproduzidos com testes.
 - [ ] E2e cobre `estagios→acompanhamentos→medicoes→atual`.
-

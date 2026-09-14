@@ -1,0 +1,5 @@
+export enum TipoRecebimento {
+  PROVISORIO = 'PROVISORIO',
+  DEFINITIVO = 'DEFINITIVO',
+  INAUGURACAO = 'INAUGURACAO',
+}

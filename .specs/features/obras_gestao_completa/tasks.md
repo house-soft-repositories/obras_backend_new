@@ -150,4 +150,3 @@ Phase 2: T1 → T2 → T3
 Phase 3: T3 → T4 → T5
 Phase 4: T5 → T6 → T7 → T8
 ```
-

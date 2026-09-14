@@ -1,0 +1,2 @@
+export const ESTAGIO_REPOSITORY = Symbol('ESTAGIO_REPOSITORY');
+export const ESTAGIOS_SERVICE = Symbol('ESTAGIOS_SERVICE');

@@ -44,7 +44,7 @@ O legado gere contratos vinculados à obra com `contrato, aditivo, paralisacao, 
 **Acceptance Criteria**:
 
 1. WHEN the user posts `POST /api/contratos` with `obraId, numero, dataInicio, prazoDias, valor` THEN the system SHALL create the contract scoped to that obra and tenant and SHALL return HTTP 201. <!-- event-driven -->
-2. WHEN the user lists `GET /api/contratos?obraId=` or `GET /api/obras/{id}/contratos` THEN the system SHALL return contracts of that obra paginated and tenant-scoped. <!-- event-driven -->
+2. WHEN the user lists `GET /api/contratos` THEN the system SHALL return all contracts of the verified tenant ordered by creation date, including their linked obra and company references. <!-- event-driven -->
 3. WHEN the user gets `GET /api/contratos/{id}/prazo-final` THEN the system SHALL compute prazo final via `calculo-prazo-execucao` considering `aditivos+paralisacoes`. <!-- event-driven -->
 4. WHEN the user gets `GET /api/contratos/{id}/valores` THEN the system SHALL return valor original + aditivos consolidado. <!-- event-driven -->
 5. IF `obraId` belongs to another tenant THEN the system SHALL return HTTP 404 with code `CONTRATO_NOT_FOUND`. <!-- unwanted-behavior -->
@@ -76,10 +76,10 @@ O legado gere contratos vinculados à obra com `contrato, aditivo, paralisacao, 
 
 **Acceptance Criteria**:
 
-1. WHEN the user posts `POST /api/empresas-contratadas` with `contratoId, cnpj, razaoSocial` THEN the system SHALL create the company linked to contrato/tenant. <!-- event-driven -->
-2. WHEN the user lists `GET /api/empresas-contratadas?contratoId=` THEN the system SHALL return companies of that contract tenant-scoped. <!-- event-driven -->
-3. IF `contratoId` belongs to another tenant THEN the system SHALL return HTTP 404. <!-- unwanted-behavior -->
-4. The system SHALL validate `cnpj` format and uniqueness per contrato. <!-- ubiquitous -->
+1. WHEN the user posts `POST /api/empresas-contratadas` with company registration data THEN the system SHALL create an independent company cadastro scoped to the tenant. <!-- event-driven -->
+2. WHEN the user lists `GET /api/empresas-contratadas` THEN the system SHALL return tenant-scoped companies ordered by `razaoSocial`, including the number of linked contracts. <!-- event-driven -->
+3. WHEN the user gets, patches, or deletes `GET/PATCH/DELETE /api/empresas-contratadas/:id` THEN the system SHALL operate only on the verified tenant company. <!-- event-driven -->
+4. The system SHALL validate `cnpj` format and uniqueness per tenant. <!-- ubiquitous -->
 
 **Independent Test**: Create empresa, list, validate cnpj uniqueness.
 
@@ -115,4 +115,3 @@ O legado gere contratos vinculados à obra com `contrato, aditivo, paralisacao, 
 - [ ] Tenant cria/lista contratos, aditivos, paralisações e empresas com cálculo de prazo/valores correto.
 - [ ] `calculo-prazo-execucao` reproduzido com testes unitários do legado.
 - [ ] E2e cobre `contrato→aditivo→paralisacao→reinicio→prazo-final`.
-

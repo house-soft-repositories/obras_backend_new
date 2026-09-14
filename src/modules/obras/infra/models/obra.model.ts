@@ -1,18 +1,27 @@
 import { BaseModelPrimaryColumnUuid } from '@/core/interface/base_model';
 import { Column, Entity } from 'typeorm';
+import { TipoObra } from '@/modules/obras/domain/enums/tipo_obra.enum';
+import { StatusObra } from '@/modules/obras/domain/enums/status_obra.enum';
+import { TipoFinanciamento } from '@/modules/obras/domain/enums/tipo_financiamento.enum';
+import { ModoDuracao } from '@/modules/obras/domain/enums/modo_duracao.enum';
+import { AcaoConveniada } from '@/modules/obras/domain/enums/acao_conveniada.enum';
 
 @Entity({ name: 'obras' })
 export default class ObraModel extends BaseModelPrimaryColumnUuid {
   @Column() codigo!: string;
   @Column() nome!: string;
   @Column({ nullable: true, type: 'varchar' }) descricao!: string | null;
-  @Column() tipo!: string;
-  @Column({ default: 'EM_ABERTO' }) status!: string;
-  @Column({ default: 'SEM_OGU' }) tipoFinanciamento!: string;
-  @Column({ default: 'DEFINIDO_PELO_USUARIO' }) modoDuracao!: string;
+  @Column({ type: 'varchar' }) tipo!: TipoObra;
+  @Column({ type: 'varchar', default: StatusObra.EM_ABERTO })
+  status!: StatusObra;
+  @Column({ type: 'varchar', default: TipoFinanciamento.SEM_OGU })
+  tipoFinanciamento!: TipoFinanciamento;
+  @Column({ type: 'varchar', default: ModoDuracao.DEFINIDO_PELO_USUARIO })
+  modoDuracao!: ModoDuracao;
   @Column({ nullable: true, type: 'date' }) dataInicio!: string | null;
   @Column({ nullable: true, type: 'date' }) dataPrazo!: string | null;
-  @Column({ default: 'NAO' }) acaoConveniada!: string;
+  @Column({ type: 'varchar', default: AcaoConveniada.NAO })
+  acaoConveniada!: AcaoConveniada;
   @Column({ default: false }) prioritaria!: boolean;
   @Column({ default: false }) exibirCameraAoVivo!: boolean;
   @Column({ nullable: true, type: 'varchar' }) cameraUrl!: string | null;
@@ -35,7 +44,8 @@ export default class ObraModel extends BaseModelPrimaryColumnUuid {
   @Column({ nullable: true, type: 'varchar' }) acaoEstrategica!: string | null;
   @Column({ nullable: true, type: 'varchar' }) acaoOrcamentaria!: string | null;
   @Column({ nullable: true, type: 'varchar' }) unidadeMedida!: string | null;
-  @Column({ nullable: true, type: 'numeric', precision: 18, scale: 4 }) quantidade!: string | null;
+  @Column({ nullable: true, type: 'numeric', precision: 18, scale: 4 })
+  quantidade!: string | null;
   @Column({ nullable: true, type: 'varchar' }) secretario!: string | null;
   @Column({ nullable: true, type: 'date' }) dataPactuada!: string | null;
   @Column({ type: 'uuid' }) criadoPorUsuarioId!: string;

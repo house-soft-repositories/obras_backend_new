@@ -60,6 +60,7 @@ describe('CreateTenantIdentitySchema1781300000000', () => {
     )) as { table_name: string }[];
     expect(tables.map(({ table_name }) => table_name).sort()).toEqual([
       'localidades',
+      'obras',
       'orgaos',
       'setores',
     ]);
@@ -72,6 +73,7 @@ describe('CreateTenantIdentitySchema1781300000000', () => {
     )) as { table_name: string }[];
     expect(secondTables.map(({ table_name }) => table_name).sort()).toEqual([
       'localidades',
+      'obras',
       'orgaos',
       'setores',
     ]);
