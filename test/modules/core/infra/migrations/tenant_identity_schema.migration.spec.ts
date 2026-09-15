@@ -7,6 +7,22 @@ describe('CreateTenantIdentitySchema1781300000000', () => {
   const secondTenantId = randomUUID();
   const schemaName = `tenant_${tenantId.replaceAll('-', '')}`;
   const secondSchemaName = `tenant_${secondTenantId.replaceAll('-', '')}`;
+  const expectedTables = [
+    'classificacao',
+    'eixo',
+    'licenca',
+    'localidades',
+    'obra_localizacao',
+    'obra_orcamento_previsto',
+    'obras',
+    'orgaos',
+    'recebimento',
+    'setores',
+    'subclassificacao',
+    'subtipologia',
+    'tipologia',
+    'titularidade',
+  ];
   const dataSource = new DataSource({
     type: 'postgres',
     host: process.env.DATABASE_HOST,
@@ -38,7 +54,9 @@ describe('CreateTenantIdentitySchema1781300000000', () => {
   afterAll(async () => {
     if (!dataSource.isInitialized) return;
     await dataSource.query(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`);
-    await dataSource.query(`DROP SCHEMA IF EXISTS "${secondSchemaName}" CASCADE`);
+    await dataSource.query(
+      `DROP SCHEMA IF EXISTS "${secondSchemaName}" CASCADE`,
+    );
     await dataSource.query(
       `DELETE FROM public.tenancies WHERE id = ANY($1::uuid[])`,
       [[tenantId, secondTenantId]],
@@ -55,28 +73,22 @@ describe('CreateTenantIdentitySchema1781300000000', () => {
       `SELECT table_name
        FROM information_schema.tables
        WHERE table_schema = $1
-         AND table_name IN ('localidades', 'orgaos', 'setores', 'obras')`,
-      [schemaName],
+         AND table_name = ANY($2::text[])`,
+      [schemaName, expectedTables],
     )) as { table_name: string }[];
-    expect(tables.map(({ table_name }) => table_name).sort()).toEqual([
-      'localidades',
-      'obras',
-      'orgaos',
-      'setores',
-    ]);
+    expect(tables.map(({ table_name }) => table_name).sort()).toEqual(
+      expectedTables,
+    );
     const secondTables = (await queryRunner.query(
       `SELECT table_name
        FROM information_schema.tables
        WHERE table_schema = $1
-         AND table_name IN ('localidades', 'orgaos', 'setores', 'obras')`,
-      [secondSchemaName],
+         AND table_name = ANY($2::text[])`,
+      [secondSchemaName, expectedTables],
     )) as { table_name: string }[];
-    expect(secondTables.map(({ table_name }) => table_name).sort()).toEqual([
-      'localidades',
-      'obras',
-      'orgaos',
-      'setores',
-    ]);
+    expect(secondTables.map(({ table_name }) => table_name).sort()).toEqual(
+      expectedTables,
+    );
 
     const localityId = randomUUID();
     await queryRunner.query(

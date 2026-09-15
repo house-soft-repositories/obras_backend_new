@@ -25,6 +25,7 @@ export default abstract class TenantIdentitySchema {
     if (!/^tenant_[0-9a-f]{32}$/.test(schemaName)) {
       throw new Error('Invalid tenant schema name');
     }
+    await executor.query(`SET LOCAL search_path TO "${schemaName}"`);
 
     await executor.query(`
       CREATE TABLE${ifNotExists} "${schemaName}"."localidades" (
@@ -311,6 +312,7 @@ export default abstract class TenantIdentitySchema {
     if (!/^tenant_[0-9a-f]{32}$/.test(schemaName)) {
       throw new Error('Invalid tenant schema name');
     }
+    await executor.query(`SET LOCAL search_path TO "${schemaName}"`);
     await executor.query(`
       CREATE TABLE${ifNotExists} "${schemaName}"."eixo" (
         "id" uuid NOT NULL,
@@ -477,6 +479,7 @@ export default abstract class TenantIdentitySchema {
     if (!/^tenant_[0-9a-f]{32}$/.test(schemaName)) {
       throw new Error('Invalid tenant schema name');
     }
+    await executor.query(`SET LOCAL search_path TO "${schemaName}"`);
     await executor.query(`
       CREATE TABLE${ifNotExists} "${schemaName}"."attachments" (
         "id" uuid NOT NULL,
