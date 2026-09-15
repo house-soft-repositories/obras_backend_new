@@ -17,6 +17,8 @@ import { TOKEN_SERVICE } from '@/modules/auth/symbols';
 import { AppModule } from '@/app.module';
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
+import EstagioAcompanhamentoEntity from '@/modules/cronograma/domain/entities/estagio_acompanhamento.entity';
+import EstagioComentarioEntity from '@/modules/cronograma/domain/entities/estagio_comentario.entity';
 import { ESTAGIOS_SERVICE } from '@/modules/cronograma/symbols';
 import type { IEstagiosUseCase } from '@/modules/cronograma/domain/usecase/estagios.usecase';
 
@@ -78,6 +80,10 @@ describe('Estagios API (e2e)', () => {
       remove: jest.fn(),
       reorder: jest.fn(),
       predefinidos: jest.fn(),
+      createAcompanhamento: jest.fn(),
+      createComentario: jest.fn(),
+      updatePercentualDireto: jest.fn(),
+      datasAgregadas: jest.fn(),
     } as any;
     const tenantRequestContext: Pick<TenantRequestContextService, 'run'> = {
       run: jest.fn(
@@ -246,6 +252,134 @@ describe('Estagios API (e2e)', () => {
       .set('Authorization', 'Bearer token')
       .expect(200);
     expect(res.body).toEqual([{ nome: 'Planejamento', posicao: 0 }]);
+  });
+
+  it('posts acompanhamento and comentario, gets aggregated dates, and patches direct percentage', async () => {
+    tokenFor();
+    estagiosService.createAcompanhamento.mockResolvedValue(
+      right(
+        EstagioAcompanhamentoEntity.fromData({
+          id: 'a69b3ead-d36b-4bd3-9d24-f01898af1cb6',
+          tenantId,
+          obraId,
+          estagioId: stageOneId,
+          percentual: 42,
+          data: '2026-02-01',
+          observacao: 'Avanço físico',
+          autorUsuarioId: userId,
+          criadoEm: new Date('2026-02-01T00:00:00.000Z'),
+        }),
+      ),
+    );
+    estagiosService.createComentario.mockResolvedValue(
+      right(
+        EstagioComentarioEntity.fromData({
+          id: '4eb15983-bd0a-4085-9528-0f28dd1037af',
+          tenantId,
+          obraId,
+          estagioId: stageOneId,
+          texto: 'Comentário de obra',
+          autorUsuarioId: userId,
+          criadoEm: new Date('2026-02-01T00:00:00.000Z'),
+        }),
+      ),
+    );
+    estagiosService.datasAgregadas.mockResolvedValue(
+      right({ dataInicio: '2026-01-10', dataFim: '2026-03-20' }),
+    );
+    estagiosService.updatePercentualDireto.mockResolvedValue(
+      right(stage(stageOneId, 'Projeto', 0)),
+    );
+
+    const acompanhamento = await request(app.getHttpServer())
+      .post(`/api/obras/${obraId}/estagios/${stageOneId}/acompanhamentos`)
+      .set('Authorization', 'Bearer token')
+      .send({ percentual: 42, data: '2026-02-01', observacao: 'Avanço físico' })
+      .expect(201);
+    expect(acompanhamento.body).toMatchObject({
+      percentual: 42,
+      autorUsuarioId: userId,
+    });
+    expect(estagiosService.createAcompanhamento).toHaveBeenCalledWith(
+      expect.objectContaining({
+        obraId,
+        estagioId: stageOneId,
+        autorUsuarioId: userId,
+      }),
+    );
+
+    const comentario = await request(app.getHttpServer())
+      .post(`/api/obras/${obraId}/estagios/${stageOneId}/comentarios`)
+      .set('Authorization', 'Bearer token')
+      .send({ texto: 'Comentário de obra' })
+      .expect(201);
+    expect(comentario.body).toMatchObject({
+      texto: 'Comentário de obra',
+      autorUsuarioId: userId,
+    });
+
+    const datas = await request(app.getHttpServer())
+      .get(`/api/obras/${obraId}/estagios/datas-agregadas`)
+      .set('Authorization', 'Bearer token')
+      .expect(200);
+    expect(datas.body).toEqual({
+      dataInicio: '2026-01-10',
+      dataFim: '2026-03-20',
+    });
+
+    await request(app.getHttpServer())
+      .patch(`/api/obras/${obraId}/estagios/${stageOneId}/percentual-direto`)
+      .set('Authorization', 'Bearer token')
+      .send({ percentual: 75 })
+      .expect(200);
+    expect(estagiosService.updatePercentualDireto).toHaveBeenCalledWith(
+      obraId,
+      stageOneId,
+      75,
+    );
+  });
+
+  it('maps P2 stage scope failures to 404', async () => {
+    tokenFor();
+    estagiosService.createAcompanhamento.mockResolvedValue(
+      left({
+        code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
+        statusCode: 404,
+        message: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
+      } as any),
+    );
+
+    await request(app.getHttpServer())
+      .post(`/api/obras/${obraId}/estagios/${stageOneId}/acompanhamentos`)
+      .set('Authorization', 'Bearer token')
+      .send({ percentual: 42, data: '2026-02-01' })
+      .expect(404);
+  });
+
+  it('rejects invalid P2 payloads before calling service', async () => {
+    tokenFor();
+
+    await request(app.getHttpServer())
+      .post(`/api/obras/${obraId}/estagios/${stageOneId}/acompanhamentos`)
+      .set('Authorization', 'Bearer token')
+      .send({ percentual: 101, data: 'invalid-date' })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post(`/api/obras/${obraId}/estagios/${stageOneId}/comentarios`)
+      .set('Authorization', 'Bearer token')
+      .send({ texto: '' })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .patch(`/api/obras/${obraId}/estagios/${stageOneId}/percentual-direto`)
+      .set('Authorization', 'Bearer token')
+      .send({ percentual: -1 })
+      .expect(400);
+
+    expect(estagiosService.createAcompanhamento).not.toHaveBeenCalled();
+    expect(estagiosService.createComentario).not.toHaveBeenCalled();
+    expect(estagiosService.updatePercentualDireto).not.toHaveBeenCalled();
   });
 
   it('maps service not found to 404 for cross-tenant or unknown obra/stage', async () => {

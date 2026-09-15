@@ -9,6 +9,8 @@ import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
 import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import IEstagioRepository from '@/modules/cronograma/adapters/estagio_repository.interface';
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
+import EstagioAcompanhamentoEntity from '@/modules/cronograma/domain/entities/estagio_acompanhamento.entity';
+import EstagioComentarioEntity from '@/modules/cronograma/domain/entities/estagio_comentario.entity';
 import EstagioMapper from '@/modules/cronograma/infra/mapper/estagio.mapper';
 import CronogramaRepositoryException from '@/modules/cronograma/exceptions/cronograma_repository.exception';
 export default class EstagioRepository implements IEstagioRepository {
@@ -228,6 +230,134 @@ export default class EstagioRepository implements IEstagioRepository {
       } finally {
         await q.release();
       }
+    } catch (cause) {
+      return left(
+        new CronogramaRepositoryException({
+          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async saveAcompanhamento(
+    item: EstagioAcompanhamentoEntity,
+  ): AsyncResult<AppException, EstagioAcompanhamentoEntity> {
+    try {
+      const [row] = await this.ds.query(
+        `INSERT INTO "${this.schema()}"."estagio_acompanhamento" (id,tenant_id,obra_id,estagio_id,percentual,data,observacao,autor_usuario_id,criado_em) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+        [
+          item.id,
+          item.tenantId,
+          item.obraId,
+          item.estagioId,
+          item.percentual,
+          item.data,
+          item.observacao,
+          item.autorUsuarioId,
+          item.criadoEm,
+        ],
+      );
+      return right(
+        EstagioAcompanhamentoEntity.fromData({
+          id: row.id,
+          tenantId: row.tenant_id,
+          obraId: row.obra_id,
+          estagioId: row.estagio_id,
+          percentual: Number(row.percentual),
+          data: row.data,
+          observacao: row.observacao,
+          autorUsuarioId: row.autor_usuario_id,
+          criadoEm: row.criado_em,
+        }),
+      );
+    } catch (cause) {
+      return left(
+        new CronogramaRepositoryException({
+          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async saveComentario(
+    item: EstagioComentarioEntity,
+  ): AsyncResult<AppException, EstagioComentarioEntity> {
+    try {
+      const [row] = await this.ds.query(
+        `INSERT INTO "${this.schema()}"."estagio_comentario" (id,tenant_id,obra_id,estagio_id,texto,autor_usuario_id,criado_em) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+        [
+          item.id,
+          item.tenantId,
+          item.obraId,
+          item.estagioId,
+          item.texto,
+          item.autorUsuarioId,
+          item.criadoEm,
+        ],
+      );
+      return right(
+        EstagioComentarioEntity.fromData({
+          id: row.id,
+          tenantId: row.tenant_id,
+          obraId: row.obra_id,
+          estagioId: row.estagio_id,
+          texto: row.texto,
+          autorUsuarioId: row.autor_usuario_id,
+          criadoEm: row.criado_em,
+        }),
+      );
+    } catch (cause) {
+      return left(
+        new CronogramaRepositoryException({
+          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async updatePercentualDireto(
+    obraId: string,
+    id: string,
+    percentual: number,
+  ): AsyncResult<AppException, EstagioEntity> {
+    try {
+      const [row] = await this.ds.query(
+        `UPDATE "${this.schema()}"."estagio" SET percentual_direto=$1,atualizado_em=now() WHERE id=$2 AND obra_id=$3 RETURNING *`,
+        [percentual, id, obraId],
+      );
+      if (!row)
+        return left(
+          new CronogramaRepositoryException({
+            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
+      return right(EstagioMapper.toEntity(row));
+    } catch (cause) {
+      return left(
+        new CronogramaRepositoryException({
+          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async datasAgregadas(
+    obraId: string,
+  ): AsyncResult<
+    AppException,
+    { dataInicio: string | null; dataFim: string | null }
+  > {
+    try {
+      const [row] = await this.ds.query(
+        `SELECT MIN(data_inicio)::text AS data_inicio, MAX(data_fim)::text AS data_fim FROM "${this.schema()}"."estagio" WHERE obra_id=$1`,
+        [obraId],
+      );
+      return right({ dataInicio: row.data_inicio, dataFim: row.data_fim });
     } catch (cause) {
       return left(
         new CronogramaRepositoryException({

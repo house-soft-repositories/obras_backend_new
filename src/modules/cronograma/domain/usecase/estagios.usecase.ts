@@ -3,6 +3,8 @@ import AsyncResult from '@/core/types/async_result';
 import PageEntity from '@/core/pagination/domain/entities/page.entity';
 import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
+import EstagioAcompanhamentoEntity from '@/modules/cronograma/domain/entities/estagio_acompanhamento.entity';
+import EstagioComentarioEntity from '@/modules/cronograma/domain/entities/estagio_comentario.entity';
 export type CreateEstagioParam = {
   obraId: string;
   nome: string;
@@ -19,6 +21,20 @@ export type UpdateEstagioParam = {
   dataInicio?: string | null;
   dataFim?: string | null;
   responsavelUsuarioId?: string | null;
+};
+export type CreateAcompanhamentoParam = {
+  obraId: string;
+  estagioId: string;
+  percentual: number;
+  data: string;
+  observacao?: string;
+  autorUsuarioId: string;
+};
+export type CreateComentarioParam = {
+  obraId: string;
+  estagioId: string;
+  texto: string;
+  autorUsuarioId: string;
 };
 export type IEstagiosUseCase = {
   create(p: CreateEstagioParam): AsyncResult<AppException, EstagioEntity>;
@@ -40,4 +56,21 @@ export type IEstagiosUseCase = {
   predefinidos(
     tipoObra?: string,
   ): AsyncResult<AppException, { nome: string; posicao: number }[]>;
+  createAcompanhamento(
+    p: CreateAcompanhamentoParam,
+  ): AsyncResult<AppException, EstagioAcompanhamentoEntity>;
+  createComentario(
+    p: CreateComentarioParam,
+  ): AsyncResult<AppException, EstagioComentarioEntity>;
+  updatePercentualDireto(
+    obraId: string,
+    id: string,
+    percentual: number,
+  ): AsyncResult<AppException, EstagioEntity>;
+  datasAgregadas(
+    obraId: string,
+  ): AsyncResult<
+    AppException,
+    { dataInicio: string | null; dataFim: string | null }
+  >;
 };

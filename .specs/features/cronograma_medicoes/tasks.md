@@ -79,7 +79,7 @@ reordenação transacional, lote e predefinidos.
 **Requirement**: CRO-08..CRO-12
 **Tests**: unit + e2e dos fluxos P2
 **Gate**: Full
-**Status**: Pending
+**Status**: Complete — P2 endpoints, service methods, repository writes, unit/repository tests and e2e happy/404/400 coverage implemented.
 
 #### T6: Medições e transições
 

@@ -4,9 +4,11 @@ import {
   IsArray,
   IsDateString,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   Min,
   MinLength,
   ValidateNested,
@@ -42,4 +44,15 @@ export class ReorderEstagiosDto {
   @ValidateNested({ each: true })
   @Type(() => ReorderItemDto)
   itens!: ReorderItemDto[];
+}
+export class CreateAcompanhamentoDto {
+  @IsNumber() @Min(0) @Max(100) percentual!: number;
+  @IsDateString() data!: string;
+  @IsOptional() @IsString() observacao?: string;
+}
+export class CreateComentarioDto {
+  @IsString() @MinLength(1) texto!: string;
+}
+export class UpdatePercentualDiretoDto {
+  @IsNumber() @Min(0) @Max(100) percentual!: number;
 }

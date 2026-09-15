@@ -24,7 +24,10 @@ import type { IEstagiosUseCase } from '@/modules/cronograma/domain/usecase/estag
 import {
   CreateEstagioDto,
   CreateEstagiosLoteDto,
+  CreateAcompanhamentoDto,
+  CreateComentarioDto,
   ReorderEstagiosDto,
+  UpdatePercentualDiretoDto,
   UpdateEstagioDto,
 } from '@/modules/cronograma/dtos/estagio.dto';
 import AppException from '@/core/exceptions/app_exception';
@@ -67,6 +70,14 @@ export default class EstagiosController {
       this.unwrap(await this.service.predefinidos()),
     );
   }
+  @Get('datas-agregadas') async datasAgregadas(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(u, async () =>
+      this.unwrap(await this.service.datasAgregadas(obraId)),
+    );
+  }
   @Post('lote') async lote(
     @Param('obraId', ParseUUIDPipe) obraId: string,
     @Body() b: CreateEstagiosLoteDto,
@@ -97,6 +108,54 @@ export default class EstagiosController {
   ) {
     return this.tc.run(u, async () =>
       this.unwrap(await this.service.get(obraId, id)).toObject(),
+    );
+  }
+  @Post(':id/acompanhamentos') async createAcompanhamento(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: CreateAcompanhamentoDto,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(u, async () =>
+      this.unwrap(
+        await this.service.createAcompanhamento({
+          obraId,
+          estagioId: id,
+          percentual: b.percentual,
+          data: b.data,
+          observacao: b.observacao,
+          autorUsuarioId: u!.sub,
+        }),
+      ).toObject(),
+    );
+  }
+  @Post(':id/comentarios') async createComentario(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: CreateComentarioDto,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(u, async () =>
+      this.unwrap(
+        await this.service.createComentario({
+          obraId,
+          estagioId: id,
+          texto: b.texto,
+          autorUsuarioId: u!.sub,
+        }),
+      ).toObject(),
+    );
+  }
+  @Patch(':id/percentual-direto') async updatePercentualDireto(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() b: UpdatePercentualDiretoDto,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(u, async () =>
+      this.unwrap(
+        await this.service.updatePercentualDireto(obraId, id, b.percentual),
+      ).toObject(),
     );
   }
   @Patch(':id') async update(
