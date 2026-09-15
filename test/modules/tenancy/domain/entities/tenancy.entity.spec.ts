@@ -14,7 +14,10 @@ describe('TenancyEntity', () => {
 
   it.each([
     [{ ...validTenancy, name: ' ' }, ErrorCodeConstants.TENANCY_INVALID_NAME],
-    [{ ...validTenancy, slug: 'Slug inválido' }, ErrorCodeConstants.TENANCY_INVALID_SLUG],
+    [
+      { ...validTenancy, slug: 'Slug inválido' },
+      ErrorCodeConstants.TENANCY_INVALID_SLUG,
+    ],
     [{ ...validTenancy, cnpj: '123' }, ErrorCodeConstants.TENANCY_INVALID_CNPJ],
   ])('rejects invalid tenancy data with %s', (params, expectedCode) => {
     expect.assertions(2);

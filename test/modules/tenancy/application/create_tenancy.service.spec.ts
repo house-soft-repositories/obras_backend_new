@@ -1,15 +1,20 @@
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
-import { right } from '@/core/types/either';
+import { left, right } from '@/core/types/either';
+import { unit } from '@/core/types/unit';
 import CreateTenancyService from '@/modules/tenancy/application/create_tenancy.service';
+import StorageException from '@/modules/storage/exceptions/storage.exception';
 import TenancyEntity from '@/modules/tenancy/domain/entities/tenancy.entity';
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 import { validTenancy } from '@test/constants/tenancy/domain/entities/tenancy.constants';
 import mockTenancyRepository from '@test/mocks/tenancy/adapters/tenancy_repository.mock';
+import mockStorageService from '@test/mocks/storage/adapters/storage_service.mock';
 
 describe('CreateTenancyService', () => {
   it('allows a superadmin to provision a tenancy', async () => {
     const repository = mockTenancyRepository();
-    repository.provision.mockImplementation((tenancy) => Promise.resolve(right(tenancy)));
+    repository.provision.mockImplementation((tenancy) =>
+      Promise.resolve(right(tenancy)),
+    );
     const service = new CreateTenancyService(repository);
 
     const result = await service.execute({
@@ -34,5 +39,53 @@ describe('CreateTenancyService', () => {
     expect(repository.provision.mock.calls).toHaveLength(0);
     if (result.isRight()) throw new Error('Expected authorization failure');
     expect(result.value.code).toBe(ErrorCodeConstants.TENANCY_CREATE_FORBIDDEN);
+  });
+});
+
+describe('CreateTenancyService storage prefix', () => {
+  it('ensures the tenant bucket prefix after provisioning', async () => {
+    const repository = mockTenancyRepository();
+    const storage = mockStorageService();
+    repository.provision.mockImplementation((tenancy) =>
+      Promise.resolve(right(tenancy)),
+    );
+    storage.ensureTenantPrefix.mockResolvedValue(right(unit));
+    const service = new CreateTenancyService(repository, storage);
+
+    const result = await service.execute({
+      ...validTenancy,
+      creator: { id: 'creator-id', role: UserRole.SUPERADMIN },
+    });
+
+    expect(result.isRight()).toBe(true);
+    expect(storage.ensureTenantPrefix).toHaveBeenCalledWith(
+      result.getOrThrow().schemaName,
+    );
+  });
+
+  it('fails provisioning when the bucket prefix cannot be ensured', async () => {
+    const repository = mockTenancyRepository();
+    const storage = mockStorageService();
+    repository.provision.mockImplementation((tenancy) =>
+      Promise.resolve(right(tenancy)),
+    );
+    storage.ensureTenantPrefix.mockResolvedValue(
+      left(
+        new StorageException({
+          code: ErrorCodeConstants.STORAGE_PROVISION_FAILED,
+          statusCode: 500,
+        }),
+      ),
+    );
+    const service = new CreateTenancyService(repository, storage);
+
+    const result = await service.execute({
+      ...validTenancy,
+      creator: { id: 'creator-id', role: UserRole.SUPERADMIN },
+    });
+
+    expect(result.isLeft()).toBe(true);
+    if (result.isRight()) throw new Error('expected failure');
+    expect(result.value.code).toBe(ErrorCodeConstants.STORAGE_PROVISION_FAILED);
   });
 });

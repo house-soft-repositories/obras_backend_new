@@ -1,6 +1,8 @@
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
+import AppException from '@/core/exceptions/app_exception';
 import AsyncResult from '@/core/types/async_result';
 import { left } from '@/core/types/either';
+import IStorageService from '@/modules/storage/adapters/storage_service.interface';
 import ITenancyRepository from '@/modules/tenancy/adapters/tenancy_repository.interface';
 import TenancyEntity from '@/modules/tenancy/domain/entities/tenancy.entity';
 import ICreateTenancyUseCase, {
@@ -8,13 +10,17 @@ import ICreateTenancyUseCase, {
 } from '@/modules/tenancy/domain/usecase/create_tenancy.usecase';
 import TenancyDomainException from '@/modules/tenancy/exceptions/tenancy_domain.exception';
 import TenancyServiceException from '@/modules/tenancy/exceptions/tenancy_service.exception';
-import AppException from '@/core/exceptions/app_exception';
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 
 export default class CreateTenancyService implements ICreateTenancyUseCase {
-  constructor(private readonly repository: ITenancyRepository) {}
+  constructor(
+    private readonly repository: ITenancyRepository,
+    private readonly storage: IStorageService,
+  ) {}
 
-  async execute(param: CreateTenancyParam): AsyncResult<AppException, TenancyEntity> {
+  async execute(
+    param: CreateTenancyParam,
+  ): AsyncResult<AppException, TenancyEntity> {
     try {
       if (param.creator.role !== UserRole.SUPERADMIN) {
         return left(
@@ -24,7 +30,10 @@ export default class CreateTenancyService implements ICreateTenancyUseCase {
           }),
         );
       }
-      const alreadyExists = await this.repository.existsBySlugOrCnpj(param.slug,param.cnpj);
+      const alreadyExists = await this.repository.existsBySlugOrCnpj(
+        param.slug,
+        param.cnpj,
+      );
       if (alreadyExists.isLeft()) return left(alreadyExists.value);
       if (alreadyExists.value) {
         return left(
@@ -34,7 +43,17 @@ export default class CreateTenancyService implements ICreateTenancyUseCase {
           }),
         );
       }
-      return this.repository.provision(TenancyEntity.create(param));
+      const provisioned = await this.repository.provision(
+        TenancyEntity.create(param),
+      );
+      if (provisioned.isLeft()) return left(provisioned.value);
+      if (this.storage) {
+        const prefixed = await this.storage.ensureTenantPrefix(
+          provisioned.value.schemaName,
+        );
+        if (prefixed.isLeft()) return left(prefixed.value);
+      }
+      return provisioned;
     } catch (error) {
       if (error instanceof TenancyDomainException) return left(error);
       return left(
