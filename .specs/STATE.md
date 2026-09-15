@@ -44,11 +44,11 @@
 
 ## Handoff
 
-- **Feature**: Cronograma e medições — P1+P2 completos (T1..T5)
-- **Phase / Task**: Execute — P3 medições pendente
-- **Completed**: cronograma P2 verified: acompanhamento/comentario writes with obra+stage scope validation, percentual direto range guard, datas agregadas; build PASS; focused gates green (service 9/9, repository 7/7, e2e 10/10).
-- **In-progress**: P3 medições e transições.
-- **Next step**: implement T6 (medições, itens por fonte, concluir/duplicar, estágio atual).
+- **Feature**: Cronograma e medições — VERIFICADA (T1..T6 complete, validation PASS)
+- **Phase / Task**: Execute — done; commits propositalmente pendentes (sem autorização do usuário)
+- **Completed**: cronograma P1, P2 and P3 verified: `validation.md` reports PASS with file:line evidence; skill gates green (`validate_spec` 0 errors, `validate_tasks` 0 errors, `validate_state` 0 errors); build PASS; unit 49 suites/214 tests PASS; cronograma e2e 12/12, service 18/18, repository 14/14; mutation probe confirms test discrimination.
+- **In-progress**: none for this feature.
+- **Next step**: PR/commit apenas com autorização explícita; pendências fora do escopo: baseline failures pré-existentes (identity/localidades/orgaos e2e, tenancy/orgao/localidade integration) e lint repo-wide pré-existente.
 - **Blockers**: full Docker verification and lint are still pending.
 - **Uncommitted files**: cronograma implementation and specs remain uncommitted, conforme instrução do usuário.
 - **Branch**: master

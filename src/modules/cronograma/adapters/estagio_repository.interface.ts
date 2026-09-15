@@ -5,6 +5,7 @@ import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.en
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
 import EstagioAcompanhamentoEntity from '@/modules/cronograma/domain/entities/estagio_acompanhamento.entity';
 import EstagioComentarioEntity from '@/modules/cronograma/domain/entities/estagio_comentario.entity';
+import MedicaoEntity from '@/modules/cronograma/domain/entities/medicao.entity';
 
 export default interface IEstagioRepository {
   save(e: EstagioEntity): AsyncResult<AppException, EstagioEntity>;
@@ -40,4 +41,12 @@ export default interface IEstagioRepository {
     AppException,
     { dataInicio: string | null; dataFim: string | null }
   >;
+  saveMedicao(item: MedicaoEntity): AsyncResult<AppException, MedicaoEntity>;
+  listMedicoes(
+    obraId: string,
+    options: PageOptionsEntity,
+  ): AsyncResult<AppException, PageEntity<MedicaoEntity>>;
+  nextMedicaoNumero(obraId: string): AsyncResult<AppException, number>;
+  nextPosicao(obraId: string): AsyncResult<AppException, number>;
+  atual(obraId: string): AsyncResult<AppException, EstagioEntity>;
 }

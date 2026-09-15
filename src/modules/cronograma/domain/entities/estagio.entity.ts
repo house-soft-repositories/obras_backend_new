@@ -101,6 +101,30 @@ export default class EstagioEntity {
       atualizadoEm: new Date(),
     });
   }
+  concluir(): EstagioEntity {
+    return new EstagioEntity({
+      ...this.props,
+      status: EstagioStatus.CONCLUIDO,
+      percentualDireto: 100,
+      atualizadoEm: new Date(),
+    });
+  }
+  duplicar(posicao: number): EstagioEntity {
+    if (posicao < 0)
+      throw new CronogramaDomainException({
+        code: ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT,
+      });
+    const now = new Date();
+    return new EstagioEntity({
+      ...this.props,
+      id: randomUUID(),
+      posicao,
+      status: EstagioStatus.PENDENTE,
+      percentualDireto: null,
+      criadoEm: now,
+      atualizadoEm: now,
+    });
+  }
   get id() {
     return this.props.id;
   }

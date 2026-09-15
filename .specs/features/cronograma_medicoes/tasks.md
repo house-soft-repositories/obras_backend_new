@@ -89,4 +89,4 @@ reordenação transacional, lote e predefinidos.
 **Requirement**: CRO-13..CRO-18
 **Tests**: unit + e2e sequência completa
 **Gate**: Full
-**Status**: Pending
+**Status**: Complete — P3 endpoints, medicao entity, service/repository methods, focused service (9 P3 cases) and repository (7 P3 cases) tests, and e2e happy/422 coverage implemented.

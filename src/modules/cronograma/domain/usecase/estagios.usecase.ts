@@ -5,6 +5,8 @@ import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.en
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
 import EstagioAcompanhamentoEntity from '@/modules/cronograma/domain/entities/estagio_acompanhamento.entity';
 import EstagioComentarioEntity from '@/modules/cronograma/domain/entities/estagio_comentario.entity';
+import MedicaoEntity from '@/modules/cronograma/domain/entities/medicao.entity';
+import { TipoMedicao } from '@/modules/cronograma/domain/enums/cronograma.enums';
 export type CreateEstagioParam = {
   obraId: string;
   nome: string;
@@ -35,6 +37,13 @@ export type CreateComentarioParam = {
   estagioId: string;
   texto: string;
   autorUsuarioId: string;
+};
+export type CreateMedicaoParam = {
+  obraId: string;
+  tipo: TipoMedicao;
+  dataMedicao: string;
+  observacao?: string;
+  itens: { fonteId: string; valor: number }[];
 };
 export type IEstagiosUseCase = {
   create(p: CreateEstagioParam): AsyncResult<AppException, EstagioEntity>;
@@ -73,4 +82,20 @@ export type IEstagiosUseCase = {
     AppException,
     { dataInicio: string | null; dataFim: string | null }
   >;
+  createMedicao(
+    p: CreateMedicaoParam,
+  ): AsyncResult<AppException, MedicaoEntity>;
+  listMedicoes(
+    obraId: string,
+    o: PageOptionsEntity,
+  ): AsyncResult<AppException, PageEntity<MedicaoEntity>>;
+  concluir(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, EstagioEntity>;
+  duplicar(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, EstagioEntity>;
+  atual(obraId: string): AsyncResult<AppException, EstagioEntity>;
 };

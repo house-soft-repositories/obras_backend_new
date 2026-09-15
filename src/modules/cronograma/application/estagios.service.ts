@@ -7,15 +7,18 @@ import IEstagioRepository from '@/modules/cronograma/adapters/estagio_repository
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
 import EstagioAcompanhamentoEntity from '@/modules/cronograma/domain/entities/estagio_acompanhamento.entity';
 import EstagioComentarioEntity from '@/modules/cronograma/domain/entities/estagio_comentario.entity';
+import MedicaoEntity from '@/modules/cronograma/domain/entities/medicao.entity';
 import {
   CreateAcompanhamentoParam,
   CreateComentarioParam,
   CreateEstagioParam,
+  CreateMedicaoParam,
   IEstagiosUseCase,
   UpdateEstagioParam,
 } from '@/modules/cronograma/domain/usecase/estagios.usecase';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
+import IFonteRepository from '@/modules/fontes/adapters/fonte_repository.interface';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import CronogramaRepositoryException from '@/modules/cronograma/exceptions/cronograma_repository.exception';
 export default class EstagiosService implements IEstagiosUseCase {
@@ -23,6 +26,7 @@ export default class EstagiosService implements IEstagiosUseCase {
     private readonly repo: IEstagioRepository,
     private readonly tc: TenantContext,
     private readonly obras: IObraRepository,
+    private readonly fontes?: IFonteRepository,
   ) {}
   private async ensureObra(obraId: string): AsyncResult<AppException, void> {
     const obra = await this.obras.findById(obraId);
@@ -202,5 +206,89 @@ export default class EstagiosService implements IEstagiosUseCase {
     const ok = await this.ensureObra(obraId);
     if (ok.isLeft()) return left(ok.value);
     return this.repo.datasAgregadas(obraId);
+  }
+
+  async createMedicao(
+    p: CreateMedicaoParam,
+  ): AsyncResult<AppException, MedicaoEntity> {
+    const ok = await this.ensureObra(p.obraId);
+    if (ok.isLeft()) return left(ok.value);
+    for (const item of p.itens) {
+      const fonte = await this.fontes?.findById(item.fonteId);
+      if (!fonte || fonte.isLeft()) {
+        return left(
+          fonte?.isLeft()
+            ? fonte.value
+            : new CronogramaRepositoryException({
+                code: ErrorCodeConstants.MEDICAO_FONTE_INVALIDA,
+                statusCode: 422,
+              }),
+        );
+      }
+      if (!fonte.value?.ativo) {
+        return left(
+          new CronogramaRepositoryException({
+            code: ErrorCodeConstants.MEDICAO_FONTE_INVALIDA,
+            statusCode: 422,
+          }),
+        );
+      }
+    }
+    const numero = await this.repo.nextMedicaoNumero(p.obraId);
+    if (numero.isLeft()) return left(numero.value);
+    try {
+      return this.repo.saveMedicao(
+        MedicaoEntity.create({
+          tenantId: this.tc.require().tenantId,
+          obraId: p.obraId,
+          numero: numero.value,
+          tipo: p.tipo,
+          dataMedicao: p.dataMedicao,
+          observacao: p.observacao,
+          itens: p.itens,
+        }),
+      );
+    } catch (e) {
+      return left(e as AppException);
+    }
+  }
+
+  async listMedicoes(
+    obraId: string,
+    o: PageOptionsEntity,
+  ): AsyncResult<AppException, PageEntity<MedicaoEntity>> {
+    const ok = await this.ensureObra(obraId);
+    if (ok.isLeft()) return left(ok.value);
+    return this.repo.listMedicoes(obraId, o);
+  }
+
+  async concluir(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, EstagioEntity> {
+    const found = await this.get(obraId, id);
+    if (found.isLeft()) return left(found.value);
+    return this.repo.update(found.value.concluir());
+  }
+
+  async duplicar(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, EstagioEntity> {
+    const found = await this.get(obraId, id);
+    if (found.isLeft()) return left(found.value);
+    const posicao = await this.repo.nextPosicao(obraId);
+    if (posicao.isLeft()) return left(posicao.value);
+    try {
+      return this.repo.save(found.value.duplicar(posicao.value));
+    } catch (e) {
+      return left(e as AppException);
+    }
+  }
+
+  async atual(obraId: string): AsyncResult<AppException, EstagioEntity> {
+    const ok = await this.ensureObra(obraId);
+    if (ok.isLeft()) return left(ok.value);
+    return this.repo.atual(obraId);
   }
 }

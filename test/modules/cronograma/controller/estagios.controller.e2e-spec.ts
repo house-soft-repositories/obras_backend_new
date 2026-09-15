@@ -19,8 +19,13 @@ import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
 import EstagioAcompanhamentoEntity from '@/modules/cronograma/domain/entities/estagio_acompanhamento.entity';
 import EstagioComentarioEntity from '@/modules/cronograma/domain/entities/estagio_comentario.entity';
+import MedicaoEntity from '@/modules/cronograma/domain/entities/medicao.entity';
 import { ESTAGIOS_SERVICE } from '@/modules/cronograma/symbols';
 import type { IEstagiosUseCase } from '@/modules/cronograma/domain/usecase/estagios.usecase';
+import {
+  EstagioStatus,
+  TipoMedicao,
+} from '@/modules/cronograma/domain/enums/cronograma.enums';
 
 describe('Estagios API (e2e)', () => {
   let app: INestApplication<App>;
@@ -33,6 +38,8 @@ describe('Estagios API (e2e)', () => {
   const stageOneId = '6b072d5f-936f-4523-96d7-9938be30eb12';
   const stageTwoId = '1056b967-e280-480f-8277-f658aa894bc2';
   const stageThreeId = 'bb7d2f9d-161f-453e-8e75-31d5f58f1f48';
+  const fonteOneId = '7d444840-9dc0-41d1-b245-5ffd4e1a6a6a';
+  const fonteTwoId = '8e555951-aed1-42e2-8356-600e5f2b7b7b';
 
   const tokenFor = (
     role: UserRole = UserRole.ADMIN,
@@ -84,6 +91,11 @@ describe('Estagios API (e2e)', () => {
       createComentario: jest.fn(),
       updatePercentualDireto: jest.fn(),
       datasAgregadas: jest.fn(),
+      createMedicao: jest.fn(),
+      listMedicoes: jest.fn(),
+      concluir: jest.fn(),
+      duplicar: jest.fn(),
+      atual: jest.fn(),
     } as any;
     const tenantRequestContext: Pick<TenantRequestContextService, 'run'> = {
       run: jest.fn(
@@ -395,6 +407,121 @@ describe('Estagios API (e2e)', () => {
       .get(`/api/obras/${obraId}/estagios/${stageOneId}`)
       .set('Authorization', 'Bearer token')
       .expect(404);
+  });
+
+  it('creates and lists medicoes, concludes, duplicates and gets current stage', async () => {
+    tokenFor();
+    const medicao = MedicaoEntity.fromData({
+      id: 'e4f1509d-3654-4d0a-9b72-6f55c4ef7d4d',
+      tenantId,
+      obraId,
+      numero: 1,
+      tipo: TipoMedicao.NORMAL,
+      dataMedicao: '2026-03-01',
+      observacao: null,
+      criadoEm: new Date('2026-03-01T00:00:00.000Z'),
+      itens: [
+        {
+          id: '7b0b46e6-85e4-43ff-a9f2-56373f64aa8a',
+          tenantId,
+          medicaoId: 'e4f1509d-3654-4d0a-9b72-6f55c4ef7d4d',
+          fonteId: fonteOneId,
+          valor: 100,
+        },
+        {
+          id: '7865ebc0-5f51-4e78-8e2d-16d2d0a952f4',
+          tenantId,
+          medicaoId: 'e4f1509d-3654-4d0a-9b72-6f55c4ef7d4d',
+          fonteId: fonteTwoId,
+          valor: 200,
+        },
+      ],
+    });
+    estagiosService.createMedicao.mockResolvedValue(right(medicao));
+    estagiosService.listMedicoes.mockResolvedValue(
+      right(
+        new PageEntity(
+          [medicao],
+          new PageMetaEntity({
+            pageOptions: new PageOptionsEntity('ASC', 1, 10),
+            itemCount: 1,
+          }),
+        ),
+      ),
+    );
+    estagiosService.concluir.mockResolvedValue(
+      right(
+        EstagioEntity.fromData({
+          ...stage(stageOneId, 'Projeto', 0).toObject(),
+          status: EstagioStatus.CONCLUIDO,
+          percentualDireto: 100,
+        }),
+      ),
+    );
+    estagiosService.duplicar.mockResolvedValue(
+      right(stage('34a8c44a-970f-42f1-a6ca-d122d257e563', 'Projeto', 3)),
+    );
+    estagiosService.atual.mockResolvedValue(
+      right(stage(stageTwoId, 'Licitação', 1)),
+    );
+
+    const created = await request(app.getHttpServer())
+      .post(`/api/obras/${obraId}/medicoes`)
+      .set('Authorization', 'Bearer token')
+      .send({
+        tipo: TipoMedicao.NORMAL,
+        dataMedicao: '2026-03-01',
+        itens: [
+          { fonteId: fonteOneId, valor: 100 },
+          { fonteId: fonteTwoId, valor: 200 },
+        ],
+      })
+      .expect(201);
+    expect(created.body.itens).toHaveLength(2);
+
+    const listed = await request(app.getHttpServer())
+      .get(`/api/obras/${obraId}/medicoes?page=1&take=10`)
+      .set('Authorization', 'Bearer token')
+      .expect(200);
+    expect(listed.body.data[0].numero).toBe(1);
+
+    const concluded = await request(app.getHttpServer())
+      .post(`/api/obras/${obraId}/estagios/${stageOneId}/concluir`)
+      .set('Authorization', 'Bearer token')
+      .expect(201);
+    expect(concluded.body.status).toBe(EstagioStatus.CONCLUIDO);
+
+    const duplicated = await request(app.getHttpServer())
+      .post(`/api/obras/${obraId}/estagios/${stageOneId}/duplicar`)
+      .set('Authorization', 'Bearer token')
+      .expect(201);
+    expect(duplicated.body.posicao).toBe(3);
+
+    const atual = await request(app.getHttpServer())
+      .get(`/api/obras/${obraId}/estagios/atual`)
+      .set('Authorization', 'Bearer token')
+      .expect(200);
+    expect(atual.body.id).toBe(stageTwoId);
+  });
+
+  it('maps invalid medicao fonte to 422', async () => {
+    tokenFor();
+    estagiosService.createMedicao.mockResolvedValue(
+      left({
+        code: ErrorCodeConstants.MEDICAO_FONTE_INVALIDA,
+        statusCode: 422,
+        message: ErrorCodeConstants.MEDICAO_FONTE_INVALIDA,
+      } as any),
+    );
+    await request(app.getHttpServer())
+      .post(`/api/obras/${obraId}/medicoes`)
+      .set('Authorization', 'Bearer token')
+      .send({
+        tipo: TipoMedicao.NORMAL,
+        dataMedicao: '2026-03-01',
+        itens: [{ fonteId: fonteOneId, valor: 100 }],
+      })
+      .expect(422);
   });
 
   it('rejects invalid stage payload and does not call service', async () => {

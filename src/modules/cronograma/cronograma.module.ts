@@ -4,7 +4,9 @@ import CoreModule from '@/core/core.module';
 import AuthModule from '@/modules/auth/auth.module';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
-import EstagiosController from '@/modules/cronograma/controller/estagios.controller';
+import EstagiosController, {
+  MedicoesController,
+} from '@/modules/cronograma/controller/estagios.controller';
 import EstagiosService from '@/modules/cronograma/application/estagios.service';
 import EstagioRepository from '@/modules/cronograma/infra/repositories/estagio.repository';
 import IEstagioRepository from '@/modules/cronograma/adapters/estagio_repository.interface';
@@ -15,9 +17,12 @@ import {
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 import ObraRepository from '@/modules/obras/infra/repositories/obra.repository';
 import { OBRA_REPOSITORY } from '@/modules/obras/symbols';
+import IFonteRepository from '@/modules/fontes/adapters/fonte_repository.interface';
+import FonteRepository from '@/modules/fontes/infra/repositories/fonte.repository';
+import { FONTE_REPOSITORY } from '@/modules/fontes/symbols';
 @Module({
   imports: [CoreModule, AuthModule],
-  controllers: [EstagiosController],
+  controllers: [EstagiosController, MedicoesController],
   providers: [
     AccessTokenGuard,
     {
@@ -34,12 +39,24 @@ import { OBRA_REPOSITORY } from '@/modules/obras/symbols';
     },
     {
       provide: ESTAGIOS_SERVICE,
-      inject: [ESTAGIO_REPOSITORY, TenantContext, OBRA_REPOSITORY],
+      inject: [
+        ESTAGIO_REPOSITORY,
+        TenantContext,
+        OBRA_REPOSITORY,
+        FONTE_REPOSITORY,
+      ],
       useFactory: (
         r: IEstagioRepository,
         tc: TenantContext,
         o: IObraRepository,
-      ) => new EstagiosService(r, tc, o),
+        f: IFonteRepository,
+      ) => new EstagiosService(r, tc, o, f),
+    },
+    {
+      provide: FONTE_REPOSITORY,
+      inject: [DataSource, TenantContext],
+      useFactory: (ds: DataSource, tc: TenantContext) =>
+        new FonteRepository(ds, tc) as IFonteRepository,
     },
   ],
   exports: [ESTAGIOS_SERVICE],

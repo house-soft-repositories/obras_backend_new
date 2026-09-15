@@ -24,6 +24,7 @@ import type { IEstagiosUseCase } from '@/modules/cronograma/domain/usecase/estag
 import {
   CreateEstagioDto,
   CreateEstagiosLoteDto,
+  CreateMedicaoDto,
   CreateAcompanhamentoDto,
   CreateComentarioDto,
   ReorderEstagiosDto,
@@ -76,6 +77,14 @@ export default class EstagiosController {
   ) {
     return this.tc.run(u, async () =>
       this.unwrap(await this.service.datasAgregadas(obraId)),
+    );
+  }
+  @Get('atual') async atual(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(u, async () =>
+      this.unwrap(await this.service.atual(obraId)).toObject(),
     );
   }
   @Post('lote') async lote(
@@ -146,6 +155,24 @@ export default class EstagiosController {
       ).toObject(),
     );
   }
+  @Post(':id/concluir') async concluir(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(u, async () =>
+      this.unwrap(await this.service.concluir(obraId, id)).toObject(),
+    );
+  }
+  @Post(':id/duplicar') async duplicar(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(u, async () =>
+      this.unwrap(await this.service.duplicar(obraId, id)).toObject(),
+    );
+  }
   @Patch(':id/percentual-direto') async updatePercentualDireto(
     @Param('obraId', ParseUUIDPipe) obraId: string,
     @Param('id', ParseUUIDPipe) id: string,
@@ -177,6 +204,54 @@ export default class EstagiosController {
       this.unwrap(await this.service.remove(obraId, id)),
     );
   }
+  private unwrap<T>(r: Either<AppException, T>): T {
+    if (r.isLeft()) {
+      throw new HttpException(r.value.message, r.value.statusCode, {
+        cause: r.value.cause,
+      });
+    }
+    return r.value;
+  }
+}
+
+@Controller('api/obras/:obraId/medicoes')
+@UseGuards(AccessTokenGuard)
+export class MedicoesController {
+  constructor(
+    @Inject(ESTAGIOS_SERVICE) private readonly service: IEstagiosUseCase,
+    private readonly tc: TenantRequestContextService,
+  ) {}
+
+  @Post()
+  async create(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Body() b: CreateMedicaoDto,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(u, async () =>
+      this.unwrap(
+        await this.service.createMedicao({ obraId, ...b }),
+      ).toObject(),
+    );
+  }
+
+  @Get()
+  async list(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Query() q: PaginationOptionsDto,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(u, async () => {
+      const p = this.unwrap(
+        await this.service.listMedicoes(
+          obraId,
+          new PageOptionsEntity(q.order, q.page, q.take),
+        ),
+      );
+      return { data: p.pageData.map((e) => e.toObject()), meta: p.pageMeta };
+    });
+  }
+
   private unwrap<T>(r: Either<AppException, T>): T {
     if (r.isLeft()) {
       throw new HttpException(r.value.message, r.value.statusCode, {

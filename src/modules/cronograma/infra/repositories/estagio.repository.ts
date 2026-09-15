@@ -11,6 +11,9 @@ import IEstagioRepository from '@/modules/cronograma/adapters/estagio_repository
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
 import EstagioAcompanhamentoEntity from '@/modules/cronograma/domain/entities/estagio_acompanhamento.entity';
 import EstagioComentarioEntity from '@/modules/cronograma/domain/entities/estagio_comentario.entity';
+import MedicaoEntity, {
+  MedicaoFonteProps,
+} from '@/modules/cronograma/domain/entities/medicao.entity';
 import EstagioMapper from '@/modules/cronograma/infra/mapper/estagio.mapper';
 import CronogramaRepositoryException from '@/modules/cronograma/exceptions/cronograma_repository.exception';
 export default class EstagioRepository implements IEstagioRepository {
@@ -358,6 +361,196 @@ export default class EstagioRepository implements IEstagioRepository {
         [obraId],
       );
       return right({ dataInicio: row.data_inicio, dataFim: row.data_fim });
+    } catch (cause) {
+      return left(
+        new CronogramaRepositoryException({
+          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async nextMedicaoNumero(obraId: string): AsyncResult<AppException, number> {
+    try {
+      const [row] = await this.ds.query(
+        `SELECT COALESCE(MAX(numero),0)+1 AS numero FROM "${this.schema()}"."medicao" WHERE obra_id=$1`,
+        [obraId],
+      );
+      return right(Number(row.numero));
+    } catch (cause) {
+      return left(
+        new CronogramaRepositoryException({
+          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async saveMedicao(
+    item: MedicaoEntity,
+  ): AsyncResult<AppException, MedicaoEntity> {
+    try {
+      const s = this.schema();
+      const q = this.ds.createQueryRunner();
+      await q.connect();
+      await q.startTransaction();
+      try {
+        const [row] = await q.query(
+          `INSERT INTO "${s}"."medicao" (id,tenant_id,obra_id,numero,tipo,data,observacao,criado_em) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+          [
+            item.id,
+            item.tenantId,
+            item.obraId,
+            item.numero,
+            item.tipo,
+            item.dataMedicao,
+            item.observacao,
+            item.criadoEm,
+          ],
+        );
+        const itens: MedicaoFonteProps[] = [];
+        for (const fonte of item.itens) {
+          const [fonteRow] = await q.query(
+            `INSERT INTO "${s}"."medicao_fonte" (id,tenant_id,medicao_id,fonte_id,valor) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+            [
+              fonte.id,
+              fonte.tenantId,
+              fonte.medicaoId,
+              fonte.fonteId,
+              fonte.valor,
+            ],
+          );
+          itens.push({
+            id: fonteRow.id,
+            tenantId: fonteRow.tenant_id,
+            medicaoId: fonteRow.medicao_id,
+            fonteId: fonteRow.fonte_id,
+            valor: Number(fonteRow.valor),
+          });
+        }
+        await q.commitTransaction();
+        return right(
+          MedicaoEntity.fromData({
+            id: row.id,
+            tenantId: row.tenant_id,
+            obraId: row.obra_id,
+            numero: row.numero,
+            tipo: row.tipo,
+            dataMedicao: row.data,
+            observacao: row.observacao,
+            criadoEm: row.criado_em,
+            itens,
+          }),
+        );
+      } catch (cause) {
+        await q.rollbackTransaction();
+        return left(
+          new CronogramaRepositoryException({
+            code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
+            cause,
+          }),
+        );
+      } finally {
+        await q.release();
+      }
+    } catch (cause) {
+      return left(
+        new CronogramaRepositoryException({
+          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async listMedicoes(
+    obraId: string,
+    o: PageOptionsEntity,
+  ): AsyncResult<AppException, PageEntity<MedicaoEntity>> {
+    try {
+      const s = this.schema();
+      const rows = await this.ds.query(
+        `SELECT * FROM "${s}"."medicao" WHERE obra_id=$1 ORDER BY data DESC,numero DESC LIMIT $2 OFFSET $3`,
+        [obraId, o.take, (o.page - 1) * o.take],
+      );
+      const [{ count }] = await this.ds.query(
+        `SELECT COUNT(*)::int AS count FROM "${s}"."medicao" WHERE obra_id=$1`,
+        [obraId],
+      );
+      const items = await Promise.all(
+        rows.map(async (row: Record<string, any>) => {
+          const fontes = await this.ds.query(
+            `SELECT * FROM "${s}"."medicao_fonte" WHERE medicao_id=$1`,
+            [row.id],
+          );
+          return MedicaoEntity.fromData({
+            id: row.id,
+            tenantId: row.tenant_id,
+            obraId: row.obra_id,
+            numero: row.numero,
+            tipo: row.tipo,
+            dataMedicao: row.data,
+            observacao: row.observacao,
+            criadoEm: row.criado_em,
+            itens: fontes.map((fonte: Record<string, any>) => ({
+              id: fonte.id,
+              tenantId: fonte.tenant_id,
+              medicaoId: fonte.medicao_id,
+              fonteId: fonte.fonte_id,
+              valor: Number(fonte.valor),
+            })),
+          });
+        }),
+      );
+      return right(
+        new PageEntity(
+          items,
+          new PageMetaEntity({ pageOptions: o, itemCount: count }),
+        ),
+      );
+    } catch (cause) {
+      return left(
+        new CronogramaRepositoryException({
+          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async nextPosicao(obraId: string): AsyncResult<AppException, number> {
+    try {
+      const [row] = await this.ds.query(
+        `SELECT COALESCE(MAX(posicao),-1)+1 AS posicao FROM "${this.schema()}"."estagio" WHERE obra_id=$1`,
+        [obraId],
+      );
+      return right(Number(row.posicao));
+    } catch (cause) {
+      return left(
+        new CronogramaRepositoryException({
+          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async atual(obraId: string): AsyncResult<AppException, EstagioEntity> {
+    try {
+      const [row] = await this.ds.query(
+        `SELECT * FROM "${this.schema()}"."estagio" WHERE obra_id=$1 AND ativo=true AND status <> 'CONCLUIDO' ORDER BY posicao ASC,id ASC LIMIT 1`,
+        [obraId],
+      );
+      if (!row)
+        return left(
+          new CronogramaRepositoryException({
+            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
+      return right(EstagioMapper.toEntity(row));
     } catch (cause) {
       return left(
         new CronogramaRepositoryException({
