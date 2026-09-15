@@ -44,11 +44,11 @@
 
 ## Handoff
 
-- **Feature**: Cronograma e medições — P1 em implementação
-- **Phase / Task**: Execute — P1 foundation and core routes
-- **Completed**: cronograma P1 foundation: migration, stage entity, tenant-scoped repository, service, controller wiring, obra validation, atomic lote, serializable route responses, build, focused unit tests and repository transaction tests.
-- **In-progress**: e2e coverage for P1 routes, then P2/P3.
-- **Next step**: add focused HTTP tests for P1 CRUD/lote/predefinidos/reorder and tenant 404/401/400 cases.
+- **Feature**: Cronograma e medições — P1 completo (T1..T4)
+- **Phase / Task**: Execute — P2/P3 pendentes
+- **Completed**: cronograma P1 verified: migration, stage entity, tenant-scoped repository, service, controller wiring, obra validation, atomic lote/reorder, serializable responses; build PASS; focused gates green (service 5/5, repository 2/2, e2e 7/7).
+- **In-progress**: P2 acompanhamentos/comentários, then P3 medições.
+- **Next step**: implement T5 (acompanhamentos, comentários, percentual direto, datas agregadas).
 - **Blockers**: full Docker verification and lint are still pending.
 - **Uncommitted files**: cronograma implementation and specs remain uncommitted, conforme instrução do usuário.
 - **Branch**: master

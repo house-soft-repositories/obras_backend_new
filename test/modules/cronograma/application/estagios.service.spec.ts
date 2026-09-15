@@ -1,6 +1,9 @@
 import { left, right } from '@/core/types/either';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
+import PageEntity from '@/core/pagination/domain/entities/page.entity';
+import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
+import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import EstagiosService from '@/modules/cronograma/application/estagios.service';
 import type IEstagioRepository from '@/modules/cronograma/adapters/estagio_repository.interface';
 import TenantContext from '@/core/multitenancy/tenant_context';

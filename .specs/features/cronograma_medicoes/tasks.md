@@ -67,7 +67,7 @@ reordenação transacional, lote e predefinidos.
 **Requirement**: CRO-01..CRO-07
 **Tests**: e2e P1
 **Gate**: Full
-**Status**: In progress — P1 routes wired with serializable responses and predefinidos; e2e remains.
+**Status**: Complete — P1 routes wired with serializable responses, predefinidos and focused e2e coverage for CRUD/lote/reorder/auth/validation.
 
 ## Phase 2: P2/P3
 

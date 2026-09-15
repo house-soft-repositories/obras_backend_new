@@ -3,6 +3,7 @@ import { left } from '@/core/types/either';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
+import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import EstagioRepository from '@/modules/cronograma/infra/repositories/estagio.repository';
 
 const tenant = {
