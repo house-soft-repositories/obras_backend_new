@@ -1,5 +1,7 @@
 import { Transform } from 'class-transformer';
 import {
+  IsBoolean,
+  IsOptional,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -57,4 +59,59 @@ export default class EnvironmentVariables {
 
   @IsNumber()
   PORT: number;
+
+  @IsOptional()
+  @Transform(({ value }: { value: string | undefined }) =>
+    value === undefined ? 'http://minio:9000' : value,
+  )
+  @IsString()
+  @IsNotEmpty()
+  STORAGE_ENDPOINT?: string;
+
+  @IsOptional()
+  @Transform(({ value }: { value: string | undefined }) =>
+    value === undefined ? 'auto' : value,
+  )
+  @IsString()
+  @IsNotEmpty()
+  STORAGE_REGION?: string;
+
+  @IsOptional()
+  @Transform(({ value }: { value: string | undefined }) =>
+    value === undefined ? 'obras-dev' : value,
+  )
+  @IsString()
+  @IsNotEmpty()
+  STORAGE_BUCKET?: string;
+
+  @IsOptional()
+  @Transform(({ value }: { value: string | undefined }) =>
+    value === undefined ? 'minioadmin' : value,
+  )
+  @IsString()
+  @IsNotEmpty()
+  STORAGE_ACCESS_KEY?: string;
+
+  @IsOptional()
+  @Transform(({ value }: { value: string | undefined }) =>
+    value === undefined ? 'minioadmin' : value,
+  )
+  @IsString()
+  @IsNotEmpty()
+  STORAGE_SECRET_KEY?: string;
+
+  @IsOptional()
+  @Transform(({ value }: { value: string | undefined }) =>
+    value === undefined ? true : value !== 'false',
+  )
+  @IsBoolean()
+  STORAGE_FORCE_PATH_STYLE?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }: { value: string | undefined }) =>
+    value === undefined ? 900 : parseInt(value, 10),
+  )
+  @IsInt()
+  @Min(60)
+  STORAGE_PRESIGN_EXPIRES_SECONDS?: number;
 }
