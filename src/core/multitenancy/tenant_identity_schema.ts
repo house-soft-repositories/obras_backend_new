@@ -3,7 +3,10 @@ interface SqlExecutor {
 }
 
 export default abstract class TenantIdentitySchema {
-  static async create(executor: SqlExecutor, schemaName: string): Promise<void> {
+  static async create(
+    executor: SqlExecutor,
+    schemaName: string,
+  ): Promise<void> {
     await this.execute(executor, schemaName, '');
   }
 
@@ -128,7 +131,9 @@ export default abstract class TenantIdentitySchema {
     await executor.query(
       `CREATE UNIQUE INDEX${ifNotExists} "UQ_pessoas_documento" ON "${schemaName}"."pessoas" ("documento")`,
     );
-    await executor.query(`CREATE INDEX${ifNotExists} "IDX_pessoas_nome" ON "${schemaName}"."pessoas" ("nome")`);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_pessoas_nome" ON "${schemaName}"."pessoas" ("nome")`,
+    );
     await executor.query(`
       CREATE TABLE${ifNotExists} "${schemaName}"."obras" (
         "id" uuid NOT NULL,
@@ -174,7 +179,9 @@ export default abstract class TenantIdentitySchema {
         CONSTRAINT "PK_obras" PRIMARY KEY ("id")
       )
     `);
-    await executor.query(`CREATE UNIQUE INDEX${ifNotExists} "UQ_obras_codigo" ON "${schemaName}"."obras" ("codigo") WHERE "deleted_at" IS NULL`);
+    await executor.query(
+      `CREATE UNIQUE INDEX${ifNotExists} "UQ_obras_codigo" ON "${schemaName}"."obras" ("codigo") WHERE "deleted_at" IS NULL`,
+    );
     await executor.query(`
       CREATE TABLE${ifNotExists} "${schemaName}"."obra_responsaveis" (
         "id" uuid NOT NULL,
@@ -239,9 +246,15 @@ export default abstract class TenantIdentitySchema {
         CONSTRAINT "PK_observacao" PRIMARY KEY ("id")
       )
     `);
-    await executor.query(`CREATE INDEX${ifNotExists} "IDX_observacao_obra" ON "${schemaName}"."observacao" ("obra_id")`);
-    await executor.query(`CREATE INDEX${ifNotExists} "IDX_obra_tag_obra" ON "${schemaName}"."obra_tag" ("obra_id")`);
-    await executor.query(`CREATE INDEX${ifNotExists} "IDX_tag_tenant" ON "${schemaName}"."tag" ("tenant_id")`);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_observacao_obra" ON "${schemaName}"."observacao" ("obra_id")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_obra_tag_obra" ON "${schemaName}"."obra_tag" ("obra_id")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_tag_tenant" ON "${schemaName}"."tag" ("tenant_id")`,
+    );
     await executor.query(`
       CREATE TABLE${ifNotExists} "${schemaName}"."obras_privadas" (
         "id" uuid NOT NULL,
@@ -274,9 +287,215 @@ export default abstract class TenantIdentitySchema {
         CONSTRAINT "PK_obras_privadas" PRIMARY KEY ("id")
       )
     `);
-    await executor.query(`CREATE UNIQUE INDEX${ifNotExists} "UQ_obras_privadas_codigo" ON "${schemaName}"."obras_privadas" ("codigo")`);
-    await executor.query(`CREATE INDEX${ifNotExists} "IDX_obras_privadas_proprietario" ON "${schemaName}"."obras_privadas" ("proprietario_pessoa_id")`);
-    await executor.query(`CREATE INDEX${ifNotExists} "IDX_obras_privadas_inscricao" ON "${schemaName}"."obras_privadas" ("inscricao_imobiliaria")`);
-    await executor.query(`CREATE INDEX${ifNotExists} "IDX_obras_privadas_geo" ON "${schemaName}"."obras_privadas" ("latitude", "longitude")`);
+    await executor.query(
+      `CREATE UNIQUE INDEX${ifNotExists} "UQ_obras_privadas_codigo" ON "${schemaName}"."obras_privadas" ("codigo")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_obras_privadas_proprietario" ON "${schemaName}"."obras_privadas" ("proprietario_pessoa_id")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_obras_privadas_inscricao" ON "${schemaName}"."obras_privadas" ("inscricao_imobiliaria")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_obras_privadas_geo" ON "${schemaName}"."obras_privadas" ("latitude", "longitude")`,
+    );
+    await this.createGuiasCadastrosTables(executor, schemaName, ifNotExists);
+    await this.createAttachmentsTable(executor, schemaName, ifNotExists);
+  }
+
+  static async createGuiasCadastrosTables(
+    executor: SqlExecutor,
+    schemaName: string,
+    ifNotExists = ' IF NOT EXISTS',
+  ): Promise<void> {
+    if (!/^tenant_[0-9a-f]{32}$/.test(schemaName)) {
+      throw new Error('Invalid tenant schema name');
+    }
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."eixo" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "nome" character varying NOT NULL,
+        "ativo" boolean NOT NULL DEFAULT true,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_eixo" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_eixo_tenant" ON "${schemaName}"."eixo" ("tenant_id")`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."classificacao" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "nome" character varying NOT NULL,
+        "ativo" boolean NOT NULL DEFAULT true,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_classificacao" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_classificacao_tenant" ON "${schemaName}"."classificacao" ("tenant_id")`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."subclassificacao" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "classificacao_id" uuid NOT NULL,
+        "nome" character varying NOT NULL,
+        "ativo" boolean NOT NULL DEFAULT true,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_subclassificacao" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_subclassificacao_tenant" ON "${schemaName}"."subclassificacao" ("tenant_id")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_subclassificacao_parent" ON "${schemaName}"."subclassificacao" ("classificacao_id")`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."tipologia" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "nome" character varying NOT NULL,
+        "ativo" boolean NOT NULL DEFAULT true,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_tipologia" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_tipologia_tenant" ON "${schemaName}"."tipologia" ("tenant_id")`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."subtipologia" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "tipologia_id" uuid NOT NULL,
+        "nome" character varying NOT NULL,
+        "ativo" boolean NOT NULL DEFAULT true,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_subtipologia" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_subtipologia_tenant" ON "${schemaName}"."subtipologia" ("tenant_id")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_subtipologia_parent" ON "${schemaName}"."subtipologia" ("tipologia_id")`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."obra_localizacao" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_id" uuid NOT NULL,
+        "localidade" character varying NOT NULL,
+        "uf" character varying(2) NOT NULL,
+        "latitude" numeric(10,7),
+        "longitude" numeric(10,7),
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_obra_localizacao" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_obra_localizacao_obra" ON "${schemaName}"."obra_localizacao" ("obra_id")`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."obra_orcamento_previsto" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_id" uuid NOT NULL,
+        "fonte_id" uuid NOT NULL,
+        "valor" numeric(18,2) NOT NULL,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_obra_orcamento_previsto" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_obra_orcamento_obra" ON "${schemaName}"."obra_orcamento_previsto" ("obra_id")`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."titularidade" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_id" uuid NOT NULL,
+        "situacao" character varying NOT NULL,
+        "tipo" character varying,
+        "observacoes" text,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_titularidade" PRIMARY KEY ("id"),
+        CONSTRAINT "UQ_titularidade_obra" UNIQUE ("obra_id")
+      )
+    `);
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."licenca" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_id" uuid NOT NULL,
+        "situacao" character varying NOT NULL,
+        "tipo" character varying,
+        "numero" character varying,
+        "validade" date,
+        "observacoes" text,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_licenca" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_licenca_obra" ON "${schemaName}"."licenca" ("obra_id")`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."recebimento" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_id" uuid NOT NULL,
+        "tipo" character varying NOT NULL,
+        "data" date,
+        "data_prevista" date,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_recebimento" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_recebimento_obra" ON "${schemaName}"."recebimento" ("obra_id")`,
+    );
+  }
+
+  static async createAttachmentsTable(
+    executor: SqlExecutor,
+    schemaName: string,
+    ifNotExists = ' IF NOT EXISTS',
+  ): Promise<void> {
+    if (!/^tenant_[0-9a-f]{32}$/.test(schemaName)) {
+      throw new Error('Invalid tenant schema name');
+    }
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."attachments" (
+        "id" uuid NOT NULL,
+        "file_url" character varying NOT NULL,
+        "original_name" character varying NOT NULL,
+        "entity_type" character varying NOT NULL,
+        "entity_id" uuid NOT NULL,
+        "created_by" uuid NOT NULL,
+        "updated_by" uuid NOT NULL,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_attachments" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_attachments_entity" ON "${schemaName}"."attachments" ("entity_type", "entity_id")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_attachments_file_url" ON "${schemaName}"."attachments" ("file_url")`,
+    );
   }
 }
