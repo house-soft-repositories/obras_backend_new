@@ -13,6 +13,8 @@ import ContratosModule from '@/modules/contratos/contratos.module';
 import ObrasPrivadasModule from '@/modules/obras-privadas/obras_privadas.module';
 import OrgaosModule from '@/modules/orgaos/orgaos.module';
 import CronogramaModule from '@/modules/cronograma/cronograma.module';
+import AttachmentsModule from '@/modules/attachments/attachments.module';
+import StorageModule from '@/modules/storage/storage.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import CronogramaModule from '@/modules/cronograma/cronograma.module';
     ObrasPrivadasModule,
     OrgaosModule,
     CronogramaModule,
+    StorageModule,
+    AttachmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
