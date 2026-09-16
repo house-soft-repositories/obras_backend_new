@@ -3,6 +3,6 @@ import { Column, Entity } from 'typeorm';
 
 @Entity({ name: 'tag' })
 export default class TagModel extends BaseModelPrimaryColumnUuid {
-  @Column() tenantId!: string;
+  @Column({ name: 'tenant_id', type: 'uuid' }) tenantId!: string;
   @Column() nome!: string;
 }

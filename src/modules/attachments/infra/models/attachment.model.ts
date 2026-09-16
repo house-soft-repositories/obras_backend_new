@@ -1,5 +1,6 @@
 import { BaseModelPrimaryColumnUuid } from '@/core/interface/base_model';
-import { Column, Entity } from 'typeorm';
+import UserModel from '@/modules/users/infra/models/user.model';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 @Entity({ name: 'attachments' })
 export default class AttachmentModel extends BaseModelPrimaryColumnUuid {
@@ -18,6 +19,14 @@ export default class AttachmentModel extends BaseModelPrimaryColumnUuid {
   @Column({ name: 'created_by', type: 'uuid' })
   createdBy: string;
 
+  @ManyToOne(() => UserModel, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'created_by' })
+  createdByUser?: UserModel;
+
   @Column({ name: 'updated_by', type: 'uuid' })
   updatedBy: string;
+
+  @ManyToOne(() => UserModel, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'updated_by' })
+  updatedByUser?: UserModel;
 }

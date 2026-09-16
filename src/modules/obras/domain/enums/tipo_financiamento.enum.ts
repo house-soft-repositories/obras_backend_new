@@ -1,5 +1,5 @@
 export enum TipoFinanciamento {
+  COM_OGU = 'COM_OGU',
   SEM_OGU = 'SEM_OGU',
-  OGU = 'OGU',
-  CONVENIO = 'CONVENIO',
+  INVESTIMENTO_PRIVADO = 'INVESTIMENTO_PRIVADO',
 }

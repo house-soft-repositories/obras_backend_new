@@ -1,4 +1,5 @@
 export enum AcaoConveniada {
   NAO = 'NAO',
-  SIM = 'SIM',
+  FEDERAL = 'FEDERAL',
+  ESTADUAL = 'ESTADUAL',
 }

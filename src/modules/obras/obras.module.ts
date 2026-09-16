@@ -17,6 +17,9 @@ import {
 import IGuiasRepository from '@/modules/obras/adapters/guias_repository.interface';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 import IObservacaoRepository from '@/modules/obras/adapters/observacao_repository.interface';
+import IEmpenhoRepository from '@/modules/obras/adapters/empenho_repository.interface';
+import ILiquidacaoRepository from '@/modules/obras/adapters/liquidacao_repository.interface';
+import IPagamentoRepository from '@/modules/obras/adapters/pagamento_repository.interface';
 import ITagRepository from '@/modules/obras/adapters/tag_repository.interface';
 import CreateObraService from '@/modules/obras/application/create_obra.service';
 import GetObraService from '@/modules/obras/application/get_obra.service';
@@ -41,9 +44,17 @@ import UpdateSubtipologiaService from '@/modules/obras/application/update_subtip
 import UpdateTipologiaService from '@/modules/obras/application/update_tipologia.service';
 import GuiasService from '@/modules/obras/application/guias.service';
 import ObservacoesService from '@/modules/obras/application/observacoes.service';
+import EmpenhosService from '@/modules/obras/application/empenhos.service';
+import LiquidacoesService from '@/modules/obras/application/liquidacoes.service';
+import PagamentosService from '@/modules/obras/application/pagamentos.service';
+import VisaoFisicoFinanceiraService from '@/modules/obras/application/visao_fisico_financeira.service';
 import CadastrosController from '@/modules/obras/controller/cadastros.controller';
 import GuiasController from '@/modules/obras/controller/guias.controller';
 import ObservacoesController from '@/modules/obras/controller/observacoes.controller';
+import EmpenhosController from '@/modules/obras/controller/empenhos.controller';
+import LiquidacoesController from '@/modules/obras/controller/liquidacoes.controller';
+import PagamentosController from '@/modules/obras/controller/pagamentos.controller';
+import VisaoFisicoFinanceiraController from '@/modules/obras/controller/visao_fisico_financeira.controller';
 import EquipeController from '@/modules/obras/controller/equipe.controller';
 import TagsController from '@/modules/obras/controller/tags.controller';
 import DuplicateObraService from '@/modules/obras/application/duplicate_obra.service';
@@ -58,6 +69,9 @@ import {
 import ObraTagModel from '@/modules/obras/infra/models/obra_tag.model';
 import TagModel from '@/modules/obras/infra/models/tag.model';
 import ObservacaoModel from '@/modules/obras/infra/models/observacao.model';
+import EmpenhoModel from '@/modules/obras/infra/models/empenho.model';
+import LiquidacaoModel from '@/modules/obras/infra/models/liquidacao.model';
+import PagamentoModel from '@/modules/obras/infra/models/pagamento.model';
 import ClassificacaoRepository from '@/modules/obras/infra/repositories/classificacao.repository';
 import EixoRepository from '@/modules/obras/infra/repositories/eixo.repository';
 import SubclassificacaoRepository from '@/modules/obras/infra/repositories/subclassificacao.repository';
@@ -66,6 +80,9 @@ import TipologiaRepository from '@/modules/obras/infra/repositories/tipologia.re
 import GuiasRepository from '@/modules/obras/infra/repositories/guias.repository';
 import ObraRepository from '@/modules/obras/infra/repositories/obra.repository';
 import ObservacaoRepository from '@/modules/obras/infra/repositories/observacao.repository';
+import EmpenhoRepository from '@/modules/obras/infra/repositories/empenho.repository';
+import LiquidacaoRepository from '@/modules/obras/infra/repositories/liquidacao.repository';
+import PagamentoRepository from '@/modules/obras/infra/repositories/pagamento.repository';
 import TagRepository from '@/modules/obras/infra/repositories/tag.repository';
 import {
   CREATE_OBRA_SERVICE,
@@ -96,6 +113,13 @@ import {
   GUIAS_REPOSITORY,
   GUIAS_SERVICE,
   OBSERVACOES_SERVICE,
+  EMPENHO_REPOSITORY,
+  LIQUIDACAO_REPOSITORY,
+  PAGAMENTO_REPOSITORY,
+  EMPENHOS_SERVICE,
+  LIQUIDACOES_SERVICE,
+  PAGAMENTOS_SERVICE,
+  VISAO_FISICO_FINANCEIRA_SERVICE,
   TAGS_SERVICE,
   SUBCLASSIFICACAO_REPOSITORY,
   SUBTIPOLOGIA_REPOSITORY,
@@ -131,9 +155,12 @@ import { DataSource } from 'typeorm';
       TagModel,
       ObraTagModel,
       ObservacaoModel,
+      EmpenhoModel,
+      LiquidacaoModel,
+      PagamentoModel,
     ]),
   ],
-  controllers: [ObraController, CadastrosController, GuiasController, EquipeController, TagsController, ObservacoesController],
+  controllers: [ObraController, CadastrosController, GuiasController, EquipeController, TagsController, ObservacoesController, EmpenhosController, LiquidacoesController, PagamentosController, VisaoFisicoFinanceiraController],
   providers: [
     AccessTokenGuard,
     {
@@ -153,6 +180,48 @@ import { DataSource } from 'typeorm';
       inject: [DataSource, TenantContext],
       useFactory: (ds: DataSource, tc: TenantContext): IObservacaoRepository =>
         new ObservacaoRepository(ds, tc),
+    },
+    {
+      provide: EMPENHO_REPOSITORY,
+      inject: [DataSource, TenantContext],
+      useFactory: (ds: DataSource, tc: TenantContext): IEmpenhoRepository =>
+        new EmpenhoRepository(ds, tc),
+    },
+    {
+      provide: LIQUIDACAO_REPOSITORY,
+      inject: [DataSource, TenantContext],
+      useFactory: (ds: DataSource, tc: TenantContext): ILiquidacaoRepository =>
+        new LiquidacaoRepository(ds, tc),
+    },
+    {
+      provide: PAGAMENTO_REPOSITORY,
+      inject: [DataSource, TenantContext],
+      useFactory: (ds: DataSource, tc: TenantContext): IPagamentoRepository =>
+        new PagamentoRepository(ds, tc),
+    },
+    {
+      provide: EMPENHOS_SERVICE,
+      inject: [EMPENHO_REPOSITORY, OBRA_REPOSITORY, FONTE_REPOSITORY, TenantContext],
+      useFactory: (repo: IEmpenhoRepository, obras: IObraRepository, fontes: IFonteRepository, tc: TenantContext) =>
+        new EmpenhosService(repo, obras, fontes, tc),
+    },
+    {
+      provide: LIQUIDACOES_SERVICE,
+      inject: [LIQUIDACAO_REPOSITORY, EMPENHO_REPOSITORY, FONTE_REPOSITORY, TenantContext],
+      useFactory: (repo: ILiquidacaoRepository, empenhos: IEmpenhoRepository, fontes: IFonteRepository, tc: TenantContext) =>
+        new LiquidacoesService(repo, empenhos, fontes, tc),
+    },
+    {
+      provide: PAGAMENTOS_SERVICE,
+      inject: [PAGAMENTO_REPOSITORY, EMPENHO_REPOSITORY, LIQUIDACAO_REPOSITORY, OBRA_REPOSITORY, FONTE_REPOSITORY, DataSource, TenantContext],
+      useFactory: (repo: IPagamentoRepository, empenhos: IEmpenhoRepository, liquidacoes: ILiquidacaoRepository, obras: IObraRepository, fontes: IFonteRepository, ds: DataSource, tc: TenantContext) =>
+        new PagamentosService(repo, empenhos, liquidacoes, obras, fontes, ds, tc),
+    },
+    {
+      provide: VISAO_FISICO_FINANCEIRA_SERVICE,
+      inject: [OBRA_REPOSITORY, DataSource, TenantContext],
+      useFactory: (obras: IObraRepository, ds: DataSource, tc: TenantContext) =>
+        new VisaoFisicoFinanceiraService(obras, ds, tc),
     },
     {
       provide: CREATE_OBRA_SERVICE,

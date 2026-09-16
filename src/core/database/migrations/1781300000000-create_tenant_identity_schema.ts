@@ -1,9 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import TenantIdentitySchema from '@/core/multitenancy/tenant_identity_schema';
+import TenantMigrationRunner from '@/core/multitenancy/tenant_migrations/tenant_migration_runner';
 
-export class CreateTenantIdentitySchema1781300000000
-  implements MigrationInterface
-{
+export class CreateTenantIdentitySchema1781300000000 implements MigrationInterface {
   name = 'CreateTenantIdentitySchema1781300000000';
 
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -13,7 +11,7 @@ export class CreateTenantIdentitySchema1781300000000
 
     for (const tenancy of tenancies) {
       try {
-        await TenantIdentitySchema.createIfMissing(
+        await TenantMigrationRunner.runPending(
           queryRunner,
           tenancy.schema_name,
         );
