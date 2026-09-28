@@ -292,6 +292,7 @@ export default abstract class TenantIdentitySchema {
     );
     await this.createGuiasCadastrosTables(executor, schemaName, ifNotExists);
     await this.createAttachmentsTable(executor, schemaName, ifNotExists);
+    await this.createDocumentosTables(executor, schemaName, ifNotExists);
   }
 
   static async createGuiasCadastrosTables(
@@ -489,6 +490,62 @@ export default abstract class TenantIdentitySchema {
     );
     await executor.query(
       `CREATE INDEX${ifNotExists} "IDX_attachments_file_url" ON "${schemaName}"."attachments" ("file_url")`,
+    );
+  }
+
+  static async createDocumentosTables(
+    executor: SqlExecutor,
+    schemaName: string,
+    ifNotExists = ' IF NOT EXISTS',
+  ): Promise<void> {
+    if (!/^tenant_[0-9a-f]{32}$/.test(schemaName)) {
+      throw new Error('Invalid tenant schema name');
+    }
+    await executor.query(`SET LOCAL search_path TO "${schemaName}"`);
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."pasta" (
+        "id" uuid NOT NULL,
+        "obra_id" uuid NOT NULL,
+        "pasta_pai_id" uuid,
+        "nome" character varying NOT NULL,
+        "criado_por_usuario_id" uuid,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_pasta" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_pasta_obra" ON "${schemaName}"."pasta" ("obra_id")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_pasta_pai" ON "${schemaName}"."pasta" ("pasta_pai_id")`,
+    );
+    await executor.query(
+      `CREATE UNIQUE INDEX${ifNotExists} "UQ_pasta_raiz_obra" ON "${schemaName}"."pasta" ("obra_id") WHERE "pasta_pai_id" IS NULL`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."arquivo" (
+        "id" uuid NOT NULL,
+        "obra_id" uuid NOT NULL,
+        "pasta_id" uuid NOT NULL,
+        "nome" character varying NOT NULL,
+        "descricao" text,
+        "nome_original" character varying NOT NULL,
+        "mime_type" character varying,
+        "tamanho_bytes" bigint,
+        "storage_key" character varying NOT NULL,
+        "attachment_id" uuid,
+        "enviado_por_usuario_id" uuid NOT NULL,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_arquivo" PRIMARY KEY ("id")
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_arquivo_obra" ON "${schemaName}"."arquivo" ("obra_id")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_arquivo_pasta" ON "${schemaName}"."arquivo" ("pasta_id")`,
     );
   }
 }

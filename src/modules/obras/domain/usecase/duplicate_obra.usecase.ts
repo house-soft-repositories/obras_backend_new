@@ -3,6 +3,7 @@ import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
 
 export interface DuplicateObraParam {
   id: string;
+  copiarArquivos?: boolean;
 }
 
 type IDuplicateObraUseCase = UseCase<DuplicateObraParam, ObraEntity>;

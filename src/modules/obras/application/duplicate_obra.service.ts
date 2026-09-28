@@ -9,6 +9,7 @@ import IDuplicateObraUseCase, { DuplicateObraParam } from '@/modules/obras/domai
 import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
 import ObraServiceException from '@/modules/obras/exceptions/obra_service.exception';
+import ObraEventsService from '@/modules/obras/events/obra_events.service';
 import { randomUUID } from 'node:crypto';
 import { proximoCodigo } from '@/modules/obras/services/codigo_obra.service';
 
@@ -17,6 +18,7 @@ export default class DuplicateObraService implements IDuplicateObraUseCase {
     private readonly repo: IObraRepository,
     private readonly ds: DataSource,
     private readonly tc: TenantContext,
+    private readonly events: ObraEventsService,
   ) {}
 
   async execute(param: DuplicateObraParam): AsyncResult<AppException, ObraEntity> {
@@ -140,6 +142,12 @@ export default class DuplicateObraService implements IDuplicateObraUseCase {
               );
             }
             return dupEntity;
+          });
+          this.events.emitirObraDuplicada({
+            tenantId: o.tenantId,
+            origemObraId: origin.id,
+            novaObraId: saved.toObject().id,
+            copiarArquivos: param.copiarArquivos ?? false,
           });
           return right(saved);
         } catch (e: unknown) {

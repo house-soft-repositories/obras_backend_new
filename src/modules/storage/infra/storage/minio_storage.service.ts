@@ -11,6 +11,7 @@ import StorageException from '@/modules/storage/exceptions/storage.exception';
 import { buildTenantPrefixObjectKey } from '@/modules/storage/infra/storage/storage_key';
 export interface StorageConfig {
   endpoint: string;
+  publicEndpoint?: string;
   region: string;
   bucket: string;
   accessKey: string;
@@ -21,18 +22,26 @@ export interface StorageConfig {
 
 export default class MinioStorageService implements IStorageService {
   private readonly client: MinioClient;
+  private readonly presignClient: MinioClient;
 
   constructor(private readonly config: StorageConfig) {
-    const url = new URL(config.endpoint);
+    this.client = this.createClient(config.endpoint);
+    this.presignClient = this.createClient(
+      config.publicEndpoint ?? config.endpoint,
+    );
+  }
+
+  private createClient(endpoint: string): MinioClient {
+    const url = new URL(endpoint);
     const useSSL = url.protocol === 'https:';
-    this.client = new MinioClient({
+    return new MinioClient({
       endPoint: url.hostname,
       port: url.port ? Number(url.port) : useSSL ? 443 : 80,
       useSSL,
-      accessKey: config.accessKey,
-      secretKey: config.secretKey,
-      region: config.region,
-      pathStyle: config.forcePathStyle,
+      accessKey: this.config.accessKey,
+      secretKey: this.config.secretKey,
+      region: this.config.region,
+      pathStyle: this.config.forcePathStyle,
     });
   }
 
@@ -106,7 +115,7 @@ export default class MinioStorageService implements IStorageService {
     originalName?: string,
   ): AsyncResult<AppException, string> {
     try {
-      const url = await this.client.presignedGetObject(
+      const url = await this.presignClient.presignedGetObject(
         this.config.bucket,
         key,
         this.config.presignExpiresSeconds,
@@ -116,6 +125,29 @@ export default class MinioStorageService implements IStorageService {
             }
           : {},
       );
+      return right(url);
+    } catch (error) {
+      return left(
+        new StorageException({
+          code: ErrorCodeConstants.STORAGE_PRESIGN_FAILED,
+          statusCode: 500,
+          cause: error,
+        }),
+      );
+    }
+  }
+
+  async getUploadUrl(
+    key: string,
+    mimetype: string,
+  ): AsyncResult<AppException, string> {
+    try {
+      const url = await this.presignClient.presignedPutObject(
+        this.config.bucket,
+        key,
+        this.config.presignExpiresSeconds,
+      );
+      void mimetype;
       return right(url);
     } catch (error) {
       return left(

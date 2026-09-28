@@ -9,6 +9,7 @@ import type IGetObraUseCase from '@/modules/obras/domain/usecase/get_obra.usecas
 import type IUpdateObraUseCase from '@/modules/obras/domain/usecase/update_obra.usecase';
 import type IDuplicateObraUseCase from '@/modules/obras/domain/usecase/duplicate_obra.usecase';
 import CreateObraDto from '@/modules/obras/dtos/create_obra.dto';
+import DuplicateObraDto from '@/modules/obras/dtos/duplicate_obra.dto';
 import ListObrasQueryDto from '@/modules/obras/dtos/list_obras.dto';
 import UpdateObraDto from '@/modules/obras/dtos/update_obra.dto';
 import ObraResponseDto from '@/modules/obras/dtos/obra_response.dto';
@@ -130,10 +131,14 @@ export default class ObraController {
   @Post(':id/duplicar')
   async duplicarObra(
     @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: DuplicateObraDto,
     @AuthenticatedUser() u: AccessTokenPayload | undefined,
   ) {
     return this.tc.run(u, async () => {
-      const r = await this.duplicar.execute({ id });
+      const r = await this.duplicar.execute({
+        id,
+        copiarArquivos: body?.copiarArquivos ?? false,
+      });
       if (r.isLeft())
         throw new HttpException(r.value.message, r.value.statusCode, {
           cause: r.value.cause,

@@ -17,6 +17,7 @@ export default interface IStorageService {
     key: string,
     originalName?: string,
   ): AsyncResult<AppException, string>;
+  getUploadUrl(key: string, mimetype: string): AsyncResult<AppException, string>;
   removeObject(key: string): AsyncResult<AppException, Unit>;
   copyObject(
     sourceKey: string,

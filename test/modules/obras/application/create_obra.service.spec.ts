@@ -6,6 +6,7 @@ import type IFonteRepository from '@/modules/fontes/adapters/fonte_repository.in
 import type IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 import type { DataSource } from 'typeorm';
 import type TenantContext from '@/core/multitenancy/tenant_context';
+import type ObraEventsService from '@/modules/obras/events/obra_events.service';
 import type { CreateObraParam } from '@/modules/obras/domain/usecase/create_obra.usecase';
 
 type MockManager = {
@@ -46,6 +47,12 @@ const makeDS = (): MockDataSource => {
 const makeTC = (schema = 'tenant_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa') =>
   ({ require: () => ({ schemaName: schema }) }) as unknown as TenantContext;
 
+const makeEvents = () =>
+  ({
+    emitirObraCriada: jest.fn(),
+    emitirObraDuplicada: jest.fn(),
+  }) as unknown as ObraEventsService;
+
 describe('CreateObraService', () => {
   const baseParam: CreateObraParam = {
     tenantId: 't1',
@@ -66,7 +73,7 @@ describe('CreateObraService', () => {
     fonteRepo.findById.mockResolvedValue(right(fonte));
     const ds = makeDS();
     const tc = makeTC();
-    const svc = new CreateObraService(obraRepo, fonteRepo, ds as DataSource, tc);
+    const svc = new CreateObraService(obraRepo, fonteRepo, ds as DataSource, tc, makeEvents());
     const result = await svc.execute(baseParam);
     expect(result.isRight()).toBe(true);
     expect(result.getOrThrow().codigo).toMatch(/^OBR-\d{4}-0001$/);
@@ -78,7 +85,7 @@ describe('CreateObraService', () => {
   });
 
   it('rejects when orcamentos empty', async () => {
-    const svc = new CreateObraService(makeObraRepo(), makeFonteRepo(), makeDS(), makeTC());
+    const svc = new CreateObraService(makeObraRepo(), makeFonteRepo(), makeDS(), makeTC(), makeEvents());
     const result = await svc.execute({ ...baseParam, orcamentos: [] });
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('expected failure');
@@ -86,7 +93,7 @@ describe('CreateObraService', () => {
   });
 
   it('rejects invalid subclassificacao/type combination', async () => {
-    const svc = new CreateObraService(makeObraRepo(), makeFonteRepo(), makeDS(), makeTC());
+    const svc = new CreateObraService(makeObraRepo(), makeFonteRepo(), makeDS(), makeTC(), makeEvents());
     const result = await svc.execute({ ...baseParam, tipo: 'REFORMA', subclassificacaoId: 'sub-1' });
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('expected failure');
@@ -97,7 +104,7 @@ describe('CreateObraService', () => {
     const obraRepo = makeObraRepo();
     const fonteRepo = makeFonteRepo();
     fonteRepo.findById.mockResolvedValue(right(null));
-    const svc = new CreateObraService(obraRepo, fonteRepo, makeDS(), makeTC());
+    const svc = new CreateObraService(obraRepo, fonteRepo, makeDS(), makeTC(), makeEvents());
     const result = await svc.execute(baseParam);
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('expected failure');
@@ -119,7 +126,7 @@ describe('CreateObraService', () => {
     const ds2 = {
       transaction: jest.fn().mockRejectedValue(collision),
     } as unknown as DataSource;
-    const svc2 = new CreateObraService(obraRepo, fonteRepo, ds2, makeTC());
+    const svc2 = new CreateObraService(obraRepo, fonteRepo, ds2, makeTC(), makeEvents());
     const result = await svc2.execute(baseParam);
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('expected failure');

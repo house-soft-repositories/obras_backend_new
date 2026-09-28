@@ -69,6 +69,11 @@ export default class EnvironmentVariables {
   STORAGE_ENDPOINT?: string;
 
   @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  STORAGE_PUBLIC_ENDPOINT?: string;
+
+  @IsOptional()
   @Transform(({ value }: { value: string | undefined }) =>
     value === undefined ? 'auto' : value,
   )

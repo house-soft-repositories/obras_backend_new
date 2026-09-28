@@ -16,6 +16,7 @@ import ICreateObraUseCase, {
 } from '@/modules/obras/domain/usecase/create_obra.usecase';
 import ObraDomainException from '@/modules/obras/exceptions/obra_domain.exception';
 import ObraServiceException from '@/modules/obras/exceptions/obra_service.exception';
+import ObraEventsService from '@/modules/obras/events/obra_events.service';
 import { proximoCodigo } from '@/modules/obras/services/codigo_obra.service';
 import { DataSource } from 'typeorm';
 
@@ -25,6 +26,7 @@ export default class CreateObraService implements ICreateObraUseCase {
     private readonly fonteRepo: IFonteRepository,
     private readonly ds: DataSource,
     private readonly tc: TenantContext,
+    private readonly events: ObraEventsService,
   ) {}
 
   async execute(p: CreateObraParam): AsyncResult<AppException, ObraEntity> {
@@ -208,6 +210,10 @@ export default class CreateObraService implements ICreateObraUseCase {
               );
             }
             return entity;
+          });
+          this.events.emitirObraCriada({
+            tenantId: p.tenantId,
+            obraId: saved.toObject().id,
           });
           return right(saved);
         } catch (error: unknown) {

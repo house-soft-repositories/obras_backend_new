@@ -6,6 +6,7 @@ export default function mockStorageService(): jest.Mocked<IStorageService> {
     ensureTenantPrefix: jest.fn(),
     putObject: jest.fn(),
     getDownloadUrl: jest.fn(),
+    getUploadUrl: jest.fn(),
     removeObject: jest.fn(),
     copyObject: jest.fn(),
   };

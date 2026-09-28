@@ -58,6 +58,7 @@ import VisaoFisicoFinanceiraController from '@/modules/obras/controller/visao_fi
 import EquipeController from '@/modules/obras/controller/equipe.controller';
 import TagsController from '@/modules/obras/controller/tags.controller';
 import DuplicateObraService from '@/modules/obras/application/duplicate_obra.service';
+import ObraEventsService from '@/modules/obras/events/obra_events.service';
 import ObraController from '@/modules/obras/controller/obra.controller';
 import ICreateObraUseCase from '@/modules/obras/domain/usecase/create_obra.usecase';
 import ObraModel from '@/modules/obras/infra/models/obra.model';
@@ -86,6 +87,7 @@ import TagRepository from '@/modules/obras/infra/repositories/tag.repository';
 import {
   CREATE_OBRA_SERVICE,
   DUPLICATE_OBRA_SERVICE,
+  OBRA_EVENTS,
   GET_OBRA_SERVICE,
   LIST_OBRAS_SERVICE,
   OBRA_REPOSITORY,
@@ -162,6 +164,10 @@ import { DataSource } from 'typeorm';
   providers: [
     AccessTokenGuard,
     {
+      provide: OBRA_EVENTS,
+      useFactory: (): ObraEventsService => new ObraEventsService(),
+    },
+    {
       provide: OBRA_REPOSITORY,
       inject: [DataSource, TenantContext],
       useFactory: (ds: DataSource, tc: TenantContext): IObraRepository =>
@@ -223,13 +229,14 @@ import { DataSource } from 'typeorm';
     },
     {
       provide: CREATE_OBRA_SERVICE,
-      inject: [OBRA_REPOSITORY, FONTE_REPOSITORY, DataSource, TenantContext],
+      inject: [OBRA_REPOSITORY, FONTE_REPOSITORY, DataSource, TenantContext, OBRA_EVENTS],
       useFactory: (
         obra: IObraRepository,
         fonte: IFonteRepository,
         ds: DataSource,
         tc: TenantContext,
-      ): ICreateObraUseCase => new CreateObraService(obra, fonte, ds, tc),
+        events: ObraEventsService,
+      ): ICreateObraUseCase => new CreateObraService(obra, fonte, ds, tc, events),
     },
     {
       provide: LIST_OBRAS_SERVICE,
@@ -245,9 +252,9 @@ import { DataSource } from 'typeorm';
     },
     {
       provide: DUPLICATE_OBRA_SERVICE,
-      inject: [OBRA_REPOSITORY, DataSource, TenantContext],
-      useFactory: (repo: IObraRepository, ds: DataSource, tc: TenantContext) =>
-        new DuplicateObraService(repo, ds, tc),
+      inject: [OBRA_REPOSITORY, DataSource, TenantContext, OBRA_EVENTS],
+      useFactory: (repo: IObraRepository, ds: DataSource, tc: TenantContext, events: ObraEventsService) =>
+        new DuplicateObraService(repo, ds, tc, events),
     },
     {
       provide: EQUIPE_SERVICE,
@@ -394,6 +401,6 @@ import { DataSource } from 'typeorm';
         new UpdateObraService(repo, tc),
     },
   ],
-  exports: [OBRA_REPOSITORY, TAG_REPOSITORY, OBSERVACAO_REPOSITORY, EIXO_REPOSITORY, CLASSIFICACAO_REPOSITORY, SUBCLASSIFICACAO_REPOSITORY, TIPOLOGIA_REPOSITORY, SUBTIPOLOGIA_REPOSITORY, GUIAS_REPOSITORY, CREATE_OBRA_SERVICE, LIST_OBRAS_SERVICE, GET_OBRA_SERVICE, UPDATE_OBRA_SERVICE, DUPLICATE_OBRA_SERVICE],
+  exports: [OBRA_REPOSITORY, OBRA_EVENTS, TAG_REPOSITORY, OBSERVACAO_REPOSITORY, EIXO_REPOSITORY, CLASSIFICACAO_REPOSITORY, SUBCLASSIFICACAO_REPOSITORY, TIPOLOGIA_REPOSITORY, SUBTIPOLOGIA_REPOSITORY, GUIAS_REPOSITORY, CREATE_OBRA_SERVICE, LIST_OBRAS_SERVICE, GET_OBRA_SERVICE, UPDATE_OBRA_SERVICE, DUPLICATE_OBRA_SERVICE],
 })
 export default class ObrasModule {}

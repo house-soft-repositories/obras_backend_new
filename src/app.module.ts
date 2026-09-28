@@ -14,6 +14,7 @@ import ObrasPrivadasModule from '@/modules/obras-privadas/obras_privadas.module'
 import OrgaosModule from '@/modules/orgaos/orgaos.module';
 import CronogramaModule from '@/modules/cronograma/cronograma.module';
 import AttachmentsModule from '@/modules/attachments/attachments.module';
+import DocumentosModule from '@/modules/documentos/documentos.module';
 import StorageModule from '@/modules/storage/storage.module';
 
 @Module({
@@ -32,6 +33,7 @@ import StorageModule from '@/modules/storage/storage.module';
     CronogramaModule,
     StorageModule,
     AttachmentsModule,
+    DocumentosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

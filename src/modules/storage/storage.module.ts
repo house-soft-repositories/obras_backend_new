@@ -14,6 +14,7 @@ import { STORAGE_SERVICE } from '@/modules/storage/symbols';
       useFactory: (config: ConfigurationService): IStorageService =>
         new MinioStorageService({
           endpoint: config.get('STORAGE_ENDPOINT') ?? 'http://minio:9000',
+          publicEndpoint: config.get('STORAGE_PUBLIC_ENDPOINT'),
           region: config.get('STORAGE_REGION') ?? 'auto',
           bucket: config.get('STORAGE_BUCKET') ?? 'obras-dev',
           accessKey: config.get('STORAGE_ACCESS_KEY') ?? 'minioadmin',
