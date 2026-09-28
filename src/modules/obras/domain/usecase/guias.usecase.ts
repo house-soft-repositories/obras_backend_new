@@ -2,12 +2,23 @@ import type AppException from '@/core/exceptions/app_exception';
 import type AsyncResult from '@/core/types/async_result';
 import type { LicencaEntity, ObraLocalizacaoEntity, ObraOrcamentoPrevistoEntity, RecebimentoEntity, TitularidadeEntity } from '@/modules/obras/domain/entities/guias.entity';
 
+export type ObraOrcamentoReadModel = {
+  orcamentoId: string;
+  obraId: string;
+  fonte: {
+    fonteId: string;
+    fonteNome: string;
+    fonteDescricao: string | null;
+    valor: string;
+  };
+};
+
 export default interface IGuiasUseCase {
   listLocalizacoes(obraId: string): AsyncResult<AppException, ObraLocalizacaoEntity[]>;
   createLocalizacao(param: { obraId: string; localidade: string; uf: string; latitude?: string | null; longitude?: string | null }): AsyncResult<AppException, ObraLocalizacaoEntity>;
   deleteLocalizacao(obraId: string, id: string): AsyncResult<AppException, void>;
 
-  listOrcamentos(obraId: string): AsyncResult<AppException, ObraOrcamentoPrevistoEntity[]>;
+  listOrcamentos(obraId: string): AsyncResult<AppException, ObraOrcamentoReadModel[]>;
   createOrcamento(param: { obraId: string; fonteId: string; valor: string }): AsyncResult<AppException, ObraOrcamentoPrevistoEntity>;
   deleteOrcamento(obraId: string, id: string): AsyncResult<AppException, void>;
 

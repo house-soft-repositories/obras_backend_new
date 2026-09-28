@@ -13,6 +13,7 @@ import {
 } from '@/modules/obras/domain/entities/guias.entity';
 import GuiaRepositoryException from '@/modules/obras/exceptions/guia_repository.exception';
 import GuiasMapper from '@/modules/obras/infra/mapper/guias.mapper';
+import type { ObraOrcamentoReadModel } from '@/modules/obras/domain/usecase/guias.usecase';
 import { DataSource } from 'typeorm';
 
 export default class GuiasRepository implements IGuiasRepository {
@@ -134,16 +135,40 @@ export default class GuiasRepository implements IGuiasRepository {
 
   async listOrcamentos(
     obraId: string,
-  ): AsyncResult<AppException, ObraOrcamentoPrevistoEntity[]> {
+  ): AsyncResult<AppException, ObraOrcamentoReadModel[]> {
     try {
       const s = this.tc.require().schemaName;
       const err = await this.assertObra(obraId);
       if (err) return left(err);
-      const rows = await this.ds.query<Record<string, unknown>[]>(
-        `SELECT id, tenant_id AS "tenantId", obra_id AS "obraId", fonte_id AS "fonteId", valor, created_at AS "createdAt" FROM "${s}"."obra_orcamento_previsto" WHERE obra_id=$1 ORDER BY created_at ASC`,
+      const rows = await this.ds.query<
+        Array<{
+          orcamentoId: string;
+          obraId: string;
+          fonteId: string;
+          fonteNome: string;
+          fonteDescricao: string | null;
+          valor: string;
+        }>
+      >(
+        `SELECT o.id AS "orcamentoId", o.obra_id AS "obraId", f.id AS "fonteId", f.nome AS "fonteNome", f.descricao AS "fonteDescricao", o.valor
+         FROM "${s}"."obra_orcamento_previsto" o
+         INNER JOIN "${s}"."fontes" f ON f.id = o.fonte_id
+         WHERE o.obra_id=$1
+         ORDER BY o.created_at ASC`,
         [obraId],
       );
-      return right(rows.map((r) => GuiasMapper.orcamentoToEntity(r)));
+      return right(
+        rows.map((row) => ({
+          orcamentoId: row.orcamentoId,
+          obraId: row.obraId,
+          fonte: {
+            fonteId: row.fonteId,
+            fonteNome: row.fonteNome,
+            fonteDescricao: row.fonteDescricao,
+            valor: String(row.valor),
+          },
+        })),
+      );
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
       return left(

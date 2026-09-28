@@ -111,7 +111,7 @@ export default class CreateObraService implements ICreateObraUseCase {
         const schema = this.tc.require().schemaName;
         try {
           const saved = await this.ds.transaction(async (manager) => {
-            const obra = await manager.query(
+            const obra = await manager.query<Array<{ id: string }>>(
               `INSERT INTO "${schema}"."obras" (id,codigo,nome,descricao,tipo,status,tipo_financiamento,modo_duracao,data_inicio,data_prazo,acao_conveniada,prioritaria,exibir_camera_ao_vivo,camera_url,privado,invisivel,considerar_sabado,considerar_domingo,seguir_automatico,vincular_pagamento_percentual,corresponsaveis_podem_editar,orgao_id,setor_id,localidade_id,subclassificacao_id,eixo_id,classificacao_id,tipologia_id,subtipologia_id,programa_ppa,acao_estrategica,acao_orcamentaria,unidade_medida,quantidade,secretario,data_pactuada,criado_por_usuario_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39) RETURNING id`,
               [
                 entity.toObject().id,
@@ -180,7 +180,7 @@ export default class CreateObraService implements ICreateObraUseCase {
                 valor: orcamento.valor,
               });
               await manager.query(
-                `INSERT INTO "${schema}"."obra_orcamentos" (id,tenant_id,obra_id,fonte_id,valor) VALUES ($1,$2,$3,$4,$5)`,
+                `INSERT INTO "${schema}"."obra_orcamento_previsto" (id,tenant_id,obra_id,fonte_id,valor) VALUES ($1,$2,$3,$4,$5)`,
                 [
                   orcamentoEntity.toObject().id,
                   p.tenantId,

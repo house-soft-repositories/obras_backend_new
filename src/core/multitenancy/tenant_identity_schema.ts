@@ -195,16 +195,6 @@ export default abstract class TenantIdentitySchema {
       )
     `);
     await executor.query(`
-      CREATE TABLE${ifNotExists} "${schemaName}"."obra_orcamentos" (
-        "id" uuid NOT NULL,
-        "tenant_id" uuid NOT NULL,
-        "obra_id" uuid NOT NULL,
-        "fonte_id" uuid NOT NULL,
-        "valor" character varying NOT NULL,
-        CONSTRAINT "PK_obra_orcamentos" PRIMARY KEY ("id")
-      )
-    `);
-    await executor.query(`
       CREATE TABLE${ifNotExists} "${schemaName}"."obra_seguidores" (
         "id" uuid NOT NULL,
         "tenant_id" uuid NOT NULL,

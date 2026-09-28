@@ -48,7 +48,7 @@ export default class GuiasController {
     return this.run(u, async () => {
       const r = await this.svc.listOrcamentos(obraId);
       if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
-      return r.value.map((e) => e.toObject());
+      return r.value;
     });
   }
 

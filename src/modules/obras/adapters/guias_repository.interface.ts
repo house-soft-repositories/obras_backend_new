@@ -1,13 +1,14 @@
 import AppException from '@/core/exceptions/app_exception';
 import AsyncResult from '@/core/types/async_result';
 import { LicencaEntity, ObraLocalizacaoEntity, ObraOrcamentoPrevistoEntity, RecebimentoEntity, TitularidadeEntity } from '@/modules/obras/domain/entities/guias.entity';
+import type { ObraOrcamentoReadModel } from '@/modules/obras/domain/usecase/guias.usecase';
 
 export default interface IGuiasRepository {
   listLocalizacoes(obraId: string): AsyncResult<AppException, ObraLocalizacaoEntity[]>;
   saveLocalizacao(entity: ObraLocalizacaoEntity): AsyncResult<AppException, ObraLocalizacaoEntity>;
   deleteLocalizacao(obraId: string, id: string): AsyncResult<AppException, void>;
 
-  listOrcamentos(obraId: string): AsyncResult<AppException, ObraOrcamentoPrevistoEntity[]>;
+  listOrcamentos(obraId: string): AsyncResult<AppException, ObraOrcamentoReadModel[]>;
   saveOrcamento(entity: ObraOrcamentoPrevistoEntity): AsyncResult<AppException, ObraOrcamentoPrevistoEntity>;
   deleteOrcamento(obraId: string, id: string): AsyncResult<AppException, void>;
 

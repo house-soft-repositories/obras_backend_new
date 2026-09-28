@@ -125,15 +125,15 @@ export default class DuplicateObraService implements IDuplicateObraUseCase {
                 v.updatedAt,
               ],
             );
-            const orcamentos = await m.query(`SELECT id, fonte_id, valor FROM "${schema}"."obra_orcamentos" WHERE obra_id=$1`, [origin.id]);
-            for (const oRow of orcamentos as Array<{ id: string; fonte_id: string; valor: string }>) {
+            const orcamentos = await m.query<Array<{ id: string; fonte_id: string; valor: string }>>(`SELECT id, fonte_id, valor FROM "${schema}"."obra_orcamento_previsto" WHERE obra_id=$1`, [origin.id]);
+            for (const oRow of orcamentos) {
               await m.query(
-                `INSERT INTO "${schema}"."obra_orcamentos" (id, tenant_id, obra_id, fonte_id, valor) VALUES ($1,$2,$3,$4,$5)`,
+                `INSERT INTO "${schema}"."obra_orcamento_previsto" (id, tenant_id, obra_id, fonte_id, valor) VALUES ($1,$2,$3,$4,$5)`,
                 [randomUUID(), o.tenantId, v.id, oRow.fonte_id, oRow.valor],
               );
             }
-            const responsaveis = await m.query(`SELECT usuario_id, tipo FROM "${schema}"."obra_responsaveis" WHERE obra_id=$1`, [origin.id]);
-            for (const rRow of responsaveis as Array<{ usuario_id: string; tipo: string }>) {
+            const responsaveis = await m.query<Array<{ usuario_id: string; tipo: string }>>(`SELECT usuario_id, tipo FROM "${schema}"."obra_responsaveis" WHERE obra_id=$1`, [origin.id]);
+            for (const rRow of responsaveis) {
               await m.query(
                 `INSERT INTO "${schema}"."obra_responsaveis" (id, tenant_id, obra_id, usuario_id, tipo, created_at) VALUES ($1,$2,$3,$4,$5,$6)`,
                 [randomUUID(), o.tenantId, v.id, rRow.usuario_id, rRow.tipo, new Date()],

@@ -62,7 +62,6 @@ import ObraController from '@/modules/obras/controller/obra.controller';
 import ICreateObraUseCase from '@/modules/obras/domain/usecase/create_obra.usecase';
 import ObraModel from '@/modules/obras/infra/models/obra.model';
 import {
-  ObraOrcamentoModel,
   ObraResponsavelModel,
   ObraSeguidorModel,
 } from '@/modules/obras/infra/models/obra_items.model';
@@ -140,7 +139,6 @@ import { DataSource } from 'typeorm';
     TypeOrmModule.forFeature([
       ObraModel,
       ObraResponsavelModel,
-      ObraOrcamentoModel,
       ObraSeguidorModel,
       EixoModel,
       ClassificacaoModel,

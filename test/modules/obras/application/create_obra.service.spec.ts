@@ -1,13 +1,30 @@
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
-import { left, right } from '@/core/types/either';
+import { right } from '@/core/types/either';
 import CreateObraService from '@/modules/obras/application/create_obra.service';
 import FonteEntity from '@/modules/fontes/domain/entities/fonte.entity';
 import type IFonteRepository from '@/modules/fontes/adapters/fonte_repository.interface';
 import type IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 import type { DataSource } from 'typeorm';
 import type TenantContext from '@/core/multitenancy/tenant_context';
+import type { CreateObraParam } from '@/modules/obras/domain/usecase/create_obra.usecase';
 
-const makeFonte = () => FonteEntity.create({ tenantId: 't1', nome: 'Fonte A', codigo: 'F-001' } as any);
+type MockManager = {
+  query: jest.Mock<Promise<{ id: string }[]>, [string, unknown[]?]>;
+};
+
+type MockDataSource = Pick<DataSource, 'transaction'> & {
+  mockManager: MockManager;
+};
+
+const makeFonte = () =>
+  FonteEntity.create({
+    nome: 'Fonte A',
+    descricao: null,
+    codigo: 'F-001',
+    tipo: null,
+    valorPrevisto: null,
+    vigencia: null,
+  });
 
 const makeObraRepo = (): jest.Mocked<IObraRepository> =>
   ({ findLastCodigo: jest.fn(), save: jest.fn() }) as unknown as jest.Mocked<IObraRepository>;
@@ -15,18 +32,22 @@ const makeObraRepo = (): jest.Mocked<IObraRepository> =>
 const makeFonteRepo = (): jest.Mocked<IFonteRepository> =>
   ({ findById: jest.fn(), findByCodigo: jest.fn(), save: jest.fn(), findAll: jest.fn() });
 
-const makeDS = (schema = 'tenant_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa') => {
+const makeDS = (): MockDataSource => {
   const mockManager = { query: jest.fn().mockResolvedValue([{ id: 'obra-1' }]) };
   return {
-    transaction: jest.fn(async (cb: (m: any) => Promise<any>) => cb(mockManager)),
-  } as unknown as jest.Mocked<DataSource>;
+    transaction: jest.fn(async (cb: (m: MockManager) => Promise<unknown>) => {
+      const result = await cb(mockManager);
+      return result;
+    }) as unknown as DataSource['transaction'],
+    mockManager,
+  };
 };
 
 const makeTC = (schema = 'tenant_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa') =>
   ({ require: () => ({ schemaName: schema }) }) as unknown as TenantContext;
 
 describe('CreateObraService', () => {
-  const baseParam = {
+  const baseParam: CreateObraParam = {
     tenantId: 't1',
     nome: 'Reforma Escola',
     tipo: 'OBRA',
@@ -42,16 +63,18 @@ describe('CreateObraService', () => {
     obraRepo.findLastCodigo.mockResolvedValue(right(null));
     const fonteRepo = makeFonteRepo();
     const fonte = makeFonte();
-    (fonte as any).props = (fonte as any).props || fonte.toObject();
-   FonteEntity.fromData; // ensure exists
-    fonteRepo.findById.mockResolvedValue(right({ ...fonte, ativo: true } as any));
+    fonteRepo.findById.mockResolvedValue(right(fonte));
     const ds = makeDS();
     const tc = makeTC();
-    const svc = new CreateObraService(obraRepo, fonteRepo, ds, tc);
+    const svc = new CreateObraService(obraRepo, fonteRepo, ds as DataSource, tc);
     const result = await svc.execute(baseParam);
     expect(result.isRight()).toBe(true);
-    expect((result as any).value.codigo).toMatch(/^OBR-\d{4}-0001$/);
+    expect(result.getOrThrow().codigo).toMatch(/^OBR-\d{4}-0001$/);
     expect(ds.transaction).toHaveBeenCalledTimes(1);
+    expect(ds.mockManager.query).toHaveBeenCalledWith(
+      expect.stringContaining('"obra_orcamento_previsto"'),
+      expect.any(Array),
+    );
   });
 
   it('rejects when orcamentos empty', async () => {
@@ -87,26 +110,14 @@ describe('CreateObraService', () => {
     obraRepo.findLastCodigo.mockResolvedValueOnce(right('OBR-2026-0001')).mockResolvedValueOnce(right('OBR-2026-0001'));
     const fonteRepo = makeFonteRepo();
     const fonte = makeFonte();
-    fonteRepo.findById.mockResolvedValue(right({ ...fonte, ativo: true } as any));
-    const manager = { query: jest.fn().mockRejectedValueOnce({ code: '23505', constraint: 'UQ_obras_codigo' }).mockResolvedValueOnce([{ id: 'obra-1' }]) } as any;
-    // first transaction fails with 23505, second succeeds
-    let call = 0;
-    const ds = {
-      transaction: jest.fn(async (cb) => {
-        call++;
-        if (call === 1) {
-          await cb({ query: () => Promise.reject({ code: '23505', constraint: 'UQ_obras_codigo' }) } as any);
-        }
-        return cb(manager);
-      }),
-    } as unknown as DataSource;
-    // Simpler: mock transaction to throw 23505 once then succeed
-    const svc = new CreateObraService(obraRepo, fonteRepo, ds, makeTC());
-    // We can't fully test retry without complex mock, but ensure the service handles 23505 path - just verify it doesn't crash on first collision
-    // Instead test that after 3 collisions it returns duplicate error
+    fonteRepo.findById.mockResolvedValue(right(fonte));
     obraRepo.findLastCodigo.mockResolvedValue(right(null));
+    const collision = Object.assign(new Error('codigo duplicado'), {
+      code: '23505',
+      constraint: 'UQ_obras_codigo',
+    });
     const ds2 = {
-      transaction: jest.fn().mockRejectedValue({ code: '23505', constraint: 'UQ_obras_codigo' }),
+      transaction: jest.fn().mockRejectedValue(collision),
     } as unknown as DataSource;
     const svc2 = new CreateObraService(obraRepo, fonteRepo, ds2, makeTC());
     const result = await svc2.execute(baseParam);

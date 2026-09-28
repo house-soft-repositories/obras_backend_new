@@ -10,6 +10,7 @@ import { SituacaoLicenca } from '@/modules/obras/domain/enums/situacao_licenca.e
 import { TipoRecebimento } from '@/modules/obras/domain/enums/tipo_recebimento.enum';
 import GuiaRepositoryException from '@/modules/obras/exceptions/guia_repository.exception';
 import GuiaServiceException from '@/modules/obras/exceptions/guia_service.exception';
+import type { ObraOrcamentoReadModel } from '@/modules/obras/domain/usecase/guias.usecase';
 import { DataSource } from 'typeorm';
 
 export default class GuiasService {
@@ -30,13 +31,13 @@ export default class GuiasService {
 
   async deleteLocalizacao(obraId: string, id: string): AsyncResult<AppException, void> { return this.repo.deleteLocalizacao(obraId, id); }
 
-  async listOrcamentos(obraId: string): AsyncResult<AppException, ObraOrcamentoPrevistoEntity[]> { return this.repo.listOrcamentos(obraId); }
+  async listOrcamentos(obraId: string): AsyncResult<AppException, ObraOrcamentoReadModel[]> { return this.repo.listOrcamentos(obraId); }
 
   async createOrcamento(param: { obraId: string; fonteId: string; valor: string }): AsyncResult<AppException, ObraOrcamentoPrevistoEntity> {
     try {
       const ctx = this.tc.require();
       const schema = ctx.schemaName;
-      const fonte = await this.ds.query(`SELECT id FROM "${schema}"."fontes" WHERE id=$1 AND tenant_id=$2`, [param.fonteId, ctx.tenantId]);
+      const fonte = await this.ds.query<Array<{ id: string }>>(`SELECT id FROM "${schema}"."fontes" WHERE id=$1 AND tenant_id=$2`, [param.fonteId, ctx.tenantId]);
       if (!fonte.length) return left(new GuiaRepositoryException({ code: ErrorCodeConstants.FONTE_NOT_FOUND, statusCode: 422 }));
       const entity = ObraOrcamentoPrevistoEntity.create({ tenantId: ctx.tenantId, obraId: param.obraId, fonteId: param.fonteId, valor: param.valor });
       return this.repo.saveOrcamento(entity);
