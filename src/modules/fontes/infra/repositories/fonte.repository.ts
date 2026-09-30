@@ -107,20 +107,27 @@ export default class FonteRepository implements IFonteRepository {
 
   async findAll(
     pageOptions: PageOptionsEntity,
+    ativo?: boolean,
   ): AsyncResult<AppException, PageEntity<FonteEntity>> {
     try {
       const schema = this.tenantContext.require().schemaName;
+      const where = ativo === undefined ? '' : 'WHERE ativo = $3';
+      const countWhere = ativo === undefined ? '' : 'WHERE ativo = $1';
       const rows = await this.dataSource.query<FonteModel[]>(
         `SELECT id, nome, descricao, codigo, tipo,
            valor_previsto AS "valorPrevisto", vigencia, ativo,
            created_at AS "createdAt", updated_at AS "updatedAt"
          FROM "${schema}"."fontes"
+         ${where}
          ORDER BY nome ${pageOptions.order}
          LIMIT $1 OFFSET $2`,
-        [pageOptions.take, pageOptions.skip],
+        ativo === undefined
+          ? [pageOptions.take, pageOptions.skip]
+          : [pageOptions.take, pageOptions.skip, ativo],
       );
       const [countResult] = await this.dataSource.query<{ count: string }[]>(
-        `SELECT COUNT(*)::int AS count FROM "${schema}"."fontes"`,
+        `SELECT COUNT(*)::int AS count FROM "${schema}"."fontes" ${countWhere}`,
+        ativo === undefined ? [] : [ativo],
       );
       const meta = new PageMetaEntity({
         pageOptions,
@@ -140,6 +147,16 @@ export default class FonteRepository implements IFonteRepository {
           cause,
         }),
       );
+    }
+  }
+
+  async delete(id: string): AsyncResult<AppException, void> {
+    try {
+      const schema = this.tenantContext.require().schemaName;
+      await this.dataSource.query(`DELETE FROM "${schema}"."fontes" WHERE id = $1`, [id]);
+      return right(undefined);
+    } catch (cause) {
+      return left(this.toFailure(cause));
     }
   }
 

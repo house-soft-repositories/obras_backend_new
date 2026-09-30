@@ -9,6 +9,6 @@ export default class ListFontesService implements IListFontesUseCase {
   constructor(private readonly repo: IFonteRepository){}
   async execute(param: ListFontesParam): AsyncResult<AppException, PageEntity<FonteEntity>>{
     const opts=new PageOptionsEntity(param.order, param.page, param.take);
-    return this.repo.findAll(opts);
+    return this.repo.findAll(opts, param.ativo);
   }
 }

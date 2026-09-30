@@ -107,6 +107,9 @@ export default abstract class ErrorCodeConstants {
   static readonly FONTE_NOT_FOUND = 'FONTE_NOT_FOUND';
   static readonly FONTE_REPOSITORY_FAILED = 'FONTE_REPOSITORY_FAILED';
   static readonly FONTE_CREATE_FAILED = 'FONTE_CREATE_FAILED';
+  static readonly FONTE_GET_FAILED = 'FONTE_GET_FAILED';
+  static readonly FONTE_UPDATE_FAILED = 'FONTE_UPDATE_FAILED';
+  static readonly FONTE_DELETE_FAILED = 'FONTE_DELETE_FAILED';
   static readonly FONTE_ACCESS_FORBIDDEN = 'FONTE_ACCESS_FORBIDDEN';
 
   static readonly PESSOA_INVALID_TIPO = 'PESSOA_INVALID_TIPO';

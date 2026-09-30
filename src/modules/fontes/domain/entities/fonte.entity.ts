@@ -48,6 +48,38 @@ export default class FonteEntity {
   static fromData(props: FonteProps): FonteEntity {
     return new FonteEntity(props);
   }
+
+  update(props: Partial<CreateFonteProps>): FonteEntity {
+    const next: FonteProps = {
+      ...this.props,
+      nome: props.nome !== undefined ? props.nome.trim() : this.props.nome,
+      descricao:
+        props.descricao !== undefined
+          ? props.descricao?.trim() || null
+          : this.props.descricao,
+      codigo:
+        props.codigo !== undefined
+          ? props.codigo?.trim() || null
+          : this.props.codigo,
+      tipo: props.tipo !== undefined ? props.tipo || null : this.props.tipo,
+      valorPrevisto:
+        props.valorPrevisto !== undefined
+          ? props.valorPrevisto || null
+          : this.props.valorPrevisto,
+      vigencia:
+        props.vigencia !== undefined
+          ? props.vigencia?.trim() || null
+          : this.props.vigencia,
+      ativo: props.ativo ?? this.props.ativo,
+      updatedAt: new Date(),
+    };
+    if (!next.nome?.trim())
+      throw new FonteDomainException({
+        code: ErrorCodeConstants.FONTE_INVALID_NAME,
+      });
+    return new FonteEntity(next);
+  }
+
   toObject(): FonteProps {
     return { ...this.props };
   }
