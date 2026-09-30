@@ -7,5 +7,5 @@ import PessoaEntity from '@/modules/pessoas/domain/entities/pessoa.entity';
 import IListPessoasUseCase, { ListPessoasParam } from '@/modules/pessoas/domain/usecase/list_pessoas.usecase';
 export default class ListPessoasService implements IListPessoasUseCase {
   constructor(private readonly repo:IPessoaRepository){}
-  async execute(p:ListPessoasParam):AsyncResult<AppException,PageEntity<PessoaEntity>>{ return this.repo.findAll(new PageOptionsEntity(p.order,p.page,p.take)); }
+  async execute(p:ListPessoasParam):AsyncResult<AppException,PageEntity<PessoaEntity>>{ return this.repo.findAll(new PageOptionsEntity(p.order,p.page,p.take), { busca: p.busca, tipo: p.tipo }); }
 }

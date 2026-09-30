@@ -136,6 +136,27 @@ export default abstract class TenantIdentitySchema {
       `CREATE INDEX${ifNotExists} "IDX_pessoas_nome" ON "${schemaName}"."pessoas" ("nome")`,
     );
     await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."profissionais_tecnicos" (
+        "id" uuid NOT NULL,
+        "pessoa_id" uuid NOT NULL,
+        "conselho" character varying NOT NULL,
+        "numero_registro" character varying NOT NULL,
+        "uf_registro" character varying(2),
+        "titulo" character varying,
+        "ativo" boolean NOT NULL DEFAULT true,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_profissionais_tecnicos" PRIMARY KEY ("id"),
+        CONSTRAINT "FK_profissionais_tecnicos_pessoas" FOREIGN KEY ("pessoa_id") REFERENCES "${schemaName}"."pessoas"("id") ON DELETE RESTRICT
+      )
+    `);
+    await executor.query(
+      `CREATE UNIQUE INDEX${ifNotExists} "UQ_profissionais_tecnicos_pessoa" ON "${schemaName}"."profissionais_tecnicos" ("pessoa_id")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_profissionais_tecnicos_registro" ON "${schemaName}"."profissionais_tecnicos" ("numero_registro")`,
+    );
+    await executor.query(`
       CREATE TABLE${ifNotExists} "${schemaName}"."obras" (
         "id" uuid NOT NULL,
         "codigo" character varying NOT NULL,

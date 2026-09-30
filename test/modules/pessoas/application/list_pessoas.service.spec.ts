@@ -9,7 +9,7 @@ import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.en
 import type IPessoaRepository from '@/modules/pessoas/adapters/pessoa_repository.interface';
 
 const makeRepo = (): jest.Mocked<IPessoaRepository> =>
-  ({ save: jest.fn(), findByDocumento: jest.fn(), findById: jest.fn(), findAll: jest.fn() });
+  ({ save: jest.fn(), findByDocumento: jest.fn(), findById: jest.fn(), findAll: jest.fn(), delete: jest.fn() });
 
 describe('ListPessoasService', () => {
   it('delegates to repository with pagination options', async () => {

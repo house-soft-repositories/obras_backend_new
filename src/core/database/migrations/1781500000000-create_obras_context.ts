@@ -17,6 +17,7 @@ export class CreateObrasContext1781500000000 implements MigrationInterface {
       await q.query(`DROP TABLE IF EXISTS "${t.schema_name}"."obra_responsaveis"`);
       await q.query(`DROP TABLE IF EXISTS "${t.schema_name}"."obras_privadas"`);
       await q.query(`DROP TABLE IF EXISTS "${t.schema_name}"."obras"`);
+      await q.query(`DROP TABLE IF EXISTS "${t.schema_name}"."profissionais_tecnicos"`);
       await q.query(`DROP TABLE IF EXISTS "${t.schema_name}"."pessoas"`);
       await q.query(`DROP TABLE IF EXISTS "${t.schema_name}"."fontes"`);
     }

@@ -8,7 +8,7 @@ import type IObraPrivadaRepository from '@/modules/obras-privadas/adapters/obra_
 import type TenantContext from '@/core/multitenancy/tenant_context';
 
 const makePessoaRepo = (): jest.Mocked<IPessoaRepository> =>
-  ({ findById: jest.fn(), findByDocumento: jest.fn(), save: jest.fn(), findAll: jest.fn() });
+  ({ findById: jest.fn(), findByDocumento: jest.fn(), save: jest.fn(), findAll: jest.fn(), delete: jest.fn() });
 
 const makeObraRepo = (): jest.Mocked<IObraPrivadaRepository> =>
   ({ findLastCodigo: jest.fn(), save: jest.fn(), findById: jest.fn() });
