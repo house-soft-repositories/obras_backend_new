@@ -7,6 +7,8 @@ import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.i
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
 import type ICreateLocalidadeUseCase from '@/modules/localidades/domain/usecase/create_localidade.usecase';
+import type IDeleteLocalidadeUseCase from '@/modules/localidades/domain/usecase/delete_localidade.usecase';
+import type IGetLocalidadeUseCase from '@/modules/localidades/domain/usecase/get_localidade.usecase';
 import type IListLocalidadesUseCase from '@/modules/localidades/domain/usecase/list_localidades.usecase';
 import type IUpdateLocalidadeUseCase from '@/modules/localidades/domain/usecase/update_localidade.usecase';
 import CreateLocalidadeDto from '@/modules/localidades/dtos/create_localidade.dto';
@@ -14,13 +16,17 @@ import LocalidadeResponseDto from '@/modules/localidades/dtos/localidade_respons
 import UpdateLocalidadeDto from '@/modules/localidades/dtos/update_localidade.dto';
 import {
   CREATE_LOCALIDADE_SERVICE,
+  DELETE_LOCALIDADE_SERVICE,
+  GET_LOCALIDADE_SERVICE,
   LIST_LOCALIDADES_SERVICE,
   UPDATE_LOCALIDADE_SERVICE,
 } from '@/modules/localidades/symbols';
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   HttpException,
   Inject,
   Param,
@@ -41,6 +47,10 @@ export default class LocalidadeController {
     private readonly listLocalidades: IListLocalidadesUseCase,
     @Inject(UPDATE_LOCALIDADE_SERVICE)
     private readonly updateLocalidade: IUpdateLocalidadeUseCase,
+    @Inject(GET_LOCALIDADE_SERVICE)
+    private readonly getLocalidade: IGetLocalidadeUseCase,
+    @Inject(DELETE_LOCALIDADE_SERVICE)
+    private readonly deleteLocalidade: IDeleteLocalidadeUseCase,
     private readonly tenantRequestContext: TenantRequestContextService,
   ) {}
 
@@ -98,6 +108,49 @@ export default class LocalidadeController {
         role: user!.role,
       });
       return LocalidadeResponseDto.fromEntity(this.unwrap(result));
+    });
+  }
+
+  @Get(':id')
+  async getById(
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        exceptionFactory: () =>
+          new HttpException(ErrorCodeConstants.LOCALIDADE_NOT_FOUND, 404),
+      }),
+    )
+    id: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ): Promise<LocalidadeResponseDto> {
+    return this.withTenant(user, async () => {
+      const result = await this.getLocalidade.execute({
+        id,
+        role: user!.role,
+      });
+      return LocalidadeResponseDto.fromEntity(this.unwrap(result));
+    });
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async remove(
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        exceptionFactory: () =>
+          new HttpException(ErrorCodeConstants.LOCALIDADE_NOT_FOUND, 404),
+      }),
+    )
+    id: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ): Promise<void> {
+    return this.withTenant(user, async () => {
+      const result = await this.deleteLocalidade.execute({
+        id,
+        role: user!.role,
+      });
+      this.unwrap(result);
     });
   }
 

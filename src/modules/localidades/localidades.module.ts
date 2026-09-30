@@ -2,16 +2,22 @@ import CoreModule from '@/core/core.module';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import ILocalidadeRepository from '@/modules/localidades/adapters/localidade_repository.interface';
 import CreateLocalidadeService from '@/modules/localidades/application/create_localidade.service';
+import DeleteLocalidadeService from '@/modules/localidades/application/delete_localidade.service';
+import GetLocalidadeService from '@/modules/localidades/application/get_localidade.service';
 import ListLocalidadesService from '@/modules/localidades/application/list_localidades.service';
 import UpdateLocalidadeService from '@/modules/localidades/application/update_localidade.service';
 import LocalidadeController from '@/modules/localidades/controller/localidade.controller';
 import ICreateLocalidadeUseCase from '@/modules/localidades/domain/usecase/create_localidade.usecase';
+import IDeleteLocalidadeUseCase from '@/modules/localidades/domain/usecase/delete_localidade.usecase';
+import IGetLocalidadeUseCase from '@/modules/localidades/domain/usecase/get_localidade.usecase';
 import IListLocalidadesUseCase from '@/modules/localidades/domain/usecase/list_localidades.usecase';
 import IUpdateLocalidadeUseCase from '@/modules/localidades/domain/usecase/update_localidade.usecase';
 import LocalidadeModel from '@/modules/localidades/infra/models/localidade.model';
 import LocalidadeRepository from '@/modules/localidades/infra/repositories/localidade.repository';
 import {
   CREATE_LOCALIDADE_SERVICE,
+  DELETE_LOCALIDADE_SERVICE,
+  GET_LOCALIDADE_SERVICE,
   LIST_LOCALIDADES_SERVICE,
   LOCALIDADE_REPOSITORY,
   UPDATE_LOCALIDADE_SERVICE,
@@ -57,12 +63,29 @@ import { DataSource } from 'typeorm';
         repository: ILocalidadeRepository,
       ): IUpdateLocalidadeUseCase => new UpdateLocalidadeService(repository),
     },
+    {
+      provide: GET_LOCALIDADE_SERVICE,
+      inject: [LOCALIDADE_REPOSITORY],
+      useFactory: (
+        repository: ILocalidadeRepository,
+      ): IGetLocalidadeUseCase => new GetLocalidadeService(repository),
+    },
+    {
+      provide: DELETE_LOCALIDADE_SERVICE,
+      inject: [LOCALIDADE_REPOSITORY],
+      useFactory: (
+        repository: ILocalidadeRepository,
+      ): IDeleteLocalidadeUseCase =>
+        new DeleteLocalidadeService(repository),
+    },
   ],
   exports: [
     LOCALIDADE_REPOSITORY,
     CREATE_LOCALIDADE_SERVICE,
     LIST_LOCALIDADES_SERVICE,
     UPDATE_LOCALIDADE_SERVICE,
+    GET_LOCALIDADE_SERVICE,
+    DELETE_LOCALIDADE_SERVICE,
   ],
 })
 export default class LocalidadesModule {}

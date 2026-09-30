@@ -16,4 +16,6 @@ export default interface ISetorRepository {
   ): AsyncResult<AppException, SetorWithOrgaoReadModel[]>;
   existsOrgao(orgaoId: string): AsyncResult<AppException, true>;
   countLinkedUsers(setorId: string): AsyncResult<AppException, number>;
+  countLinkedObras(setorId: string): AsyncResult<AppException, number>;
+  delete(id: string): AsyncResult<AppException, void>;
 }

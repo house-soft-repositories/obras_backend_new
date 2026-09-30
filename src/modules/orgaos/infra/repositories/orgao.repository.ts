@@ -152,8 +152,7 @@ export default class OrgaoRepository implements IOrgaoRepository {
 
   async existsLocalidade(
     localidadeId: string,
-  ): AsyncResult<AppException, true> {
-    try {
+  ): AsyncResult<AppException, true> {    try {
       const schema = this.tenantContext.require().schemaName;
       const [found] = await this.dataSource.query<{ id: string }[]>(
         `SELECT id FROM "${schema}"."localidades" WHERE id = $1`,
@@ -167,6 +166,88 @@ export default class OrgaoRepository implements IOrgaoRepository {
               statusCode: 404,
             }),
           );
+    } catch (cause) {
+      return left(
+        new OrgaoRepositoryException({
+          code: ErrorCodeConstants.ORGAO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async delete(id: string): AsyncResult<AppException, void> {
+    try {
+      const schema = this.tenantContext.require().schemaName;
+      const [removed] = await this.dataSource.query<{ id: string }[]>(
+        `DELETE FROM "${schema}"."orgaos" WHERE id = $1 RETURNING id`,
+        [id],
+      );
+      return removed
+        ? right(undefined)
+        : left(
+            new OrgaoRepositoryException({
+              code: ErrorCodeConstants.ORGAO_NOT_FOUND,
+              statusCode: 404,
+            }),
+          );
+    } catch (cause) {
+      return left(
+        new OrgaoRepositoryException({
+          code: ErrorCodeConstants.ORGAO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async countSetores(orgaoId: string): AsyncResult<AppException, number> {
+    try {
+      const schema = this.tenantContext.require().schemaName;
+      const [result] = await this.dataSource.query<{ count: string }[]>(
+        `SELECT COUNT(*)::int AS count FROM "${schema}"."setores" WHERE orgao_id = $1`,
+        [orgaoId],
+      );
+      return right(Number(result?.count ?? 0));
+    } catch (cause) {
+      return left(
+        new OrgaoRepositoryException({
+          code: ErrorCodeConstants.ORGAO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async countLinkedUsers(orgaoId: string): AsyncResult<AppException, number> {
+    try {
+      const [result] = await this.dataSource.query<{ count: string }[]>(
+        `SELECT COUNT(*)::int AS count FROM public.users WHERE orgao_id = $1`,
+        [orgaoId],
+      );
+      return right(Number(result?.count ?? 0));
+    } catch (cause) {
+      return left(
+        new OrgaoRepositoryException({
+          code: ErrorCodeConstants.ORGAO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async countLinkedObras(orgaoId: string): AsyncResult<AppException, number> {
+    try {
+      const schema = this.tenantContext.require().schemaName;
+      const [result] = await this.dataSource.query<{ count: string }[]>(
+        `SELECT COUNT(*)::int AS count FROM "${schema}"."obras" WHERE orgao_id = $1 AND deleted_at IS NULL`,
+        [orgaoId],
+      );
+      return right(Number(result?.count ?? 0));
     } catch (cause) {
       return left(
         new OrgaoRepositoryException({

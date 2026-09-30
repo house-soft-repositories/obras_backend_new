@@ -119,4 +119,90 @@ export default class LocalidadeRepository implements ILocalidadeRepository {
       );
     }
   }
+
+  async delete(id: string): AsyncResult<AppException, void> {
+    try {
+      const schema = this.tenantContext.require().schemaName;
+      const [removed] = await this.dataSource.query<{ id: string }[]>(
+        `DELETE FROM "${schema}"."localidades" WHERE id = $1 RETURNING id`,
+        [id],
+      );
+      return removed
+        ? right(undefined)
+        : left(
+            new LocalidadeRepositoryException({
+              code: ErrorCodeConstants.LOCALIDADE_NOT_FOUND,
+              statusCode: 404,
+            }),
+          );
+    } catch (cause) {
+      return left(
+        new LocalidadeRepositoryException({
+          code: ErrorCodeConstants.LOCALIDADE_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async countOrgaos(localidadeId: string): AsyncResult<AppException, number> {
+    try {
+      const schema = this.tenantContext.require().schemaName;
+      const [result] = await this.dataSource.query<{ count: string }[]>(
+        `SELECT COUNT(*)::int AS count FROM "${schema}"."orgaos" WHERE localidade_id = $1`,
+        [localidadeId],
+      );
+      return right(Number(result?.count ?? 0));
+    } catch (cause) {
+      return left(
+        new LocalidadeRepositoryException({
+          code: ErrorCodeConstants.LOCALIDADE_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async countLinkedUsers(
+    localidadeId: string,
+  ): AsyncResult<AppException, number> {
+    try {
+      const [result] = await this.dataSource.query<{ count: string }[]>(
+        `SELECT COUNT(*)::int AS count FROM public.users WHERE localidade_id = $1`,
+        [localidadeId],
+      );
+      return right(Number(result?.count ?? 0));
+    } catch (cause) {
+      return left(
+        new LocalidadeRepositoryException({
+          code: ErrorCodeConstants.LOCALIDADE_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async countLinkedObras(
+    localidadeId: string,
+  ): AsyncResult<AppException, number> {
+    try {
+      const schema = this.tenantContext.require().schemaName;
+      const [result] = await this.dataSource.query<{ count: string }[]>(
+        `SELECT COUNT(*)::int AS count FROM "${schema}"."obras" WHERE localidade_id = $1 AND deleted_at IS NULL`,
+        [localidadeId],
+      );
+      return right(Number(result?.count ?? 0));
+    } catch (cause) {
+      return left(
+        new LocalidadeRepositoryException({
+          code: ErrorCodeConstants.LOCALIDADE_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
 }

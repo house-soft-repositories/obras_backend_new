@@ -5,7 +5,10 @@ export default function mockSetorRepository(): jest.Mocked<ISetorRepository> {
     save: jest.fn(),
     findById: jest.fn(),
     findAllByOrgao: jest.fn(),
+    findAllByOrgaoId: jest.fn(),
     existsOrgao: jest.fn(),
     countLinkedUsers: jest.fn(),
+    countLinkedObras: jest.fn(),
+    delete: jest.fn(),
   };
 }

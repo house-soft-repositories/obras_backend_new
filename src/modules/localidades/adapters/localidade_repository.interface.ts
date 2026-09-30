@@ -10,4 +10,8 @@ export default interface ILocalidadeRepository {
   findAll(
     pageOptions: PageOptionsEntity,
   ): AsyncResult<AppException, PageEntity<LocalidadeEntity>>;
+  delete(id: string): AsyncResult<AppException, void>;
+  countOrgaos(localidadeId: string): AsyncResult<AppException, number>;
+  countLinkedUsers(localidadeId: string): AsyncResult<AppException, number>;
+  countLinkedObras(localidadeId: string): AsyncResult<AppException, number>;
 }

@@ -12,4 +12,8 @@ export default interface IOrgaoRepository {
   ): AsyncResult<AppException, PageEntity<OrgaoEntity>>;
   existsLocalidade(localidadeId: string): AsyncResult<AppException, true>;
   findAllByLocalidadeId(localidadeId: string): AsyncResult<AppException, OrgaoEntity[]>;
+  delete(id: string): AsyncResult<AppException, void>;
+  countSetores(orgaoId: string): AsyncResult<AppException, number>;
+  countLinkedUsers(orgaoId: string): AsyncResult<AppException, number>;
+  countLinkedObras(orgaoId: string): AsyncResult<AppException, number>;
 }

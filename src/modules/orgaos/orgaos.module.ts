@@ -5,6 +5,10 @@ import IOrgaoRepository from '@/modules/orgaos/adapters/orgao_repository.interfa
 import ISetorRepository from '@/modules/orgaos/adapters/setor_repository.interface';
 import CreateOrgaoService from '@/modules/orgaos/application/create_orgao.service';
 import CreateSetorService from '@/modules/orgaos/application/create_setor.service';
+import DeleteOrgaoService from '@/modules/orgaos/application/delete_orgao.service';
+import DeleteSetorService from '@/modules/orgaos/application/delete_setor.service';
+import GetOrgaoService from '@/modules/orgaos/application/get_orgao.service';
+import GetSetorService from '@/modules/orgaos/application/get_setor.service';
 import ListOrgaosByLocalidadeService from '@/modules/orgaos/application/list_orgaos_by_localidade.service';
 import ListOrgaosService from '@/modules/orgaos/application/list_orgaos.service';
 import ListSetoresService from '@/modules/orgaos/application/list_setores.service';
@@ -14,6 +18,10 @@ import UpdateSetorService from '@/modules/orgaos/application/update_setor.servic
 import OrgaoController from '@/modules/orgaos/controller/orgao.controller';
 import ICreateOrgaoUseCase from '@/modules/orgaos/domain/usecase/create_orgao.usecase';
 import ICreateSetorUseCase from '@/modules/orgaos/domain/usecase/create_setor.usecase';
+import IDeleteOrgaoUseCase from '@/modules/orgaos/domain/usecase/delete_orgao.usecase';
+import IDeleteSetorUseCase from '@/modules/orgaos/domain/usecase/delete_setor.usecase';
+import IGetOrgaoUseCase from '@/modules/orgaos/domain/usecase/get_orgao.usecase';
+import IGetSetorUseCase from '@/modules/orgaos/domain/usecase/get_setor.usecase';
 import IListOrgaosByLocalidadeUseCase from '@/modules/orgaos/domain/usecase/list_orgaos_by_localidade.usecase';
 import IListOrgaosUseCase from '@/modules/orgaos/domain/usecase/list_orgaos.usecase';
 import IListSetoresUseCase from '@/modules/orgaos/domain/usecase/list_setores.usecase';
@@ -27,6 +35,10 @@ import SetorRepository from '@/modules/orgaos/infra/repositories/setor.repositor
 import {
   CREATE_ORGAO_SERVICE,
   CREATE_SETOR_SERVICE,
+  DELETE_ORGAO_SERVICE,
+  DELETE_SETOR_SERVICE,
+  GET_ORGAO_SERVICE,
+  GET_SETOR_SERVICE,
   LIST_ORGAOS_BY_LOCALIDADE_SERVICE,
   LIST_ORGAOS_SERVICE,
   LIST_SETORES_SERVICE,
@@ -112,6 +124,30 @@ import { DataSource } from 'typeorm';
       useFactory: (repository: ISetorRepository): IUpdateSetorUseCase =>
         new UpdateSetorService(repository),
     },
+    {
+      provide: GET_ORGAO_SERVICE,
+      inject: [ORGAO_REPOSITORY],
+      useFactory: (repository: IOrgaoRepository): IGetOrgaoUseCase =>
+        new GetOrgaoService(repository),
+    },
+    {
+      provide: DELETE_ORGAO_SERVICE,
+      inject: [ORGAO_REPOSITORY],
+      useFactory: (repository: IOrgaoRepository): IDeleteOrgaoUseCase =>
+        new DeleteOrgaoService(repository),
+    },
+    {
+      provide: GET_SETOR_SERVICE,
+      inject: [SETOR_REPOSITORY],
+      useFactory: (repository: ISetorRepository): IGetSetorUseCase =>
+        new GetSetorService(repository),
+    },
+    {
+      provide: DELETE_SETOR_SERVICE,
+      inject: [SETOR_REPOSITORY],
+      useFactory: (repository: ISetorRepository): IDeleteSetorUseCase =>
+        new DeleteSetorService(repository),
+    },
   ],
   exports: [
     ORGAO_REPOSITORY,
@@ -124,6 +160,10 @@ import { DataSource } from 'typeorm';
     LIST_SETORES_SERVICE,
     LIST_SETORES_BY_ORGAO_SERVICE,
     UPDATE_SETOR_SERVICE,
+    GET_ORGAO_SERVICE,
+    DELETE_ORGAO_SERVICE,
+    GET_SETOR_SERVICE,
+    DELETE_SETOR_SERVICE,
   ],
 })
 export default class OrgaosModule {}

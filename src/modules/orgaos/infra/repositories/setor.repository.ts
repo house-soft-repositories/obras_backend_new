@@ -216,6 +216,53 @@ export default class SetorRepository implements ISetorRepository {
     }
   }
 
+  async countLinkedObras(setorId: string): AsyncResult<AppException, number> {
+    try {
+      const schema = this.tenantContext.require().schemaName;
+      const [result] = await this.dataSource.query<{ count: string }[]>(
+        `SELECT COUNT(*)::int AS count
+          FROM "${schema}"."obras"
+          WHERE setor_id = $1 AND deleted_at IS NULL`,
+        [setorId],
+      );
+      return right(Number(result?.count ?? 0));
+    } catch (cause) {
+      return left(
+        new SetorRepositoryException({
+          code: ErrorCodeConstants.SETOR_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
+
+  async delete(id: string): AsyncResult<AppException, void> {
+    try {
+      const schema = this.tenantContext.require().schemaName;
+      const [removed] = await this.dataSource.query<{ id: string }[]>(
+        `DELETE FROM "${schema}"."setores" WHERE id = $1 RETURNING id`,
+        [id],
+      );
+      return removed
+        ? right(undefined)
+        : left(
+            new SetorRepositoryException({
+              code: ErrorCodeConstants.SETOR_NOT_FOUND,
+              statusCode: 404,
+            }),
+          );
+    } catch (cause) {
+      return left(
+        new SetorRepositoryException({
+          code: ErrorCodeConstants.SETOR_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
+
   private toFailure(cause: unknown): SetorRepositoryException {
     if (this.isForeignKeyViolation(cause, 'FK_setores_orgaos')) {
       return new SetorRepositoryException({
