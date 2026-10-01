@@ -311,6 +311,178 @@ export default abstract class TenantIdentitySchema {
     await executor.query(
       `CREATE INDEX${ifNotExists} "IDX_obras_privadas_geo" ON "${schemaName}"."obras_privadas" ("latitude", "longitude")`,
     );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."alvara" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_privada_id" uuid NOT NULL,
+        "numero" character varying,
+        "ano" integer NOT NULL,
+        "tipo" character varying NOT NULL,
+        "motivo" character varying NOT NULL DEFAULT 'ORIGINAL',
+        "situacao" character varying NOT NULL DEFAULT 'VIGENTE',
+        "data_emissao" date,
+        "data_validade" date,
+        "alvara_anterior_id" uuid,
+        "area_terreno_m2" numeric(12,2),
+        "area_construida_aprovada_m2" numeric(12,2),
+        "uso" character varying,
+        "pavimentos" integer,
+        "unidades" integer,
+        "processo_administrativo" character varying,
+        "arquivo_id" uuid,
+        "observacoes" text,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_alvara" PRIMARY KEY ("id"),
+        CONSTRAINT "FK_alvara_obras_privadas" FOREIGN KEY ("obra_privada_id")
+          REFERENCES "${schemaName}"."obras_privadas"("id") ON DELETE CASCADE
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_alvara_obra" ON "${schemaName}"."alvara" ("obra_privada_id")`,
+    );
+    await executor.query(
+      `CREATE UNIQUE INDEX${ifNotExists} "UQ_alvara_numero_ano" ON "${schemaName}"."alvara" ("tenant_id", "ano", "numero") WHERE "numero" IS NOT NULL`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."fiscalizacao" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_privada_id" uuid NOT NULL,
+        "numero" character varying NOT NULL,
+        "tipo" character varying NOT NULL,
+        "data_fiscalizacao" date NOT NULL,
+        "fiscal_usuario_id" uuid NOT NULL,
+        "resultado" character varying NOT NULL,
+        "etapa_constatada" character varying,
+        "constatacoes" text,
+        "providencias" text,
+        "latitude" numeric(10,7),
+        "longitude" numeric(10,7),
+        "entulho_ha_irregularidade" boolean,
+        "entulho_volume_estimado_m3" numeric(10,2),
+        "entulho_local" character varying,
+        "entulho_possui_cacamba" boolean,
+        "entulho_possui_pgrcc" boolean,
+        "entulho_destinacao" text,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_fiscalizacao" PRIMARY KEY ("id"),
+        CONSTRAINT "FK_fiscalizacao_obras_privadas" FOREIGN KEY ("obra_privada_id")
+          REFERENCES "${schemaName}"."obras_privadas"("id") ON DELETE CASCADE
+      )
+    `);
+    await executor.query(
+      `CREATE UNIQUE INDEX${ifNotExists} "UQ_fiscalizacao_numero" ON "${schemaName}"."fiscalizacao" ("tenant_id", "numero")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_fiscalizacao_obra" ON "${schemaName}"."fiscalizacao" ("tenant_id", "obra_privada_id", "data_fiscalizacao")`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."obra_privada_observacao" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_privada_id" uuid NOT NULL,
+        "texto" text NOT NULL,
+        "autor_usuario_id" uuid NOT NULL,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_obra_privada_observacao" PRIMARY KEY ("id"),
+        CONSTRAINT "FK_obra_privada_observacao_obras_privadas" FOREIGN KEY ("obra_privada_id")
+          REFERENCES "${schemaName}"."obras_privadas"("id") ON DELETE CASCADE
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_obra_privada_observacao_obra" ON "${schemaName}"."obra_privada_observacao" ("tenant_id", "obra_privada_id")`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."auto_infracao" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_privada_id" uuid NOT NULL,
+        "fiscalizacao_id" uuid,
+        "numero" character varying NOT NULL,
+        "tipo" character varying NOT NULL,
+        "data_emissao" date NOT NULL,
+        "prazo_dias" integer,
+        "data_limite" date,
+        "base_legal" text,
+        "descricao" text NOT NULL,
+        "valor_multa" numeric(15,2),
+        "situacao" character varying NOT NULL DEFAULT 'ABERTO',
+        "data_encerramento" date,
+        "observacoes" text,
+        "lavrado_por_usuario_id" uuid NOT NULL,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_auto_infracao" PRIMARY KEY ("id"),
+        CONSTRAINT "FK_auto_infracao_obras_privadas" FOREIGN KEY ("obra_privada_id")
+          REFERENCES "${schemaName}"."obras_privadas"("id") ON DELETE CASCADE
+      )
+    `);
+    await executor.query(
+      `CREATE UNIQUE INDEX${ifNotExists} "UQ_auto_infracao_numero" ON "${schemaName}"."auto_infracao" ("tenant_id", "numero")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_auto_infracao_obra" ON "${schemaName}"."auto_infracao" ("tenant_id", "obra_privada_id")`,
+    );
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_auto_infracao_prazo" ON "${schemaName}"."auto_infracao" ("tenant_id", "situacao", "data_limite")`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."habite_se" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_privada_id" uuid NOT NULL,
+        "numero" character varying NOT NULL,
+        "data_emissao" date,
+        "parcial" boolean NOT NULL DEFAULT false,
+        "descricao_parcial" character varying,
+        "data_vistoria" date,
+        "vistoriador_usuario_id" uuid,
+        "fiscalizacao_id" uuid,
+        "resultado" character varying NOT NULL,
+        "area_construida_executada_m2" numeric(12,2),
+        "divergencia_projeto" boolean NOT NULL DEFAULT false,
+        "divergencia_descricao" text,
+        "parecer" text,
+        "arquivo_id" uuid,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_habite_se" PRIMARY KEY ("id"),
+        CONSTRAINT "FK_habite_se_obras_privadas" FOREIGN KEY ("obra_privada_id")
+          REFERENCES "${schemaName}"."obras_privadas"("id") ON DELETE CASCADE
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_habite_se_obra" ON "${schemaName}"."habite_se" ("obra_privada_id")`,
+    );
+    await executor.query(`
+      CREATE TABLE${ifNotExists} "${schemaName}"."obra_privada_responsavel" (
+        "id" uuid NOT NULL,
+        "tenant_id" uuid NOT NULL,
+        "obra_privada_id" uuid NOT NULL,
+        "profissional_tecnico_id" uuid NOT NULL,
+        "papel" character varying NOT NULL,
+        "tipo_documento" character varying NOT NULL,
+        "numero_documento" character varying NOT NULL,
+        "data_documento" date,
+        "arquivo_id" uuid,
+        "data_inicio" date,
+        "data_baixa" date,
+        "motivo_baixa" text,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_obra_privada_responsavel" PRIMARY KEY ("id"),
+        CONSTRAINT "FK_obra_privada_responsavel_obras_privadas" FOREIGN KEY ("obra_privada_id")
+          REFERENCES "${schemaName}"."obras_privadas"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_obra_privada_responsavel_profissionais" FOREIGN KEY ("profissional_tecnico_id")
+          REFERENCES "${schemaName}"."profissionais_tecnicos"("id") ON DELETE RESTRICT
+      )
+    `);
+    await executor.query(
+      `CREATE INDEX${ifNotExists} "IDX_obra_privada_responsavel_obra" ON "${schemaName}"."obra_privada_responsavel" ("tenant_id", "obra_privada_id")`,
+    );
     await this.createGuiasCadastrosTables(executor, schemaName, ifNotExists);
     await this.createAttachmentsTable(executor, schemaName, ifNotExists);
     await this.createDocumentosTables(executor, schemaName, ifNotExists);
