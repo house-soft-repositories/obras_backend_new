@@ -5,12 +5,22 @@ import GetPessoaService from '@/modules/pessoas/application/get_pessoa.service';
 import PessoaEntity from '@/modules/pessoas/domain/entities/pessoa.entity';
 import type IPessoaRepository from '@/modules/pessoas/adapters/pessoa_repository.interface';
 import PessoaRepositoryException from '@/modules/pessoas/exceptions/pessoa_repository.exception';
-const makeRepo = (): jest.Mocked<IPessoaRepository> =>
-  ({ save: jest.fn(), findByDocumento: jest.fn(), findById: jest.fn(), findAll: jest.fn(), delete: jest.fn() });
+const makeRepo = (): jest.Mocked<IPessoaRepository> => ({
+  save: jest.fn(),
+  findByDocumento: jest.fn(),
+  findById: jest.fn(),
+  findAll: jest.fn(),
+  delete: jest.fn(),
+});
 describe('GetPessoaService', () => {
   it('returns pessoa when found', async () => {
     const repo = makeRepo();
-    const entity = PessoaEntity.create({ tenantId: 't1', tipo: 'FISICA', documento: '12345678901', nome: 'A Pessoa' } as any);
+    const entity = PessoaEntity.create({
+      tenantId: 't1',
+      tipo: 'FISICA',
+      documento: '52998224725',
+      nome: 'A Pessoa',
+    } as any);
     repo.findById.mockResolvedValue(right(entity));
     const result = await new GetPessoaService(repo).execute({ id: entity.id });
     expect(result.isRight()).toBe(true);
@@ -29,11 +39,18 @@ describe('GetPessoaService', () => {
 describe('DeletePessoaService', () => {
   it('deletes pessoa when found', async () => {
     const repo = makeRepo();
-    const entity = PessoaEntity.create({ tenantId: 't1', tipo: 'FISICA', documento: '12345678901', nome: 'A Pessoa' } as any);
+    const entity = PessoaEntity.create({
+      tenantId: 't1',
+      tipo: 'FISICA',
+      documento: '52998224725',
+      nome: 'A Pessoa',
+    } as any);
     repo.findById.mockResolvedValue(right(entity));
     repo.delete.mockResolvedValue(right(undefined));
 
-    const result = await new DeletePessoaService(repo).execute({ id: entity.id });
+    const result = await new DeletePessoaService(repo).execute({
+      id: entity.id,
+    });
 
     expect(result.isRight()).toBe(true);
     expect(repo.delete).toHaveBeenCalledWith(entity.id);
@@ -43,7 +60,9 @@ describe('DeletePessoaService', () => {
     const repo = makeRepo();
     repo.findById.mockResolvedValue(right(null));
 
-    const result = await new DeletePessoaService(repo).execute({ id: 'missing' });
+    const result = await new DeletePessoaService(repo).execute({
+      id: 'missing',
+    });
 
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('expected failure');
@@ -53,7 +72,12 @@ describe('DeletePessoaService', () => {
 
   it('propagates repository delete failures', async () => {
     const repo = makeRepo();
-    const entity = PessoaEntity.create({ tenantId: 't1', tipo: 'FISICA', documento: '12345678901', nome: 'A Pessoa' } as any);
+    const entity = PessoaEntity.create({
+      tenantId: 't1',
+      tipo: 'FISICA',
+      documento: '52998224725',
+      nome: 'A Pessoa',
+    } as any);
     repo.findById.mockResolvedValue(right(entity));
     repo.delete.mockResolvedValue(
       left(
@@ -64,7 +88,9 @@ describe('DeletePessoaService', () => {
       ),
     );
 
-    const result = await new DeletePessoaService(repo).execute({ id: entity.id });
+    const result = await new DeletePessoaService(repo).execute({
+      id: entity.id,
+    });
 
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('expected failure');

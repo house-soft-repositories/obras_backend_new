@@ -37,7 +37,7 @@ const makeProfissionalRepository =
 const pessoa = PessoaEntity.create({
   tenantId: 't1',
   tipo: 'FISICA',
-  documento: '12345678901',
+  documento: '52998224725',
   nome: 'João Técnico',
 } as any);
 
@@ -104,7 +104,9 @@ describe('CreateProfissionalTecnicoService', () => {
     const pessoaRepository = makePessoaRepository();
     const profissionalRepository = makeProfissionalRepository();
     pessoaRepository.findById.mockResolvedValue(right(pessoa));
-    profissionalRepository.findByPessoaId.mockResolvedValue(right(profissional));
+    profissionalRepository.findByPessoaId.mockResolvedValue(
+      right(profissional),
+    );
 
     const result = await new CreateProfissionalTecnicoService(
       pessoaRepository,
@@ -145,12 +147,20 @@ describe('UpdateProfissionalTecnicoService', () => {
   it('updates profissional tecnico and returns joined view', async () => {
     const repository = makeProfissionalRepository();
     repository.findById.mockResolvedValue(right(profissional));
-    repository.save.mockImplementation((entity) => Promise.resolve(right(entity)));
+    repository.save.mockImplementation((entity) =>
+      Promise.resolve(right(entity)),
+    );
     repository.findViewById.mockResolvedValue(
-      right({ ...view(), numeroRegistro: '654321', registro: 'CREA-SP 654321' }),
+      right({
+        ...view(),
+        numeroRegistro: '654321',
+        registro: 'CREA-SP 654321',
+      }),
     );
 
-    const result = await new UpdateProfissionalTecnicoService(repository).execute({
+    const result = await new UpdateProfissionalTecnicoService(
+      repository,
+    ).execute({
       id: profissional.id,
       data: { numeroRegistro: '654321' },
     });
@@ -163,7 +173,9 @@ describe('UpdateProfissionalTecnicoService', () => {
     const repository = makeProfissionalRepository();
     repository.findById.mockResolvedValue(right(null));
 
-    const result = await new UpdateProfissionalTecnicoService(repository).execute({
+    const result = await new UpdateProfissionalTecnicoService(
+      repository,
+    ).execute({
       id: 'missing',
       data: { numeroRegistro: '1' },
     });
@@ -210,7 +222,9 @@ describe('ListProfissionaisTecnicosService', () => {
     const repository = makeProfissionalRepository();
     repository.findAllViews.mockResolvedValue(right([view()]));
 
-    const result = await new ListProfissionaisTecnicosService(repository).execute();
+    const result = await new ListProfissionaisTecnicosService(
+      repository,
+    ).execute();
 
     expect(result.isRight()).toBe(true);
     expect(result.getOrThrow()).toHaveLength(1);
@@ -230,7 +244,9 @@ describe('BuscarProfissionaisTecnicosService', () => {
   it('rejects short query', async () => {
     const repository = makeProfissionalRepository();
 
-    const result = await new BuscarProfissionaisTecnicosService(repository).execute({
+    const result = await new BuscarProfissionaisTecnicosService(
+      repository,
+    ).execute({
       q: 'ab',
     });
 
@@ -246,7 +262,9 @@ describe('BuscarProfissionaisTecnicosService', () => {
     const repository = makeProfissionalRepository();
     repository.searchViews.mockResolvedValue(right(pageOf([view()])));
 
-    const result = await new BuscarProfissionaisTecnicosService(repository).execute({
+    const result = await new BuscarProfissionaisTecnicosService(
+      repository,
+    ).execute({
       q: 'João',
       take: 50,
     });

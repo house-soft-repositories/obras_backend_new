@@ -5,11 +5,21 @@ import PessoaEntity from '@/modules/pessoas/domain/entities/pessoa.entity';
 import PessoaRepositoryException from '@/modules/pessoas/exceptions/pessoa_repository.exception';
 import type IPessoaRepository from '@/modules/pessoas/adapters/pessoa_repository.interface';
 
-const makeRepo = (): jest.Mocked<IPessoaRepository> =>
-  ({ save: jest.fn(), findByDocumento: jest.fn(), findById: jest.fn(), findAll: jest.fn(), delete: jest.fn() });
+const makeRepo = (): jest.Mocked<IPessoaRepository> => ({
+  save: jest.fn(),
+  findByDocumento: jest.fn(),
+  findById: jest.fn(),
+  findAll: jest.fn(),
+  delete: jest.fn(),
+});
 
 describe('CreatePessoaService', () => {
-  const base = { tenantId: 't1', tipo: 'FISICA', documento: '12345678901', nome: 'João Silva' };
+  const base = {
+    tenantId: 't1',
+    tipo: 'FISICA',
+    documento: '52998224725',
+    nome: 'João Silva',
+  };
 
   it('creates pessoa when documento not duplicated', async () => {
     const repo = makeRepo();
@@ -18,26 +28,40 @@ describe('CreatePessoaService', () => {
     const svc = new CreatePessoaService(repo);
     const result = await svc.execute(base as any);
     expect(result.isRight()).toBe(true);
-    expect(repo.findByDocumento).toHaveBeenCalledWith('12345678901');
+    expect(repo.findByDocumento).toHaveBeenCalledWith('52998224725');
     expect(result.getOrThrow().nome).toBe('João Silva');
   });
 
   it('returns duplicate documento 409 when already exists', async () => {
     const repo = makeRepo();
-    const existing = PessoaEntity.create({ tenantId: 't1', tipo: 'FISICA', documento: '12345678901', nome: 'Maria' } as any);
+    const existing = PessoaEntity.create({
+      tenantId: 't1',
+      tipo: 'FISICA',
+      documento: '52998224725',
+      nome: 'Maria',
+    } as any);
     repo.findByDocumento.mockResolvedValue(right(existing));
     const svc = new CreatePessoaService(repo);
     const result = await svc.execute(base as any);
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('expected failure');
-    expect(result.value.code).toBe(ErrorCodeConstants.PESSOA_DUPLICATE_DOCUMENTO);
+    expect(result.value.code).toBe(
+      ErrorCodeConstants.PESSOA_DUPLICATE_DOCUMENTO,
+    );
     expect(result.value.statusCode).toBe(409);
     expect(repo.save).not.toHaveBeenCalled();
   });
 
   it('propagates repository lookup failure', async () => {
     const repo = makeRepo();
-    repo.findByDocumento.mockResolvedValue(left(new PessoaRepositoryException({ code: ErrorCodeConstants.PESSOA_REPOSITORY_FAILED, statusCode: 500 })));
+    repo.findByDocumento.mockResolvedValue(
+      left(
+        new PessoaRepositoryException({
+          code: ErrorCodeConstants.PESSOA_REPOSITORY_FAILED,
+          statusCode: 500,
+        }),
+      ),
+    );
     const svc = new CreatePessoaService(repo);
     const result = await svc.execute(base as any);
     expect(result.isLeft()).toBe(true);
