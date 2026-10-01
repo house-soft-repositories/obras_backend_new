@@ -1,0 +1,22 @@
+import UseCase from '@/core/types/use_case';
+import HabiteSeEntity from '@/modules/obras-privadas/domain/entities/habite_se.entity';
+import { ResultadoHabiteSe } from '@/modules/obras-privadas/domain/enums/obras_privadas.enum';
+export type CreateHabiteSeParam = {
+  tenantId: string;
+  obraPrivadaId: string;
+  numero: string;
+  dataEmissao?: string | null;
+  parcial?: boolean;
+  descricaoParcial?: string | null;
+  dataVistoria?: string | null;
+  vistoriadorUsuarioId?: string | null;
+  fiscalizacaoId?: string | null;
+  resultado: ResultadoHabiteSe;
+  areaConstruidaExecutadaM2?: string | null;
+  divergenciaProjeto?: boolean;
+  divergenciaDescricao?: string | null;
+  parecer?: string | null;
+  arquivoId?: string | null;
+};
+type ICreateHabiteSeUseCase = UseCase<CreateHabiteSeParam, HabiteSeEntity>;
+export default ICreateHabiteSeUseCase;
