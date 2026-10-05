@@ -1,4 +1,5 @@
 import PagamentoEntity from '@/modules/obras/domain/entities/pagamento.entity';
+import type { PagamentoComFonte } from '@/modules/obras/domain/usecase/pagamentos.usecase';
 import PagamentoModel from '@/modules/obras/infra/models/pagamento.model';
 
 export default abstract class PagamentoMapper {
@@ -19,6 +20,20 @@ export default abstract class PagamentoMapper {
       createdAt: (m['createdAt'] as Date) ?? new Date(),
       updatedAt: (m['updatedAt'] as Date) ?? new Date(),
     });
+  }
+
+  static toComFonte(m: Record<string, unknown>): PagamentoComFonte {
+    const entity = PagamentoMapper.toEntity(m);
+    const fonteId = m['fonte.id'] as string | null;
+    if (!fonteId) return { ...entity.toObject(), fonte: null };
+    return {
+      ...entity.toObject(),
+      fonte: {
+        id: fonteId,
+        nome: m['fonteNome'] as string,
+        valorPrevisto: (m['fonteValorPrevisto'] as string | null) ?? null,
+      },
+    };
   }
 
   static toModel(e: PagamentoEntity): Partial<PagamentoModel> {

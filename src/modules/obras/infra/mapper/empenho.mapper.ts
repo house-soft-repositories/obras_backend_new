@@ -1,5 +1,6 @@
 import EmpenhoEntity from '@/modules/obras/domain/entities/empenho.entity';
 import { TipoEmpenho } from '@/modules/obras/domain/enums/tipo_empenho.enum';
+import type { EmpenhoComFonte } from '@/modules/obras/domain/usecase/empenhos.usecase';
 import EmpenhoModel from '@/modules/obras/infra/models/empenho.model';
 
 export default abstract class EmpenhoMapper {
@@ -20,6 +21,20 @@ export default abstract class EmpenhoMapper {
       createdAt: (m['createdAt'] as Date) ?? new Date(),
       updatedAt: (m['updatedAt'] as Date) ?? new Date(),
     });
+  }
+
+  static toComFonte(m: Record<string, unknown>): EmpenhoComFonte {
+    const entity = EmpenhoMapper.toEntity(m);
+    const fonteId = m['fonte.id'] as string | null;
+    if (!fonteId) return { ...entity.toObject(), fonte: null };
+    return {
+      ...entity.toObject(),
+      fonte: {
+        id: fonteId,
+        nome: m['fonteNome'] as string,
+        valorPrevisto: (m['fonteValorPrevisto'] as string | null) ?? null,
+      },
+    };
   }
 
   static toModel(e: EmpenhoEntity): Partial<EmpenhoModel> {

@@ -6,10 +6,13 @@ import AsyncResult from '@/core/types/async_result';
 import { Either, left, right } from '@/core/types/either';
 import IPagamentoRepository from '@/modules/obras/adapters/pagamento_repository.interface';
 import PagamentoEntity from '@/modules/obras/domain/entities/pagamento.entity';
+import type { PagamentoComFonte } from '@/modules/obras/domain/usecase/pagamentos.usecase';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
 import PagamentoMapper from '@/modules/obras/infra/mapper/pagamento.mapper';
 
 const SELECT = `p.id, p.tenant_id AS "tenantId", p.empenho_id AS "empenhoId", p.liquidacao_id AS "liquidacaoId", p.fonte_id AS "fonteId", p.numero_ordem_bancaria AS "numeroOrdemBancaria", p.data_ordem_bancaria AS "dataOrdemBancaria", p.valor, p.observacoes, p.created_at AS "createdAt", p.updated_at AS "updatedAt"`;
+
+const SELECT_WITH_FONTE = `${SELECT}, f.id AS "fonte.id", f.nome AS "fonteNome", f.valor_previsto AS "fonteValorPrevisto"`;
 
 export default class PagamentoRepository implements IPagamentoRepository {
   constructor(
@@ -57,6 +60,21 @@ export default class PagamentoRepository implements IPagamentoRepository {
     }
   }
 
+  async findByIdWithFonte(id: string): AsyncResult<AppException, PagamentoComFonte | null> {
+    try {
+      const s = this.tc.require().schemaName;
+      const [row] = await this.ds.query<Record<string, unknown>[]>(
+        `SELECT ${SELECT_WITH_FONTE} FROM "${s}"."pagamento" p
+          LEFT JOIN "${s}"."fontes" f ON f.id = p.fonte_id
+          WHERE p.id=$1`,
+        [id],
+      );
+      return right(row ? PagamentoMapper.toComFonte(row) : null);
+    } catch (cause) {
+      return this.fail(cause);
+    }
+  }
+
   async listByObra(obraId: string): AsyncResult<AppException, PagamentoEntity[]> {
     try {
       const s = this.tc.require().schemaName;
@@ -67,6 +85,22 @@ export default class PagamentoRepository implements IPagamentoRepository {
         [obraId],
       );
       return right(rows.map((r) => PagamentoMapper.toEntity(r)));
+    } catch (cause) {
+      return this.fail(cause);
+    }
+  }
+
+  async listByObraWithFonte(obraId: string): AsyncResult<AppException, PagamentoComFonte[]> {
+    try {
+      const s = this.tc.require().schemaName;
+      const rows = await this.ds.query<Record<string, unknown>[]>(
+        `SELECT ${SELECT_WITH_FONTE} FROM "${s}"."pagamento" p
+         JOIN "${s}"."empenho" e ON e.id = p.empenho_id
+         LEFT JOIN "${s}"."fontes" f ON f.id = p.fonte_id
+         WHERE e.obra_id=$1 ORDER BY p.created_at ASC`,
+        [obraId],
+      );
+      return right(rows.map((r) => PagamentoMapper.toComFonte(r)));
     } catch (cause) {
       return this.fail(cause);
     }
