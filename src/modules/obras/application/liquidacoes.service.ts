@@ -7,7 +7,9 @@ import IEmpenhoRepository from '@/modules/obras/adapters/empenho_repository.inte
 import ILiquidacaoRepository from '@/modules/obras/adapters/liquidacao_repository.interface';
 import EmpenhoEntity from '@/modules/obras/domain/entities/empenho.entity';
 import LiquidacaoEntity from '@/modules/obras/domain/entities/liquidacao.entity';
-import type { CreateLiquidacaoParam, UpdateLiquidacaoParam } from '@/modules/obras/domain/usecase/liquidacoes.usecase';
+import type { CreateLiquidacaoParam, LiquidacaoComFonte, UpdateLiquidacaoParam } from '@/modules/obras/domain/usecase/liquidacoes.usecase';
+import { toFonteResumo } from '@/modules/obras/domain/usecase/fonte_resumo';
+import type FonteEntity from '@/modules/fontes/domain/entities/fonte.entity';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
 import IFonteRepository from '@/modules/fontes/adapters/fonte_repository.interface';
 
@@ -19,14 +21,14 @@ export default class LiquidacoesService {
     private readonly tc: TenantContext,
   ) {}
 
-  private async ensureFonteAtiva(fonteId: string): AsyncResult<AppException, void> {
+  private async ensureFonteAtiva(fonteId: string): AsyncResult<AppException, FonteEntity> {
     const fonte = await this.fontes.findById(fonteId);
     if (fonte.isLeft()) return left(fonte.value);
     if (!fonte.value)
       return left(new ObraRepositoryException({ code: ErrorCodeConstants.FONTE_NOT_FOUND, statusCode: 404 }));
     if (!fonte.value.ativo)
       return left(new ObraRepositoryException({ code: ErrorCodeConstants.FONTE_INATIVA, statusCode: 422 }));
-    return right(undefined);
+    return right(fonte.value);
   }
 
   private async ensureEmpenhoDaObra(obraId: string, empenhoId: string): AsyncResult<AppException, EmpenhoEntity> {
@@ -39,7 +41,7 @@ export default class LiquidacoesService {
     return right(empenho.value);
   }
 
-  async create(param: CreateLiquidacaoParam): AsyncResult<AppException, LiquidacaoEntity> {
+  async create(param: CreateLiquidacaoParam): AsyncResult<AppException, LiquidacaoComFonte> {
     try {
       const ctx = this.tc.require();
       const okFonte = await this.ensureFonteAtiva(param.fonteId);
@@ -53,20 +55,25 @@ export default class LiquidacoesService {
           new ObraRepositoryException({ code: ErrorCodeConstants.LIQUIDACAO_EXCEDE_EMPENHO, statusCode: 422 }),
         );
       const entity = LiquidacaoEntity.create({ ...param, tenantId: ctx.tenantId });
-      return this.repo.save(entity);
+      const saved = await this.repo.save(entity);
+      if (saved.isLeft()) return left(saved.value);
+      // Fonte já validada acima: monta o resumo sem query extra.
+      return right({ ...saved.value.toObject(), fonte: toFonteResumo(okFonte.value) });
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
       return left(new ObraRepositoryException({ code: ErrorCodeConstants.LIQUIDACAO_REPOSITORY_FAILED, statusCode: 500, cause }));
     }
   }
 
-  async list(obraId: string): AsyncResult<AppException, LiquidacaoEntity[]> {
-    return this.repo.listByObra(obraId);
+  async list(obraId: string): AsyncResult<AppException, LiquidacaoComFonte[]> {
+    // Query única com LEFT JOIN em fontes (sem N+1).
+    return this.repo.listByObraWithFonte(obraId);
   }
 
-  async get(obraId: string, id: string): AsyncResult<AppException, LiquidacaoEntity> {
+  async get(obraId: string, id: string): AsyncResult<AppException, LiquidacaoComFonte> {
     try {
-      const found = await this.repo.findById(id);
+      // Query única com LEFT JOIN em fontes.
+      const found = await this.repo.findByIdWithFonte(id);
       if (found.isLeft()) return left(found.value);
       if (!found.value)
         return left(new ObraRepositoryException({ code: ErrorCodeConstants.LIQUIDACAO_NOT_FOUND, statusCode: 404 }));
@@ -79,9 +86,19 @@ export default class LiquidacoesService {
     }
   }
 
-  async update(param: UpdateLiquidacaoParam): AsyncResult<AppException, LiquidacaoEntity> {
+  private async findEntity(obraId: string, id: string): AsyncResult<AppException, LiquidacaoEntity> {
+    const found = await this.repo.findById(id);
+    if (found.isLeft()) return left(found.value);
+    if (!found.value)
+      return left(new ObraRepositoryException({ code: ErrorCodeConstants.LIQUIDACAO_NOT_FOUND, statusCode: 404 }));
+    const empenho = await this.ensureEmpenhoDaObra(obraId, found.value.empenhoId);
+    if (empenho.isLeft()) return left(empenho.value);
+    return right(found.value);
+  }
+
+  async update(param: UpdateLiquidacaoParam): AsyncResult<AppException, LiquidacaoComFonte> {
     try {
-      const current = await this.get(param.obraId, param.id);
+      const current = await this.findEntity(param.obraId, param.id);
       if (current.isLeft()) return left(current.value);
       if (param.patch.fonteId !== undefined) {
         const okFonte = await this.ensureFonteAtiva(param.patch.fonteId);
@@ -98,7 +115,14 @@ export default class LiquidacoesService {
           );
       }
       current.value.update(param.patch);
-      return this.repo.save(current.value);
+      const saved = await this.repo.save(current.value);
+      if (saved.isLeft()) return left(saved.value);
+      // Releitura com JOIN (1 query) para devolver o resumo da fonte.
+      const enriched = await this.repo.findByIdWithFonte(saved.value.id);
+      if (enriched.isLeft()) return left(enriched.value);
+      if (!enriched.value)
+        return left(new ObraRepositoryException({ code: ErrorCodeConstants.LIQUIDACAO_NOT_FOUND, statusCode: 404 }));
+      return right(enriched.value);
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
       return left(new ObraRepositoryException({ code: ErrorCodeConstants.LIQUIDACAO_REPOSITORY_FAILED, statusCode: 500, cause }));
@@ -106,7 +130,7 @@ export default class LiquidacoesService {
   }
 
   async remove(obraId: string, id: string): AsyncResult<AppException, void> {
-    const current = await this.get(obraId, id);
+    const current = await this.findEntity(obraId, id);
     if (current.isLeft()) return left(current.value);
     return this.repo.delete(id);
   }

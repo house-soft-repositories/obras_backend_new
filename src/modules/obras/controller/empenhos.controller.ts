@@ -24,7 +24,7 @@ export default class EmpenhosController {
     return this.tc.run(u, async () => {
       const r = await this.svc.create({ ...b, obraId: id });
       if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
-      return r.value.toObject();
+      return r.value;
     });
   }
 
@@ -33,7 +33,7 @@ export default class EmpenhosController {
     return this.tc.run(u, async () => {
       const r = await this.svc.list(id);
       if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
-      return r.value.map((e) => e.toObject());
+      return r.value;
     });
   }
 
@@ -46,7 +46,7 @@ export default class EmpenhosController {
     return this.tc.run(u, async () => {
       const r = await this.svc.get(id, empenhoId);
       if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
-      return r.value.toObject();
+      return r.value;
     });
   }
 
@@ -60,7 +60,7 @@ export default class EmpenhosController {
     return this.tc.run(u, async () => {
       const r = await this.svc.update({ id: empenhoId, obraId: id, patch: b });
       if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
-      return r.value.toObject();
+      return r.value;
     });
   }
 

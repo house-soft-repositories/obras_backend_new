@@ -24,7 +24,7 @@ export default class PagamentosController {
     return this.tc.run(u, async () => {
       const r = await this.svc.create({ ...b, obraId: id });
       if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
-      return { ...r.value.pagamento.toObject(), alerta: r.value.alerta ?? null };
+      return { ...r.value.pagamento, alerta: r.value.alerta ?? null };
     });
   }
 
@@ -33,7 +33,7 @@ export default class PagamentosController {
     return this.tc.run(u, async () => {
       const r = await this.svc.list(id);
       if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
-      return r.value.map((e) => e.toObject());
+      return r.value;
     });
   }
 
@@ -46,7 +46,7 @@ export default class PagamentosController {
     return this.tc.run(u, async () => {
       const r = await this.svc.get(id, pagamentoId);
       if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
-      return r.value.toObject();
+      return r.value;
     });
   }
 
@@ -60,7 +60,7 @@ export default class PagamentosController {
     return this.tc.run(u, async () => {
       const r = await this.svc.update({ id: pagamentoId, obraId: id, patch: b });
       if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
-      return r.value.toObject();
+      return r.value;
     });
   }
 

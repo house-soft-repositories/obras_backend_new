@@ -9,7 +9,9 @@ import ILiquidacaoRepository from '@/modules/obras/adapters/liquidacao_repositor
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 import IPagamentoRepository from '@/modules/obras/adapters/pagamento_repository.interface';
 import PagamentoEntity from '@/modules/obras/domain/entities/pagamento.entity';
-import type { CreatePagamentoParam, PagamentoResult, UpdatePagamentoParam } from '@/modules/obras/domain/usecase/pagamentos.usecase';
+import type { CreatePagamentoParam, PagamentoComFonte, PagamentoComFonteResult, UpdatePagamentoParam } from '@/modules/obras/domain/usecase/pagamentos.usecase';
+import { toFonteResumo } from '@/modules/obras/domain/usecase/fonte_resumo';
+import type FonteEntity from '@/modules/fontes/domain/entities/fonte.entity';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
 import IFonteRepository from '@/modules/fontes/adapters/fonte_repository.interface';
 
@@ -24,14 +26,14 @@ export default class PagamentosService {
     private readonly tc: TenantContext,
   ) {}
 
-  private async ensureFonteAtiva(fonteId: string): AsyncResult<AppException, void> {
+  private async ensureFonteAtiva(fonteId: string): AsyncResult<AppException, FonteEntity> {
     const fonte = await this.fontes.findById(fonteId);
     if (fonte.isLeft()) return left(fonte.value);
     if (!fonte.value)
       return left(new ObraRepositoryException({ code: ErrorCodeConstants.FONTE_NOT_FOUND, statusCode: 404 }));
     if (!fonte.value.ativo)
       return left(new ObraRepositoryException({ code: ErrorCodeConstants.FONTE_INATIVA, statusCode: 422 }));
-    return right(undefined);
+    return right(fonte.value);
   }
 
   private async checkMedicao(obraId: string): AsyncResult<AppException, string | undefined> {
@@ -52,7 +54,7 @@ export default class PagamentosService {
     }
   }
 
-  async create(param: CreatePagamentoParam): AsyncResult<AppException, PagamentoResult> {
+  async create(param: CreatePagamentoParam): AsyncResult<AppException, PagamentoComFonteResult> {
     try {
       const ctx = this.tc.require();
       const okFonte = await this.ensureFonteAtiva(param.fonteId);
@@ -76,20 +78,26 @@ export default class PagamentosService {
       const entity = PagamentoEntity.create({ ...param, tenantId: ctx.tenantId });
       const saved = await this.repo.save(entity);
       if (saved.isLeft()) return left(saved.value);
-      return right({ pagamento: saved.value, alerta: medicao.value });
+      // Fonte já validada acima: monta o resumo sem query extra.
+      return right({
+        pagamento: { ...saved.value.toObject(), fonte: toFonteResumo(okFonte.value) },
+        alerta: medicao.value,
+      });
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
       return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_REPOSITORY_FAILED, statusCode: 500, cause }));
     }
   }
 
-  async list(obraId: string): AsyncResult<AppException, PagamentoEntity[]> {
-    return this.repo.listByObra(obraId);
+  async list(obraId: string): AsyncResult<AppException, PagamentoComFonte[]> {
+    // Query única com LEFT JOIN em fontes (sem N+1).
+    return this.repo.listByObraWithFonte(obraId);
   }
 
-  async get(obraId: string, id: string): AsyncResult<AppException, PagamentoEntity> {
+  async get(obraId: string, id: string): AsyncResult<AppException, PagamentoComFonte> {
     try {
-      const found = await this.repo.findById(id);
+      // Query única com LEFT JOIN em fontes.
+      const found = await this.repo.findByIdWithFonte(id);
       if (found.isLeft()) return left(found.value);
       if (!found.value)
         return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND, statusCode: 404 }));
@@ -104,9 +112,21 @@ export default class PagamentosService {
     }
   }
 
-  async update(param: UpdatePagamentoParam): AsyncResult<AppException, PagamentoEntity> {
+  private async findEntity(obraId: string, id: string): AsyncResult<AppException, PagamentoEntity> {
+    const found = await this.repo.findById(id);
+    if (found.isLeft()) return left(found.value);
+    if (!found.value)
+      return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND, statusCode: 404 }));
+    const empenho = await this.empenhos.findById(found.value.empenhoId);
+    if (empenho.isLeft()) return left(empenho.value);
+    if (!empenho.value || empenho.value.obraId !== obraId)
+      return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND, statusCode: 404 }));
+    return right(found.value);
+  }
+
+  async update(param: UpdatePagamentoParam): AsyncResult<AppException, PagamentoComFonte> {
     try {
-      const current = await this.get(param.obraId, param.id);
+      const current = await this.findEntity(param.obraId, param.id);
       if (current.isLeft()) return left(current.value);
       if (param.patch.fonteId !== undefined) {
         const okFonte = await this.ensureFonteAtiva(param.patch.fonteId);
@@ -125,7 +145,14 @@ export default class PagamentosService {
           );
       }
       current.value.update(param.patch);
-      return this.repo.save(current.value);
+      const saved = await this.repo.save(current.value);
+      if (saved.isLeft()) return left(saved.value);
+      // Releitura com JOIN (1 query) para devolver o resumo da fonte.
+      const enriched = await this.repo.findByIdWithFonte(saved.value.id);
+      if (enriched.isLeft()) return left(enriched.value);
+      if (!enriched.value)
+        return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND, statusCode: 404 }));
+      return right(enriched.value);
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
       return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_REPOSITORY_FAILED, statusCode: 500, cause }));
@@ -133,7 +160,7 @@ export default class PagamentosService {
   }
 
   async remove(obraId: string, id: string): AsyncResult<AppException, void> {
-    const current = await this.get(obraId, id);
+    const current = await this.findEntity(obraId, id);
     if (current.isLeft()) return left(current.value);
     return this.repo.delete(id);
   }
