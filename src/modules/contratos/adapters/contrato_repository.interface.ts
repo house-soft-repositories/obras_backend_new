@@ -12,5 +12,13 @@ export default interface IContratoRepository {
   findByObraSingle(
     obraId: string,
   ): AsyncResult<AppException, ContratoEntity | null>;
+  existsObraAtiva(obraId: string): AsyncResult<AppException, boolean>;
+  existsFonte(fonteId: string): AsyncResult<AppException, boolean>;
+  getObraCalendario(
+    obraId: string,
+  ): AsyncResult<
+    AppException,
+    { considerarSabado: boolean; considerarDomingo: boolean } | null
+  >;
   delete(id: string): AsyncResult<AppException, void>;
 }

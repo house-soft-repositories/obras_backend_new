@@ -8,8 +8,8 @@ import {
   Post,
   UseGuards,
   ParseUUIDPipe,
+  Inject,
 } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
 import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
@@ -17,13 +17,29 @@ import TenantRequestContextService from '@/core/multitenancy/tenant_request_cont
 import CriarParalisacaoDto, {
   ReinicioParalisacaoDto,
 } from '@/modules/contratos/dtos/create_paralisacao.dto';
-import { PARALISACOES_SERVICE } from '@/modules/contratos/symbols';
-import ParalisacoesService from '@/modules/contratos/application/paralisacoes.service';
+import {
+  CREATE_PARALISACAO_USE_CASE,
+  LIST_PARALISACOES_USE_CASE,
+  REINICIAR_PARALISACAO_USE_CASE,
+  DELETE_PARALISACAO_USE_CASE,
+} from '@/modules/contratos/symbols';
+import type ICreateParalisacaoUseCase from '@/modules/contratos/domain/usecase/create_paralisacao.usecase';
+import type IListParalisacoesUseCase from '@/modules/contratos/domain/usecase/list_paralisacoes.usecase';
+import type IReiniciarParalisacaoUseCase from '@/modules/contratos/domain/usecase/reiniciar_paralisacao.usecase';
+import type IDeleteParalisacaoUseCase from '@/modules/contratos/domain/usecase/delete_paralisacao.usecase';
+
 @Controller('api')
 @UseGuards(AccessTokenGuard)
 export default class ParalisacoesController {
   constructor(
-    @Inject(PARALISACOES_SERVICE) private readonly svc: ParalisacoesService,
+    @Inject(CREATE_PARALISACAO_USE_CASE)
+    private readonly createParalisacao: ICreateParalisacaoUseCase,
+    @Inject(LIST_PARALISACOES_USE_CASE)
+    private readonly listParalisacoes: IListParalisacoesUseCase,
+    @Inject(REINICIAR_PARALISACAO_USE_CASE)
+    private readonly reiniciarParalisacao: IReiniciarParalisacaoUseCase,
+    @Inject(DELETE_PARALISACAO_USE_CASE)
+    private readonly deleteParalisacao: IDeleteParalisacaoUseCase,
     private readonly tc: TenantRequestContextService,
   ) {}
 
@@ -34,7 +50,8 @@ export default class ParalisacoesController {
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.svc.create(contratoId, {
+      const res = await this.createParalisacao.execute({
+        contratoId,
         dataParalisacao: dto.dataParalisacao,
         motivo: dto.motivo,
         termoParalisacaoArquivoId: dto.termoParalisacaoArquivoId,
@@ -43,7 +60,7 @@ export default class ParalisacoesController {
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,
         });
-      return (res.value as any).toObject();
+      return res.value.toObject();
     });
   }
 
@@ -53,12 +70,12 @@ export default class ParalisacoesController {
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.svc.list(contratoId);
+      const res = await this.listParalisacoes.execute({ contratoId });
       if (res.isLeft())
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,
         });
-      return res.value.map((e: any) => (e.toObject ? e.toObject() : e));
+      return res.value.map((e) => e.toObject());
     });
   }
 
@@ -69,16 +86,16 @@ export default class ParalisacoesController {
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.svc.reiniciar(
+      const res = await this.reiniciarParalisacao.execute({
         id,
-        dto.dataReinicio,
-        dto.termoRetomadaArquivoId ?? undefined,
-      );
+        dataReinicio: dto.dataReinicio,
+        termoRetomadaArquivoId: dto.termoRetomadaArquivoId ?? null,
+      });
       if (res.isLeft())
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,
         });
-      return (res.value as any).toObject();
+      return res.value.toObject();
     });
   }
 
@@ -97,7 +114,7 @@ export default class ParalisacoesController {
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.svc.delete(id);
+      const res = await this.deleteParalisacao.execute({ id });
       if (res.isLeft())
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,

@@ -1,5 +1,6 @@
 import { BaseModelPrimaryColumnUuid } from '@/core/interface/base_model';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+
 @Entity({ name: 'empresa_contratada' })
 export class EmpresaContratadaModel extends BaseModelPrimaryColumnUuid {
   @Column({ name: 'tenant_id', type: 'uuid' }) tenantId!: string;
@@ -19,4 +20,17 @@ export class EmpresaContratadaModel extends BaseModelPrimaryColumnUuid {
   @Column({ type: 'varchar', nullable: true }) cidade!: string | null;
   @Column({ type: 'varchar', nullable: true, length: 2 }) uf!: string | null;
   @Column({ type: 'boolean', default: true }) ativo!: boolean;
+}
+
+@Entity({ name: 'empresa_contratada_telefone' })
+export class EmpresaContratadaTelefoneModel {
+  @Column({ primary: true, type: 'uuid' }) id!: string;
+  @Column({ name: 'tenant_id', type: 'uuid' }) tenantId!: string;
+  @Column({ name: 'empresa_contratada_id', type: 'uuid' })
+  empresaContratadaId!: string;
+  @ManyToOne(() => EmpresaContratadaModel, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'empresa_contratada_id' })
+  empresaContratada?: EmpresaContratadaModel;
+  @Column({ type: 'varchar' }) numero!: string;
+  @Column({ name: 'created_at', type: 'timestamptz' }) createdAt!: Date;
 }

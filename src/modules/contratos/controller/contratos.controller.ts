@@ -10,8 +10,8 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  Inject,
 } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
 import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
@@ -20,18 +20,40 @@ import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.en
 import CriarContratoDto from '@/modules/contratos/dtos/create_contrato.dto';
 import { AtualizarContratoDto } from '@/modules/contratos/dtos/create_contrato.dto';
 import {
-  CREATE_CONTRATO_SERVICE,
-  LIST_CONTRATOS_SERVICE,
-  ADITIVOS_SERVICE,
-  PARALISACOES_SERVICE,
+  CREATE_CONTRATO_USE_CASE,
+  LIST_CONTRATOS_USE_CASE,
+  GET_CONTRATO_USE_CASE,
+  UPDATE_CONTRATO_USE_CASE,
+  DELETE_CONTRATO_USE_CASE,
+  GET_PRAZO_FINAL_CONTRATO_USE_CASE,
+  GET_VALORES_CONTRATO_USE_CASE,
 } from '@/modules/contratos/symbols';
-import ContratosService from '@/modules/contratos/application/contratos.service';
+import type ICreateContratoUseCase from '@/modules/contratos/domain/usecase/create_contrato.usecase';
+import type IListContratosUseCase from '@/modules/contratos/domain/usecase/list_contratos.usecase';
+import type IGetContratoUseCase from '@/modules/contratos/domain/usecase/get_contrato.usecase';
+import type IUpdateContratoUseCase from '@/modules/contratos/domain/usecase/update_contrato.usecase';
+import type IDeleteContratoUseCase from '@/modules/contratos/domain/usecase/delete_contrato.usecase';
+import type IGetPrazoFinalContratoUseCase from '@/modules/contratos/domain/usecase/get_prazo_final_contrato.usecase';
+import type IGetValoresContratoUseCase from '@/modules/contratos/domain/usecase/get_valores_contrato.usecase';
+
 @Controller('api/contratos')
 @UseGuards(AccessTokenGuard)
 export default class ContratosController {
   constructor(
-    @Inject(CREATE_CONTRATO_SERVICE) private readonly criar: ContratosService,
-    @Inject(LIST_CONTRATOS_SERVICE) private readonly listar: ContratosService,
+    @Inject(CREATE_CONTRATO_USE_CASE)
+    private readonly createContrato: ICreateContratoUseCase,
+    @Inject(LIST_CONTRATOS_USE_CASE)
+    private readonly listContratos: IListContratosUseCase,
+    @Inject(GET_CONTRATO_USE_CASE)
+    private readonly getContrato: IGetContratoUseCase,
+    @Inject(UPDATE_CONTRATO_USE_CASE)
+    private readonly updateContrato: IUpdateContratoUseCase,
+    @Inject(DELETE_CONTRATO_USE_CASE)
+    private readonly deleteContrato: IDeleteContratoUseCase,
+    @Inject(GET_PRAZO_FINAL_CONTRATO_USE_CASE)
+    private readonly prazoFinalContrato: IGetPrazoFinalContratoUseCase,
+    @Inject(GET_VALORES_CONTRATO_USE_CASE)
+    private readonly valoresContrato: IGetValoresContratoUseCase,
     private readonly tc: TenantRequestContextService,
   ) {}
 
@@ -41,7 +63,7 @@ export default class ContratosController {
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.criar.create({
+      const res = await this.createContrato.execute({
         obraId: dto.obraId,
         empresaContratadaId: dto.empresaContratadaId,
         numero: dto.numero,
@@ -58,8 +80,7 @@ export default class ContratosController {
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,
         });
-      const e = res.value.toObject() as any;
-      return e;
+      return res.value.toObject();
     });
   }
 
@@ -72,19 +93,17 @@ export default class ContratosController {
   ) {
     return this.tc.run(user, async () => {
       const pageOptions = new PageOptionsEntity(
-        (order as any) ?? 'DESC',
+        (order as 'ASC' | 'DESC' | undefined) ?? 'DESC',
         Number(page ?? 1),
         Number(take ?? 10),
       );
-      const res = await this.listar.list(pageOptions);
+      const res = await this.listContratos.execute({ pageOptions });
       if (res.isLeft())
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,
         });
       return {
-        data: res.value.pageData.map((e: any) =>
-          e.toObject ? e.toObject() : e,
-        ),
+        data: res.value.pageData.map((e) => e.toObject()),
         meta: res.value.pageMeta,
       };
     });
@@ -96,12 +115,12 @@ export default class ContratosController {
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.listar.getById(id);
+      const res = await this.getContrato.execute({ id });
       if (res.isLeft())
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,
         });
-      return (res.value as any).toObject();
+      return res.value.toObject();
     });
   }
 
@@ -111,7 +130,7 @@ export default class ContratosController {
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.listar.prazoFinal(id);
+      const res = await this.prazoFinalContrato.execute({ id });
       if (res.isLeft())
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,
@@ -126,7 +145,7 @@ export default class ContratosController {
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.listar.valores(id);
+      const res = await this.valoresContrato.execute({ id });
       if (res.isLeft())
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,
@@ -142,7 +161,8 @@ export default class ContratosController {
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.criar.update(id, {
+      const res = await this.updateContrato.execute({
+        id,
         empresaContratadaId: dto.empresaContratadaId,
         numero: dto.numero,
         objeto: dto.objeto ?? undefined,
@@ -154,7 +174,10 @@ export default class ContratosController {
         prazoExecucaoData: dto.prazoExecucaoData ?? undefined,
         fontes: dto.fontes,
       });
-      if (res.isLeft()) throw new HttpException(res.value.message, res.value.statusCode, { cause: res.value.cause });
+      if (res.isLeft())
+        throw new HttpException(res.value.message, res.value.statusCode, {
+          cause: res.value.cause,
+        });
       return res.value.toObject();
     });
   }
@@ -165,8 +188,11 @@ export default class ContratosController {
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.criar.delete(id);
-      if (res.isLeft()) throw new HttpException(res.value.message, res.value.statusCode, { cause: res.value.cause });
+      const res = await this.deleteContrato.execute({ id });
+      if (res.isLeft())
+        throw new HttpException(res.value.message, res.value.statusCode, {
+          cause: res.value.cause,
+        });
       return undefined;
     });
   }

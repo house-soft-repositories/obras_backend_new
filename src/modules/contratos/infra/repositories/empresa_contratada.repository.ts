@@ -1,148 +1,219 @@
-import { DataSource } from 'typeorm';
+import { randomUUID } from 'node:crypto';
+import { DataSource, EntityManager, Not } from 'typeorm';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
+import AppException from '@/core/exceptions/app_exception';
 import TenantContext from '@/core/multitenancy/tenant_context';
-import AsyncResult from '@/core/types/async_result';
-import { left, right } from '@/core/types/either';
 import PageEntity from '@/core/pagination/domain/entities/page.entity';
 import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
 import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
+import AsyncResult from '@/core/types/async_result';
+import { left, right } from '@/core/types/either';
 import IEmpresaContratadaRepository from '@/modules/contratos/adapters/empresa_contratada_repository.interface';
 import EmpresaContratadaEntity from '@/modules/contratos/domain/entities/empresa_contratada.entity';
 import EmpresaRepositoryException from '@/modules/contratos/exceptions/empresa_repository.exception';
 import EmpresaContratadaMapper from '@/modules/contratos/infra/mapper/empresa_contratada.mapper';
-export default class EmpresaContratadaRepository implements IEmpresaContratadaRepository {
+import {
+  EmpresaContratadaModel,
+  EmpresaContratadaTelefoneModel,
+} from '@/modules/contratos/infra/models/empresa_contratada.model';
+import { withTenantManager } from '@/modules/contratos/infra/repositories/tenant_repository.helper';
+
+export default class EmpresaContratadaRepository
+  implements IEmpresaContratadaRepository
+{
   constructor(
-    private readonly ds: DataSource,
-    private readonly tc: TenantContext,
+    private readonly dataSource: DataSource,
+    private readonly tenantContext: TenantContext,
   ) {}
+
   async save(
-    e: EmpresaContratadaEntity,
-  ): AsyncResult<any, EmpresaContratadaEntity> {
+    entity: EmpresaContratadaEntity,
+  ): AsyncResult<AppException, EmpresaContratadaEntity> {
     try {
-      const s = this.tc.require().schemaName;
-      const o = e.toObject() as any;
-      const [saved] = await this.ds.query(
-        `INSERT INTO "${s}"."empresa_contratada" (id, tenant_id, razao_social, nome_fantasia, cnpj, responsavel, cargo_responsavel, email, cep, logradouro, numero, complemento, bairro, cidade, uf, ativo, created_at, updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) ON CONFLICT (id) DO UPDATE SET razao_social=EXCLUDED.razao_social, nome_fantasia=EXCLUDED.nome_fantasia, cnpj=EXCLUDED.cnpj, responsavel=EXCLUDED.responsavel, cargo_responsavel=EXCLUDED.cargo_responsavel, email=EXCLUDED.email, cep=EXCLUDED.cep, logradouro=EXCLUDED.logradouro, numero=EXCLUDED.numero, complemento=EXCLUDED.complemento, bairro=EXCLUDED.bairro, cidade=EXCLUDED.cidade, uf=EXCLUDED.uf, ativo=EXCLUDED.ativo, updated_at=EXCLUDED.updated_at RETURNING id, tenant_id as "tenantId", razao_social as "razaoSocial", nome_fantasia as "nomeFantasia", cnpj, responsavel, cargo_responsavel as "cargoResponsavel", email, cep, logradouro, numero, complemento, bairro, cidade, uf, ativo, created_at as "createdAt", updated_at as "updatedAt"`,
-        [
-          o.id,
-          o.tenantId,
-          o.razaoSocial,
-          o.nomeFantasia,
-          o.cnpj,
-          o.responsavel,
-          o.cargoResponsavel,
-          o.email,
-          o.cep,
-          o.logradouro,
-          o.numero,
-          o.complemento,
-          o.bairro,
-          o.cidade,
-          o.uf,
-          o.ativo,
-          o.createdAt,
-          o.updatedAt,
-        ],
+      const saved = await withTenantManager(
+        this.dataSource,
+        this.tenantContext,
+        async (manager: EntityManager) => {
+          const empresaRepository = manager.getRepository(
+            EmpresaContratadaModel,
+          );
+          const telefoneRepository = manager.getRepository(
+            EmpresaContratadaTelefoneModel,
+          );
+          const model = empresaRepository.create(
+            EmpresaContratadaMapper.toModel(entity),
+          );
+
+          await empresaRepository.save(model);
+          await telefoneRepository.delete({ empresaContratadaId: entity.id });
+
+          const telefones = entity.telefones.map((numero) =>
+            telefoneRepository.create({
+              id: randomUUID(),
+              tenantId: entity.tenantId,
+              empresaContratadaId: entity.id,
+              numero,
+              createdAt: new Date(),
+            }),
+          );
+          if (telefones.length) await telefoneRepository.save(telefones);
+
+          return this.findOneWithTelefones(manager, entity.id);
+        },
       );
-      await this.ds.query(`DELETE FROM "${s}"."empresa_contratada_telefone" WHERE empresa_contratada_id=$1`, [o.id]);
-      for (const telefone of o.telefones as string[]) {
-        await this.ds.query(
-          `INSERT INTO "${s}"."empresa_contratada_telefone" (id, tenant_id, empresa_contratada_id, numero, created_at) VALUES ($1,$2,$3,$4,$5)`,
-          [require('node:crypto').randomUUID(), o.tenantId, o.id, telefone, new Date()],
-        );
-      }
-      saved.telefones = o.telefones;
-      return right(EmpresaContratadaMapper.toEntity(saved));
+
+      return right(saved ?? entity);
     } catch (cause) {
       return left(
         new EmpresaRepositoryException({
           code: ErrorCodeConstants.EMPRESA_REPOSITORY_FAILED,
           statusCode: 500,
           cause,
-        } as any),
+        }),
       );
     }
   }
-  async findById(id: string): AsyncResult<any, EmpresaContratadaEntity | null> {
+
+  async findById(
+    id: string,
+  ): AsyncResult<AppException, EmpresaContratadaEntity | null> {
     try {
-      const s = this.tc.require().schemaName;
-      const ctx = this.tc.require();
-      const [row] = await this.ds.query(
-        `SELECT id, tenant_id as "tenantId", razao_social as "razaoSocial", nome_fantasia as "nomeFantasia", cnpj, responsavel, cargo_responsavel as "cargoResponsavel", email, cep, logradouro, numero, complemento, bairro, cidade, uf, ativo, created_at as "createdAt", updated_at as "updatedAt" FROM "${s}"."empresa_contratada" WHERE id=$1 AND tenant_id=$2`,
-        [id, ctx.tenantId],
+      const found = await withTenantManager(
+        this.dataSource,
+        this.tenantContext,
+        (manager: EntityManager) => this.findOneWithTelefones(manager, id),
       );
-      if (!row) return right(null);
-      const telefones = await this.ds.query(`SELECT numero FROM "${s}"."empresa_contratada_telefone" WHERE empresa_contratada_id=$1 ORDER BY created_at ASC`, [id]);
-      row.telefones = telefones.map((telefone: { numero: string }) => telefone.numero);
-      return right(EmpresaContratadaMapper.toEntity(row));
+
+      return right(found);
     } catch (cause) {
       return left(
         new EmpresaRepositoryException({
           code: ErrorCodeConstants.EMPRESA_REPOSITORY_FAILED,
           statusCode: 500,
           cause,
-        } as any),
+        }),
       );
     }
   }
+
   async findPage(
     pageOptions: PageOptionsEntity,
-  ): AsyncResult<any, PageEntity<EmpresaContratadaEntity>> {
+  ): AsyncResult<AppException, PageEntity<EmpresaContratadaEntity>> {
     try {
-      const s = this.tc.require().schemaName;
-      const ctx = this.tc.require();
-      const totalRows = await this.ds.query(
-        `SELECT COUNT(*) as count FROM "${s}"."empresa_contratada" WHERE tenant_id=$1`,
-        [ctx.tenantId],
+      const tenantId = this.tenantContext.require().tenantId;
+      const page = await withTenantManager(
+        this.dataSource,
+        this.tenantContext,
+        async (manager: EntityManager) => {
+          const repository = manager.getRepository(EmpresaContratadaModel);
+          const [models, itemCount] = await repository.findAndCount({
+            where: { tenantId },
+            order: { razaoSocial: pageOptions.order },
+            take: pageOptions.take,
+            skip: pageOptions.skip,
+          });
+          const entities = await Promise.all(
+            models.map((model) => this.mapWithTelefones(manager, model)),
+          );
+          const meta = new PageMetaEntity({ pageOptions, itemCount });
+
+          return new PageEntity(entities, meta);
+        },
       );
-      const total = Number(totalRows[0]?.count ?? 0);
-      const rows = await this.ds.query(
-        `SELECT e.id, e.tenant_id as "tenantId", e.razao_social as "razaoSocial", e.nome_fantasia as "nomeFantasia", e.cnpj, e.responsavel, e.cargo_responsavel as "cargoResponsavel", e.email, e.cep, e.logradouro, e.numero, e.complemento, e.bairro, e.cidade, e.uf, e.ativo, e.created_at as "createdAt", e.updated_at as "updatedAt", COUNT(c.id)::int as "totalContratos" FROM "${s}"."empresa_contratada" e LEFT JOIN "${s}"."contrato" c ON c.empresa_contratada_id=e.id WHERE e.tenant_id=$1 GROUP BY e.id ORDER BY e.razao_social ASC LIMIT $2 OFFSET $3`,
-        [ctx.tenantId, pageOptions.take, pageOptions.skip],
-      );
-      const items = rows.map((r: any) => EmpresaContratadaMapper.toEntity(r));
-      return right(
-        new PageEntity(
-          items,
-          new PageMetaEntity({ pageOptions, itemCount: total }),
-        ),
-      );
+
+      return right(page);
     } catch (cause) {
       return left(
         new EmpresaRepositoryException({
           code: ErrorCodeConstants.EMPRESA_REPOSITORY_FAILED,
           statusCode: 500,
           cause,
-        } as any),
+        }),
       );
     }
   }
-  async existsCnpj(cnpj: string, excludeId?: string): AsyncResult<any, boolean> {
+
+  async existsCnpj(
+    cnpj: string,
+    excludeId?: string,
+  ): AsyncResult<AppException, boolean> {
     try {
-      const s = this.tc.require().schemaName;
-      const ctx = this.tc.require();
-      const rows = await this.ds.query(
-        `SELECT id FROM "${s}"."empresa_contratada" WHERE cnpj=$1 AND tenant_id=$2 AND ($3::uuid IS NULL OR id<>$3)`,
-        [cnpj, ctx.tenantId, excludeId ?? null],
+      const tenantId = this.tenantContext.require().tenantId;
+      const exists = await withTenantManager(
+        this.dataSource,
+        this.tenantContext,
+        (manager: EntityManager) =>
+          manager.getRepository(EmpresaContratadaModel).exists({
+            where: {
+              cnpj,
+              tenantId,
+              ...(excludeId ? { id: Not(excludeId) } : {}),
+            },
+          }),
       );
-      return right(rows.length > 0);
+
+      return right(exists);
     } catch (cause) {
       return left(
         new EmpresaRepositoryException({
           code: ErrorCodeConstants.EMPRESA_REPOSITORY_FAILED,
           statusCode: 500,
           cause,
-        } as any),
+        }),
       );
     }
   }
-  async delete(id: string): AsyncResult<any, void> {
+
+  async delete(id: string): AsyncResult<AppException, void> {
     try {
-      const ctx = this.tc.require();
-      await this.ds.query(`DELETE FROM "${ctx.schemaName}"."empresa_contratada" WHERE id=$1 AND tenant_id=$2`, [id, ctx.tenantId]);
+      const tenantId = this.tenantContext.require().tenantId;
+      await withTenantManager(
+        this.dataSource,
+        this.tenantContext,
+        async (manager: EntityManager) => {
+          await manager.getRepository(EmpresaContratadaModel).delete({
+            id,
+            tenantId,
+          });
+        },
+      );
+
       return right(undefined);
     } catch (cause) {
-      return left(new EmpresaRepositoryException({ code: ErrorCodeConstants.EMPRESA_REPOSITORY_FAILED, statusCode: 500, cause }));
+      return left(
+        new EmpresaRepositoryException({
+          code: ErrorCodeConstants.EMPRESA_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
+  }
+
+  private async findOneWithTelefones(manager: EntityManager, id: string) {
+    const tenantId = this.tenantContext.require().tenantId;
+    const model = await manager.getRepository(EmpresaContratadaModel).findOne({
+      where: { id, tenantId },
+    });
+
+    return model ? this.mapWithTelefones(manager, model) : null;
+  }
+
+  private async mapWithTelefones(
+    manager: EntityManager,
+    model: EmpresaContratadaModel,
+  ) {
+    const tenantId = this.tenantContext.require().tenantId;
+    const telefones = await manager
+      .getRepository(EmpresaContratadaTelefoneModel)
+      .find({
+        where: { empresaContratadaId: model.id, tenantId },
+        order: { createdAt: 'ASC' },
+      });
+
+    return EmpresaContratadaMapper.toEntity({
+      ...model,
+      telefones: telefones.map((telefone) => telefone.numero),
+    });
   }
 }

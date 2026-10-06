@@ -1,34 +1,60 @@
+import EmpresaContratadaEntity from '@/modules/contratos/domain/entities/empresa_contratada.entity';
+import { EmpresaContratadaModel } from '@/modules/contratos/infra/models/empresa_contratada.model';
+
+type EmpresaContratadaModelWithTelefones = EmpresaContratadaModel & {
+  telefones?: string[];
+};
+
 export default abstract class EmpresaContratadaMapper {
-  static toEntity(m: Record<string, unknown>): any {
-    const EmpresaContratadaEntity =
-      require('@/modules/contratos/domain/entities/empresa_contratada.entity').default;
+  static toEntity(
+    m: EmpresaContratadaModelWithTelefones,
+  ): EmpresaContratadaEntity {
     return EmpresaContratadaEntity.fromData({
-      id: m['id'] as string,
-      tenantId: (m['tenantId'] as string) ?? (m['tenant_id'] as string),
-      razaoSocial:
-        (m['razaoSocial'] as string) ?? (m['razao_social'] as string),
-      nomeFantasia:
-        (m['nomeFantasia'] as string) ?? (m['nome_fantasia'] as string) ?? null,
-      cnpj: m['cnpj'] as string,
-      responsavel: (m['responsavel'] as string) ?? null,
-      cargoResponsavel:
-        (m['cargoResponsavel'] as string) ??
-        (m['cargo_responsavel'] as string) ??
-        null,
-      email: (m['email'] as string) ?? null,
-      cep: (m['cep'] as string) ?? null,
-      logradouro: (m['logradouro'] as string) ?? null,
-      numero: (m['numero'] as string) ?? null,
-      complemento: (m['complemento'] as string) ?? null,
-      bairro: (m['bairro'] as string) ?? null,
-      cidade: (m['cidade'] as string) ?? null,
-      uf: (m['uf'] as string) ?? null,
-      ativo: (m['ativo'] as boolean) ?? true,
-      telefones: (m['telefones'] as any) ?? [],
-      createdAt:
-        (m['createdAt'] as Date) ?? (m['created_at'] as Date) ?? new Date(),
-      updatedAt:
-        (m['updatedAt'] as Date) ?? (m['updated_at'] as Date) ?? new Date(),
+      id: m.id,
+      tenantId: m.tenantId,
+      razaoSocial: m.razaoSocial,
+      nomeFantasia: m.nomeFantasia ?? null,
+      cnpj: m.cnpj,
+      responsavel: m.responsavel ?? null,
+      cargoResponsavel: m.cargoResponsavel ?? null,
+      email: m.email ?? null,
+      cep: m.cep ?? null,
+      logradouro: m.logradouro ?? null,
+      numero: m.numero ?? null,
+      complemento: m.complemento ?? null,
+      bairro: m.bairro ?? null,
+      cidade: m.cidade ?? null,
+      uf: m.uf ?? null,
+      ativo: m.ativo ?? true,
+      telefones: m.telefones ?? [],
+      createdAt: m.createdAt,
+      updatedAt: m.updatedAt,
     });
+  }
+
+  static toModel(
+    entity: EmpresaContratadaEntity,
+  ): Partial<EmpresaContratadaModel> {
+    const props = entity.toObject();
+    return {
+      id: props.id,
+      tenantId: props.tenantId,
+      razaoSocial: props.razaoSocial,
+      nomeFantasia: props.nomeFantasia,
+      cnpj: props.cnpj,
+      responsavel: props.responsavel,
+      cargoResponsavel: props.cargoResponsavel,
+      email: props.email,
+      cep: props.cep,
+      logradouro: props.logradouro,
+      numero: props.numero,
+      complemento: props.complemento,
+      bairro: props.bairro,
+      cidade: props.cidade,
+      uf: props.uf,
+      ativo: props.ativo,
+      createdAt: props.createdAt,
+      updatedAt: props.updatedAt,
+    };
   }
 }

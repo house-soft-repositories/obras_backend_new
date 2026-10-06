@@ -8,20 +8,36 @@ import {
   Post,
   UseGuards,
   ParseUUIDPipe,
+  Inject,
 } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
 import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
 import TenantRequestContextService from '@/core/multitenancy/tenant_request_context.service';
 import CriarAditivoDto from '@/modules/contratos/dtos/create_aditivo.dto';
-import { ADITIVOS_SERVICE } from '@/modules/contratos/symbols';
-import AditivosService from '@/modules/contratos/application/aditivos.service';
+import {
+  CREATE_ADITIVO_USE_CASE,
+  LIST_ADITIVOS_USE_CASE,
+  GET_ADITIVO_USE_CASE,
+  DELETE_ADITIVO_USE_CASE,
+} from '@/modules/contratos/symbols';
+import type ICreateAditivoUseCase from '@/modules/contratos/domain/usecase/create_aditivo.usecase';
+import type IListAditivosUseCase from '@/modules/contratos/domain/usecase/list_aditivos.usecase';
+import type IGetAditivoUseCase from '@/modules/contratos/domain/usecase/get_aditivo.usecase';
+import type IDeleteAditivoUseCase from '@/modules/contratos/domain/usecase/delete_aditivo.usecase';
+
 @Controller('api/contratos/:contratoId/aditivos')
 @UseGuards(AccessTokenGuard)
 export default class AditivosController {
   constructor(
-    @Inject(ADITIVOS_SERVICE) private readonly svc: AditivosService,
+    @Inject(CREATE_ADITIVO_USE_CASE)
+    private readonly createAditivo: ICreateAditivoUseCase,
+    @Inject(LIST_ADITIVOS_USE_CASE)
+    private readonly listAditivos: IListAditivosUseCase,
+    @Inject(GET_ADITIVO_USE_CASE)
+    private readonly getAditivo: IGetAditivoUseCase,
+    @Inject(DELETE_ADITIVO_USE_CASE)
+    private readonly deleteAditivo: IDeleteAditivoUseCase,
     private readonly tc: TenantRequestContextService,
   ) {}
 
@@ -32,7 +48,8 @@ export default class AditivosController {
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.svc.create(contratoId, {
+      const res = await this.createAditivo.execute({
+        contratoId,
         numero: dto.numero,
         tipo: dto.tipo,
         dataAssinatura: dto.dataAssinatura ?? null,
@@ -46,7 +63,7 @@ export default class AditivosController {
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,
         });
-      return (res.value as any).toObject();
+      return res.value.toObject();
     });
   }
 
@@ -56,12 +73,12 @@ export default class AditivosController {
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.svc.list(contratoId);
+      const res = await this.listAditivos.execute({ contratoId });
       if (res.isLeft())
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,
         });
-      return res.value.map((e: any) => (e.toObject ? e.toObject() : e));
+      return res.value.map((e) => e.toObject());
     });
   }
 
@@ -71,12 +88,11 @@ export default class AditivosController {
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.svc.get(id);
+      const res = await this.getAditivo.execute({ id });
       if (res.isLeft())
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,
         });
-      if (!res.value) throw new HttpException('Aditivo não encontrado', 404);
       return res.value.toObject();
     });
   }
@@ -87,7 +103,7 @@ export default class AditivosController {
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
-      const res = await this.svc.delete(id);
+      const res = await this.deleteAditivo.execute({ id });
       if (res.isLeft())
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,
