@@ -346,6 +346,20 @@ Controllers recebem DTOs, convertem-nos para o parâmetro primitivo do use case 
 
 Referência: `src/core/interface/base_model.ts`
 
+### Transações multitenant com TypeORM (sem SQL cru)
+
+Operações atômicas no schema do tenant usam `withTenantManager` de `src/core/multitenancy/tenant_manager.ts` (extraído do padrão de `contrato.repository.ts`). Dentro do callback use **sempre** `manager.getRepository(Model).save(Mapper.toModel(entity))` — **nunca** `manager.query`/`dataSource.query` com `INSERT INTO "schema"...`.
+
+```typescript
+import { withTenantManager } from '@/core/multitenancy/tenant_manager';
+
+await withTenantManager(dataSource, tenantContext, async (manager) => {
+  await manager.getRepository(AlvaraModel).save(AlvaraMapper.toModel(entity));
+});
+```
+
+Detalhes em `docs/infra/tenant_transactions.md`.
+
 ### Validators de domínio
 
 Classes com `static validate(value): boolean` em `src/core/validators/`. Nunca instanciar — use direto nas entities: `if (!EmailValidator.validate(props.email)) throw new UserDomainException(...)`.

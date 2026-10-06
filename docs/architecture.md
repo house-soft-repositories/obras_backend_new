@@ -113,6 +113,7 @@ Camada que contém as **implementações concretas** dos adapters.
 
 - Implementações concretas dos adapters de repository
 - Geralmente usando ORMs como TypeORM
+- Transações multitenant usam `withTenantManager` do core (ver `docs/infra/tenant_transactions.md`): sempre `manager.getRepository(Model)`, nunca SQL cru
 
 ```typescript
 export default class UserRepository implements IUserRepository {
