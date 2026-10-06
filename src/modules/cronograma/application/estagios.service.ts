@@ -14,7 +14,10 @@ import {
   CreateEstagioParam,
   CreateMedicaoParam,
   IEstagiosUseCase,
+  UpdateAcompanhamentoParam,
+  UpdateComentarioParam,
   UpdateEstagioParam,
+  UpdateMedicaoParam,
 } from '@/modules/cronograma/domain/usecase/estagios.usecase';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
@@ -179,6 +182,70 @@ export default class EstagiosService implements IEstagiosUseCase {
     }
   }
 
+  async getAcompanhamento(
+    obraId: string,
+    estagioId: string,
+    id: string,
+  ): AsyncResult<AppException, EstagioAcompanhamentoEntity> {
+    const found = await this.get(obraId, estagioId);
+    if (found.isLeft()) return left(found.value);
+    return this.repo.findAcompanhamentoById(obraId, estagioId, id);
+  }
+
+  async updateAcompanhamento(
+    p: UpdateAcompanhamentoParam,
+  ): AsyncResult<AppException, EstagioAcompanhamentoEntity> {
+    const found = await this.getAcompanhamento(p.obraId, p.estagioId, p.id);
+    if (found.isLeft()) return left(found.value);
+    try {
+      return this.repo.updateAcompanhamento(found.value.update(p));
+    } catch (e) {
+      return left(e as AppException);
+    }
+  }
+
+  async removeAcompanhamento(
+    obraId: string,
+    estagioId: string,
+    id: string,
+  ): AsyncResult<AppException, void> {
+    const found = await this.get(obraId, estagioId);
+    if (found.isLeft()) return left(found.value);
+    return this.repo.removeAcompanhamento(obraId, estagioId, id);
+  }
+
+  async getComentario(
+    obraId: string,
+    estagioId: string,
+    id: string,
+  ): AsyncResult<AppException, EstagioComentarioEntity> {
+    const found = await this.get(obraId, estagioId);
+    if (found.isLeft()) return left(found.value);
+    return this.repo.findComentarioById(obraId, estagioId, id);
+  }
+
+  async updateComentario(
+    p: UpdateComentarioParam,
+  ): AsyncResult<AppException, EstagioComentarioEntity> {
+    const found = await this.getComentario(p.obraId, p.estagioId, p.id);
+    if (found.isLeft()) return left(found.value);
+    try {
+      return this.repo.updateComentario(found.value.update({ texto: p.texto }));
+    } catch (e) {
+      return left(e as AppException);
+    }
+  }
+
+  async removeComentario(
+    obraId: string,
+    estagioId: string,
+    id: string,
+  ): AsyncResult<AppException, void> {
+    const found = await this.get(obraId, estagioId);
+    if (found.isLeft()) return left(found.value);
+    return this.repo.removeComentario(obraId, estagioId, id);
+  }
+
   async updatePercentualDireto(
     obraId: string,
     id: string,
@@ -262,6 +329,67 @@ export default class EstagiosService implements IEstagiosUseCase {
     return this.repo.listMedicoes(obraId, o);
   }
 
+  async getMedicao(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, MedicaoEntity> {
+    const ok = await this.ensureObra(obraId);
+    if (ok.isLeft()) return left(ok.value);
+    return this.repo.findMedicaoById(obraId, id);
+  }
+
+  async updateMedicao(
+    p: UpdateMedicaoParam,
+  ): AsyncResult<AppException, MedicaoEntity> {
+    const found = await this.getMedicao(p.obraId, p.id);
+    if (found.isLeft()) return left(found.value);
+    if (p.itens) {
+      for (const item of p.itens) {
+        const fonte = await this.fontes?.findById(item.fonteId);
+        if (!fonte || fonte.isLeft()) {
+          return left(
+            fonte?.isLeft()
+              ? fonte.value
+              : new CronogramaRepositoryException({
+                  code: ErrorCodeConstants.MEDICAO_FONTE_INVALIDA,
+                  statusCode: 422,
+                }),
+          );
+        }
+        if (!fonte.value?.ativo) {
+          return left(
+            new CronogramaRepositoryException({
+              code: ErrorCodeConstants.MEDICAO_FONTE_INVALIDA,
+              statusCode: 422,
+            }),
+          );
+        }
+      }
+    }
+    try {
+      return this.repo.updateMedicao(
+        found.value.update({
+          numero: p.numero,
+          tipo: p.tipo,
+          dataMedicao: p.dataMedicao,
+          observacao: p.observacao,
+          itens: p.itens,
+        }),
+      );
+    } catch (e) {
+      return left(e as AppException);
+    }
+  }
+
+  async removeMedicao(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, void> {
+    const found = await this.getMedicao(obraId, id);
+    if (found.isLeft()) return left(found.value);
+    return this.repo.removeMedicao(obraId, id);
+  }
+
   async concluir(
     obraId: string,
     id: string,
@@ -290,5 +418,19 @@ export default class EstagiosService implements IEstagiosUseCase {
     const ok = await this.ensureObra(obraId);
     if (ok.isLeft()) return left(ok.value);
     return this.repo.atual(obraId);
+  }
+
+  async assumir(
+    obraId: string,
+    id: string,
+    responsavelUsuarioId: string,
+  ): AsyncResult<AppException, EstagioEntity> {
+    const found = await this.get(obraId, id);
+    if (found.isLeft()) return left(found.value);
+    try {
+      return this.repo.update(found.value.update({ responsavelUsuarioId }));
+    } catch (e) {
+      return left(e as AppException);
+    }
   }
 }

@@ -32,11 +32,25 @@ export type CreateAcompanhamentoParam = {
   observacao?: string;
   autorUsuarioId: string;
 };
+export type UpdateAcompanhamentoParam = {
+  obraId: string;
+  estagioId: string;
+  id: string;
+  percentual?: number;
+  data?: string;
+  observacao?: string | null;
+};
 export type CreateComentarioParam = {
   obraId: string;
   estagioId: string;
   texto: string;
   autorUsuarioId: string;
+};
+export type UpdateComentarioParam = {
+  obraId: string;
+  estagioId: string;
+  id: string;
+  texto: string;
 };
 export type CreateMedicaoParam = {
   obraId: string;
@@ -44,6 +58,15 @@ export type CreateMedicaoParam = {
   dataMedicao: string;
   observacao?: string;
   itens: { fonteId: string; valor: number }[];
+};
+export type UpdateMedicaoParam = {
+  obraId: string;
+  id: string;
+  numero?: number;
+  tipo?: TipoMedicao;
+  dataMedicao?: string;
+  observacao?: string | null;
+  itens?: { fonteId: string; valor: number }[];
 };
 export type IEstagiosUseCase = {
   create(p: CreateEstagioParam): AsyncResult<AppException, EstagioEntity>;
@@ -68,9 +91,35 @@ export type IEstagiosUseCase = {
   createAcompanhamento(
     p: CreateAcompanhamentoParam,
   ): AsyncResult<AppException, EstagioAcompanhamentoEntity>;
+  getAcompanhamento(
+    obraId: string,
+    estagioId: string,
+    id: string,
+  ): AsyncResult<AppException, EstagioAcompanhamentoEntity>;
+  updateAcompanhamento(
+    p: UpdateAcompanhamentoParam,
+  ): AsyncResult<AppException, EstagioAcompanhamentoEntity>;
+  removeAcompanhamento(
+    obraId: string,
+    estagioId: string,
+    id: string,
+  ): AsyncResult<AppException, void>;
   createComentario(
     p: CreateComentarioParam,
   ): AsyncResult<AppException, EstagioComentarioEntity>;
+  getComentario(
+    obraId: string,
+    estagioId: string,
+    id: string,
+  ): AsyncResult<AppException, EstagioComentarioEntity>;
+  updateComentario(
+    p: UpdateComentarioParam,
+  ): AsyncResult<AppException, EstagioComentarioEntity>;
+  removeComentario(
+    obraId: string,
+    estagioId: string,
+    id: string,
+  ): AsyncResult<AppException, void>;
   updatePercentualDireto(
     obraId: string,
     id: string,
@@ -89,6 +138,12 @@ export type IEstagiosUseCase = {
     obraId: string,
     o: PageOptionsEntity,
   ): AsyncResult<AppException, PageEntity<MedicaoEntity>>;
+  getMedicao(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, MedicaoEntity>;
+  updateMedicao(p: UpdateMedicaoParam): AsyncResult<AppException, MedicaoEntity>;
+  removeMedicao(obraId: string, id: string): AsyncResult<AppException, void>;
   concluir(
     obraId: string,
     id: string,
@@ -96,6 +151,11 @@ export type IEstagiosUseCase = {
   duplicar(
     obraId: string,
     id: string,
+  ): AsyncResult<AppException, EstagioEntity>;
+  assumir(
+    obraId: string,
+    id: string,
+    responsavelUsuarioId: string,
   ): AsyncResult<AppException, EstagioEntity>;
   atual(obraId: string): AsyncResult<AppException, EstagioEntity>;
 };

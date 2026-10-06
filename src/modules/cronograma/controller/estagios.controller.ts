@@ -22,201 +22,22 @@ import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.en
 import { ESTAGIOS_SERVICE } from '@/modules/cronograma/symbols';
 import type { IEstagiosUseCase } from '@/modules/cronograma/domain/usecase/estagios.usecase';
 import {
-  CreateEstagioDto,
-  CreateEstagiosLoteDto,
-  CreateMedicaoDto,
   CreateAcompanhamentoDto,
   CreateComentarioDto,
+  CreateEstagioDto,
+  CreateEstagiosLoteDto,
   ReorderEstagiosDto,
-  UpdatePercentualDiretoDto,
+  UpdateAcompanhamentoDto,
+  UpdateComentarioDto,
   UpdateEstagioDto,
+  UpdatePercentualDiretoDto,
 } from '@/modules/cronograma/dtos/estagio.dto';
 import AppException from '@/core/exceptions/app_exception';
 import type { Either } from '@/core/types/either';
+
 @Controller('api/obras/:obraId/estagios')
 @UseGuards(AccessTokenGuard)
 export default class EstagiosController {
-  constructor(
-    @Inject(ESTAGIOS_SERVICE) private readonly service: IEstagiosUseCase,
-    private readonly tc: TenantRequestContextService,
-  ) {}
-  @Post() async create(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Body() b: CreateEstagioDto,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(await this.service.create({ obraId, ...b })).toObject(),
-    );
-  }
-  @Get() async list(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Query() q: PaginationOptionsDto,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () => {
-      const p = this.unwrap(
-        await this.service.list(
-          obraId,
-          new PageOptionsEntity(q.order, q.page, q.take),
-        ),
-      );
-      return { data: p.pageData.map((e) => e.toObject()), meta: p.pageMeta };
-    });
-  }
-  @Get('predefinidos') async predefinidos(
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(await this.service.predefinidos()),
-    );
-  }
-  @Get('datas-agregadas') async datasAgregadas(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(await this.service.datasAgregadas(obraId)),
-    );
-  }
-  @Get('atual') async atual(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(await this.service.atual(obraId)).toObject(),
-    );
-  }
-  @Post('lote') async lote(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Body() b: CreateEstagiosLoteDto,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(
-        await this.service.createMany(
-          obraId,
-          b.itens.map((i) => ({ obraId, ...i })),
-        ),
-      ).map((e) => e.toObject()),
-    );
-  }
-  @Post('reordenar') async reorder(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Body() b: ReorderEstagiosDto,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(await this.service.reorder(obraId, b.itens)),
-    );
-  }
-  @Get(':id') async get(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Param('id', ParseUUIDPipe) id: string,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(await this.service.get(obraId, id)).toObject(),
-    );
-  }
-  @Post(':id/acompanhamentos') async createAcompanhamento(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() b: CreateAcompanhamentoDto,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(
-        await this.service.createAcompanhamento({
-          obraId,
-          estagioId: id,
-          percentual: b.percentual,
-          data: b.data,
-          observacao: b.observacao,
-          autorUsuarioId: u!.sub,
-        }),
-      ).toObject(),
-    );
-  }
-  @Post(':id/comentarios') async createComentario(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() b: CreateComentarioDto,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(
-        await this.service.createComentario({
-          obraId,
-          estagioId: id,
-          texto: b.texto,
-          autorUsuarioId: u!.sub,
-        }),
-      ).toObject(),
-    );
-  }
-  @Post(':id/concluir') async concluir(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Param('id', ParseUUIDPipe) id: string,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(await this.service.concluir(obraId, id)).toObject(),
-    );
-  }
-  @Post(':id/duplicar') async duplicar(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Param('id', ParseUUIDPipe) id: string,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(await this.service.duplicar(obraId, id)).toObject(),
-    );
-  }
-  @Patch(':id/percentual-direto') async updatePercentualDireto(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() b: UpdatePercentualDiretoDto,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(
-        await this.service.updatePercentualDireto(obraId, id, b.percentual),
-      ).toObject(),
-    );
-  }
-  @Patch(':id') async update(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() b: UpdateEstagioDto,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(await this.service.update({ obraId, id, ...b })).toObject(),
-    );
-  }
-  @Delete(':id') @HttpCode(204) async remove(
-    @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Param('id', ParseUUIDPipe) id: string,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
-  ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(await this.service.remove(obraId, id)),
-    );
-  }
-  private unwrap<T>(r: Either<AppException, T>): T {
-    if (r.isLeft()) {
-      throw new HttpException(r.value.message, r.value.statusCode, {
-        cause: r.value.cause,
-      });
-    }
-    return r.value;
-  }
-}
-
-@Controller('api/obras/:obraId/medicoes')
-@UseGuards(AccessTokenGuard)
-export class MedicoesController {
   constructor(
     @Inject(ESTAGIOS_SERVICE) private readonly service: IEstagiosUseCase,
     private readonly tc: TenantRequestContextService,
@@ -225,39 +46,320 @@ export class MedicoesController {
   @Post()
   async create(
     @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Body() b: CreateMedicaoDto,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+    @Body() body: CreateEstagioDto,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
   ) {
-    return this.tc.run(u, async () =>
-      this.unwrap(
-        await this.service.createMedicao({ obraId, ...b }),
-      ).toObject(),
+    return this.tc.run(user, async () =>
+      this.unwrap(await this.service.create({ obraId, ...body })).toObject(),
     );
   }
 
   @Get()
   async list(
     @Param('obraId', ParseUUIDPipe) obraId: string,
-    @Query() q: PaginationOptionsDto,
-    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+    @Query() query: PaginationOptionsDto,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
   ) {
-    return this.tc.run(u, async () => {
-      const p = this.unwrap(
-        await this.service.listMedicoes(
+    return this.tc.run(user, async () => {
+      const page = this.unwrap(
+        await this.service.list(
           obraId,
-          new PageOptionsEntity(q.order, q.page, q.take),
+          new PageOptionsEntity(query.order, query.page, query.take),
         ),
       );
-      return { data: p.pageData.map((e) => e.toObject()), meta: p.pageMeta };
+      return {
+        data: page.pageData.map((estagio) => estagio.toObject()),
+        meta: page.pageMeta,
+      };
     });
   }
 
-  private unwrap<T>(r: Either<AppException, T>): T {
-    if (r.isLeft()) {
-      throw new HttpException(r.value.message, r.value.statusCode, {
-        cause: r.value.cause,
+  @Get('predefinidos')
+  async predefinidos(
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(await this.service.predefinidos()),
+    );
+  }
+
+  @Get('datas-agregadas')
+  async datasAgregadas(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(await this.service.datasAgregadas(obraId)),
+    );
+  }
+
+  @Get('atual')
+  async atual(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(await this.service.atual(obraId)).toObject(),
+    );
+  }
+
+  @Post('lote')
+  async lote(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Body() body: CreateEstagiosLoteDto,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(
+        await this.service.createMany(
+          obraId,
+          body.itens.map((item) => ({ obraId, ...item })),
+        ),
+      ).map((estagio) => estagio.toObject()),
+    );
+  }
+
+  @Post('reordenar')
+  async reorder(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Body() body: ReorderEstagiosDto,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(await this.service.reorder(obraId, body.itens)),
+    );
+  }
+
+  @Get(':id')
+  async get(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(await this.service.get(obraId, id)).toObject(),
+    );
+  }
+
+  @Post(':id/acompanhamentos')
+  async createAcompanhamento(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: CreateAcompanhamentoDto,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(
+        await this.service.createAcompanhamento({
+          obraId,
+          estagioId: id,
+          percentual: body.percentual,
+          data: body.data,
+          observacao: body.observacao,
+          autorUsuarioId: user!.sub,
+        }),
+      ).toObject(),
+    );
+  }
+
+  @Get(':id/acompanhamentos/:acompanhamentoId')
+  async getAcompanhamento(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('acompanhamentoId', ParseUUIDPipe) acompanhamentoId: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(
+        await this.service.getAcompanhamento(obraId, id, acompanhamentoId),
+      ).toObject(),
+    );
+  }
+
+  @Patch(':id/acompanhamentos/:acompanhamentoId')
+  async updateAcompanhamento(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('acompanhamentoId', ParseUUIDPipe) acompanhamentoId: string,
+    @Body() body: UpdateAcompanhamentoDto,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(
+        await this.service.updateAcompanhamento({
+          obraId,
+          estagioId: id,
+          id: acompanhamentoId,
+          percentual: body.percentual,
+          data: body.data,
+          observacao: body.observacao,
+        }),
+      ).toObject(),
+    );
+  }
+
+  @Delete(':id/acompanhamentos/:acompanhamentoId')
+  @HttpCode(204)
+  async removeAcompanhamento(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('acompanhamentoId', ParseUUIDPipe) acompanhamentoId: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(
+        await this.service.removeAcompanhamento(obraId, id, acompanhamentoId),
+      ),
+    );
+  }
+
+  @Post(':id/comentarios')
+  async createComentario(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: CreateComentarioDto,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(
+        await this.service.createComentario({
+          obraId,
+          estagioId: id,
+          texto: body.texto,
+          autorUsuarioId: user!.sub,
+        }),
+      ).toObject(),
+    );
+  }
+
+  @Get(':id/comentarios/:comentarioId')
+  async getComentario(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('comentarioId', ParseUUIDPipe) comentarioId: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(
+        await this.service.getComentario(obraId, id, comentarioId),
+      ).toObject(),
+    );
+  }
+
+  @Patch(':id/comentarios/:comentarioId')
+  async updateComentario(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('comentarioId', ParseUUIDPipe) comentarioId: string,
+    @Body() body: UpdateComentarioDto,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(
+        await this.service.updateComentario({
+          obraId,
+          estagioId: id,
+          id: comentarioId,
+          texto: body.texto,
+        }),
+      ).toObject(),
+    );
+  }
+
+  @Delete(':id/comentarios/:comentarioId')
+  @HttpCode(204)
+  async removeComentario(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('comentarioId', ParseUUIDPipe) comentarioId: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(
+        await this.service.removeComentario(obraId, id, comentarioId),
+      ),
+    );
+  }
+
+  @Post(':id/assumir')
+  async assumir(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(await this.service.assumir(obraId, id, user!.sub)).toObject(),
+    );
+  }
+
+  @Post(':id/concluir')
+  async concluir(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(await this.service.concluir(obraId, id)).toObject(),
+    );
+  }
+
+  @Post(':id/duplicar')
+  async duplicar(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(await this.service.duplicar(obraId, id)).toObject(),
+    );
+  }
+
+  @Patch(':id/percentual-direto')
+  async updatePercentualDireto(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: UpdatePercentualDiretoDto,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(
+        await this.service.updatePercentualDireto(obraId, id, body.percentual),
+      ).toObject(),
+    );
+  }
+
+  @Patch(':id')
+  async update(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: UpdateEstagioDto,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(
+        await this.service.update({ obraId, id, ...body }),
+      ).toObject(),
+    );
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async remove(
+    @Param('obraId', ParseUUIDPipe) obraId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(user, async () =>
+      this.unwrap(await this.service.remove(obraId, id)),
+    );
+  }
+
+  private unwrap<T>(result: Either<AppException, T>): T {
+    if (result.isLeft()) {
+      throw new HttpException(result.value.message, result.value.statusCode, {
+        cause: result.value.cause,
       });
     }
-    return r.value;
+    return result.value;
   }
 }

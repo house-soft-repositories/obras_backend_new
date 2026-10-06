@@ -20,8 +20,12 @@ import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
 import EstagioAcompanhamentoEntity from '@/modules/cronograma/domain/entities/estagio_acompanhamento.entity';
 import EstagioComentarioEntity from '@/modules/cronograma/domain/entities/estagio_comentario.entity';
 import MedicaoEntity from '@/modules/cronograma/domain/entities/medicao.entity';
-import { ESTAGIOS_SERVICE } from '@/modules/cronograma/symbols';
+import {
+  ESTAGIOS_SERVICE,
+  MEDICOES_SERVICE,
+} from '@/modules/cronograma/symbols';
 import type { IEstagiosUseCase } from '@/modules/cronograma/domain/usecase/estagios.usecase';
+import type { IMedicoesUseCase } from '@/modules/cronograma/domain/usecase/medicoes.usecase';
 import {
   EstagioStatus,
   TipoMedicao,
@@ -31,6 +35,7 @@ describe('Estagios API (e2e)', () => {
   let app: INestApplication<App>;
   let tokenService: jest.Mocked<ITokenService>;
   let estagiosService: jest.Mocked<IEstagiosUseCase>;
+  let medicoesService: jest.Mocked<IMedicoesUseCase>;
 
   const tenantId = '9f8b416e-2b4c-4e4a-b1c7-6beeb3d4d7dc';
   const userId = '4c67eb4d-b04d-435d-9435-5f1a8d026cf8';
@@ -97,6 +102,13 @@ describe('Estagios API (e2e)', () => {
       duplicar: jest.fn(),
       atual: jest.fn(),
     } as any;
+    medicoesService = {
+      create: jest.fn(),
+      list: jest.fn(),
+      get: jest.fn(),
+      update: jest.fn(),
+      remove: jest.fn(),
+    } as any;
     const tenantRequestContext: Pick<TenantRequestContextService, 'run'> = {
       run: jest.fn(
         <T>(user: AccessTokenPayload | undefined, cb: () => Promise<T>) => {
@@ -112,6 +124,8 @@ describe('Estagios API (e2e)', () => {
       .useValue(tokenService)
       .overrideProvider(ESTAGIOS_SERVICE)
       .useValue(estagiosService)
+      .overrideProvider(MEDICOES_SERVICE)
+      .useValue(medicoesService)
       .overrideProvider(TenantRequestContextService)
       .useValue(tenantRequestContext)
       .compile();
@@ -415,6 +429,7 @@ describe('Estagios API (e2e)', () => {
       id: 'e4f1509d-3654-4d0a-9b72-6f55c4ef7d4d',
       tenantId,
       obraId,
+      orgaoId: '5c5e9408-6a78-46c7-b14f-9c1583477550',
       numero: 1,
       tipo: TipoMedicao.NORMAL,
       dataMedicao: '2026-03-01',
@@ -465,19 +480,48 @@ describe('Estagios API (e2e)', () => {
       right(stage(stageTwoId, 'Licitação', 1)),
     );
 
+    medicoesService.create.mockResolvedValue(right(medicao));
+    medicoesService.list.mockResolvedValue(
+      right(
+        new PageEntity(
+          [medicao],
+          new PageMetaEntity({
+            pageOptions: new PageOptionsEntity('DESC', 1, 10),
+            itemCount: 1,
+          }),
+        ),
+      ),
+    );
+
     const created = await request(app.getHttpServer())
       .post(`/api/obras/${obraId}/medicoes`)
       .set('Authorization', 'Bearer token')
       .send({
+        numero: 1,
         tipo: TipoMedicao.NORMAL,
         dataMedicao: '2026-03-01',
-        itens: [
+        orgaoId: '5c5e9408-6a78-46c7-b14f-9c1583477550',
+        observacoes: 'Medição normal',
+        fontes: [
           { fonteId: fonteOneId, valor: 100 },
-          { fonteId: fonteTwoId, valor: 200 },
+          { fonteId: fonteTwoId, valor: '200.5' },
         ],
       })
       .expect(201);
-    expect(created.body.itens).toHaveLength(2);
+    expect(created.body.fontes).toHaveLength(2);
+    expect(created.body.orgaoId).toBe('5c5e9408-6a78-46c7-b14f-9c1583477550');
+    expect(medicoesService.create).toHaveBeenCalledWith({
+      obraId,
+      numero: 1,
+      orgaoId: '5c5e9408-6a78-46c7-b14f-9c1583477550',
+      tipo: TipoMedicao.NORMAL,
+      dataMedicao: '2026-03-01',
+      observacoes: 'Medição normal',
+      fontes: [
+        { fonteId: fonteOneId, valor: 100 },
+        { fonteId: fonteTwoId, valor: 200.5 },
+      ],
+    });
 
     const listed = await request(app.getHttpServer())
       .get(`/api/obras/${obraId}/medicoes?page=1&take=10`)

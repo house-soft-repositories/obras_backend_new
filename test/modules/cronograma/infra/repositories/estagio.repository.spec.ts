@@ -58,6 +58,7 @@ const medicaoRowFrom = (item: MedicaoEntity) => ({
   id: item.id,
   tenant_id: item.tenantId,
   obra_id: item.obraId,
+  orgao_id: item.orgaoId,
   numero: item.numero,
   tipo: item.tipo,
   data: item.dataMedicao,

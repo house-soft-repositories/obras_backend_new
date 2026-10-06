@@ -79,6 +79,7 @@ export default abstract class TenantCronogramaSchema {
         "id" uuid NOT NULL,
         "tenant_id" uuid NOT NULL,
         "obra_id" uuid NOT NULL,
+        "orgao_id" uuid,
         "numero" integer NOT NULL,
         "tipo" varchar(30) NOT NULL,
         "data" date NOT NULL,
@@ -176,6 +177,13 @@ export default abstract class TenantCronogramaSchema {
       'medicao',
       'FK_medicao_obras',
       `ALTER TABLE "${schemaName}"."medicao" ADD CONSTRAINT "FK_medicao_obras" FOREIGN KEY ("obra_id") REFERENCES "${schemaName}"."obras" ("id") ON DELETE CASCADE`,
+    );
+    await this.addConstraintIfMissing(
+      executor,
+      schemaName,
+      'medicao',
+      'FK_medicao_orgaos',
+      `ALTER TABLE "${schemaName}"."medicao" ADD CONSTRAINT "FK_medicao_orgaos" FOREIGN KEY ("orgao_id") REFERENCES "${schemaName}"."orgaos" ("id") ON DELETE SET NULL`,
     );
     await this.addConstraintIfMissing(
       executor,

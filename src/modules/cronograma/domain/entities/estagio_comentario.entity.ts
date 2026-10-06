@@ -35,6 +35,15 @@ export default class EstagioComentarioEntity {
     return new EstagioComentarioEntity(props);
   }
 
+  update(props: { texto: string }): EstagioComentarioEntity {
+    const texto = props.texto.trim();
+    if (!texto)
+      throw new CronogramaDomainException({
+        code: ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT,
+      });
+    return new EstagioComentarioEntity({ ...this.props, texto });
+  }
+
   get id() {
     return this.props.id;
   }

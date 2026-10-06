@@ -34,6 +34,7 @@ export default class CronogramaMedicoes1781240000000 implements MigrationInterfa
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS "${schema}"."medicao" (
           "id" uuid NOT NULL, "tenant_id" uuid NOT NULL, "obra_id" uuid NOT NULL,
+          "orgao_id" uuid,
           "numero" integer NOT NULL, "tipo" varchar(30) NOT NULL, "data" date NOT NULL,
           "observacao" text, "criado_em" timestamptz NOT NULL DEFAULT now(),
           CONSTRAINT "PK_medicao" PRIMARY KEY ("id")

@@ -109,6 +109,13 @@ export default class EstagioEntity {
       atualizadoEm: new Date(),
     });
   }
+  assumir(): EstagioEntity {
+    return new EstagioEntity({
+      ...this.props,
+      status: EstagioStatus.EM_ANDAMENTO,
+      atualizadoEm: new Date(),
+    });
+  }
   duplicar(posicao: number): EstagioEntity {
     if (posicao < 0)
       throw new CronogramaDomainException({

@@ -27,9 +27,35 @@ export default interface IEstagioRepository {
   saveAcompanhamento(
     item: EstagioAcompanhamentoEntity,
   ): AsyncResult<AppException, EstagioAcompanhamentoEntity>;
+  findAcompanhamentoById(
+    obraId: string,
+    estagioId: string,
+    id: string,
+  ): AsyncResult<AppException, EstagioAcompanhamentoEntity>;
+  updateAcompanhamento(
+    item: EstagioAcompanhamentoEntity,
+  ): AsyncResult<AppException, EstagioAcompanhamentoEntity>;
+  removeAcompanhamento(
+    obraId: string,
+    estagioId: string,
+    id: string,
+  ): AsyncResult<AppException, void>;
   saveComentario(
     item: EstagioComentarioEntity,
   ): AsyncResult<AppException, EstagioComentarioEntity>;
+  findComentarioById(
+    obraId: string,
+    estagioId: string,
+    id: string,
+  ): AsyncResult<AppException, EstagioComentarioEntity>;
+  updateComentario(
+    item: EstagioComentarioEntity,
+  ): AsyncResult<AppException, EstagioComentarioEntity>;
+  removeComentario(
+    obraId: string,
+    estagioId: string,
+    id: string,
+  ): AsyncResult<AppException, void>;
   updatePercentualDireto(
     obraId: string,
     id: string,
@@ -46,6 +72,12 @@ export default interface IEstagioRepository {
     obraId: string,
     options: PageOptionsEntity,
   ): AsyncResult<AppException, PageEntity<MedicaoEntity>>;
+  findMedicaoById(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, MedicaoEntity>;
+  updateMedicao(item: MedicaoEntity): AsyncResult<AppException, MedicaoEntity>;
+  removeMedicao(obraId: string, id: string): AsyncResult<AppException, void>;
   nextMedicaoNumero(obraId: string): AsyncResult<AppException, number>;
   nextPosicao(obraId: string): AsyncResult<AppException, number>;
   atual(obraId: string): AsyncResult<AppException, EstagioEntity>;

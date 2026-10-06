@@ -40,6 +40,28 @@ export default class EstagioAcompanhamentoEntity {
     return new EstagioAcompanhamentoEntity(props);
   }
 
+  update(props: {
+    percentual?: number;
+    data?: string;
+    observacao?: string | null;
+  }): EstagioAcompanhamentoEntity {
+    const percentual = props.percentual ?? this.percentual;
+    if (percentual < 0 || percentual > 100) {
+      throw new CronogramaDomainException({
+        code: ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT,
+      });
+    }
+    return new EstagioAcompanhamentoEntity({
+      ...this.props,
+      percentual,
+      data: props.data ?? this.data,
+      observacao:
+        props.observacao === undefined
+          ? this.observacao
+          : props.observacao?.trim() || null,
+    });
+  }
+
   get id() {
     return this.props.id;
   }

@@ -4,15 +4,19 @@ import CoreModule from '@/core/core.module';
 import AuthModule from '@/modules/auth/auth.module';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
-import EstagiosController, {
-  MedicoesController,
-} from '@/modules/cronograma/controller/estagios.controller';
+import EstagiosController from '@/modules/cronograma/controller/estagios.controller';
+import MedicoesController from '@/modules/cronograma/controller/medicoes.controller';
 import EstagiosService from '@/modules/cronograma/application/estagios.service';
+import MedicoesService from '@/modules/cronograma/application/medicoes.service';
 import EstagioRepository from '@/modules/cronograma/infra/repositories/estagio.repository';
+import MedicaoRepository from '@/modules/cronograma/infra/repositories/medicao.repository';
 import IEstagioRepository from '@/modules/cronograma/adapters/estagio_repository.interface';
+import IMedicaoRepository from '@/modules/cronograma/adapters/medicao_repository.interface';
 import {
   ESTAGIO_REPOSITORY,
   ESTAGIOS_SERVICE,
+  MEDICAO_REPOSITORY,
+  MEDICOES_SERVICE,
 } from '@/modules/cronograma/symbols';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 import ObraRepository from '@/modules/obras/infra/repositories/obra.repository';
@@ -38,6 +42,12 @@ import { FONTE_REPOSITORY } from '@/modules/fontes/symbols';
         new EstagioRepository(ds, tc) as IEstagioRepository,
     },
     {
+      provide: MEDICAO_REPOSITORY,
+      inject: [DataSource, TenantContext],
+      useFactory: (ds: DataSource, tc: TenantContext) =>
+        new MedicaoRepository(ds, tc) as IMedicaoRepository,
+    },
+    {
       provide: ESTAGIOS_SERVICE,
       inject: [
         ESTAGIO_REPOSITORY,
@@ -53,12 +63,27 @@ import { FONTE_REPOSITORY } from '@/modules/fontes/symbols';
       ) => new EstagiosService(r, tc, o, f),
     },
     {
+      provide: MEDICOES_SERVICE,
+      inject: [
+        MEDICAO_REPOSITORY,
+        TenantContext,
+        OBRA_REPOSITORY,
+        FONTE_REPOSITORY,
+      ],
+      useFactory: (
+        r: IMedicaoRepository,
+        tc: TenantContext,
+        o: IObraRepository,
+        f: IFonteRepository,
+      ) => new MedicoesService(r, tc, o, f),
+    },
+    {
       provide: FONTE_REPOSITORY,
       inject: [DataSource, TenantContext],
       useFactory: (ds: DataSource, tc: TenantContext) =>
         new FonteRepository(ds, tc) as IFonteRepository,
     },
   ],
-  exports: [ESTAGIOS_SERVICE],
+  exports: [ESTAGIOS_SERVICE, MEDICOES_SERVICE],
 })
 export default class CronogramaModule {}

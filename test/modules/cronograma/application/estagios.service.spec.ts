@@ -232,6 +232,127 @@ describe('EstagiosService', () => {
     );
   });
 
+  it('updates acompanhamento scoped by obra and stage', async () => {
+    const stage = EstagioEntity.create({
+      tenantId: 'tenant',
+      obraId: 'obra',
+      nome: 'Execução',
+      posicao: 0,
+    });
+    const acompanhamento = EstagioAcompanhamentoEntity.create({
+      tenantId: 'tenant',
+      obraId: 'obra',
+      estagioId: stage.id,
+      percentual: 20,
+      data: '2026-02-01',
+      observacao: null,
+      autorUsuarioId: 'user',
+    });
+    const repository = {
+      findById: jest.fn(),
+      findAcompanhamentoById: jest.fn(),
+      updateAcompanhamento: jest.fn(),
+    } as unknown as jest.Mocked<IEstagioRepository>;
+    const obras = {
+      findById: jest.fn(),
+    } as unknown as jest.Mocked<IObraRepository>;
+    obras.findById.mockResolvedValue(right({} as never));
+    repository.findById.mockResolvedValue(right(stage));
+    repository.findAcompanhamentoById.mockResolvedValue(right(acompanhamento));
+    repository.updateAcompanhamento.mockImplementation(async (item) =>
+      right(item),
+    );
+    const service = new EstagiosService(repository, new TenantContext(), obras);
+
+    const result = await service.updateAcompanhamento({
+      obraId: 'obra',
+      estagioId: stage.id,
+      id: acompanhamento.id,
+      percentual: 75,
+      observacao: 'Atualizado',
+    });
+
+    expect(result.isRight()).toBe(true);
+    expect(repository.findById).toHaveBeenCalledWith(stage.id, 'obra');
+    expect(repository.findAcompanhamentoById).toHaveBeenCalledWith(
+      'obra',
+      stage.id,
+      acompanhamento.id,
+    );
+    expect(result.value.percentual).toBe(75);
+    expect(result.value.observacao).toBe('Atualizado');
+  });
+
+  it('updates comentario scoped by obra and stage', async () => {
+    const stage = EstagioEntity.create({
+      tenantId: 'tenant',
+      obraId: 'obra',
+      nome: 'Execução',
+      posicao: 0,
+    });
+    const comentario = EstagioComentarioEntity.create({
+      tenantId: 'tenant',
+      obraId: 'obra',
+      estagioId: stage.id,
+      texto: 'Original',
+      autorUsuarioId: 'user',
+    });
+    const repository = {
+      findById: jest.fn(),
+      findComentarioById: jest.fn(),
+      updateComentario: jest.fn(),
+    } as unknown as jest.Mocked<IEstagioRepository>;
+    const obras = {
+      findById: jest.fn(),
+    } as unknown as jest.Mocked<IObraRepository>;
+    obras.findById.mockResolvedValue(right({} as never));
+    repository.findById.mockResolvedValue(right(stage));
+    repository.findComentarioById.mockResolvedValue(right(comentario));
+    repository.updateComentario.mockImplementation(async (item) => right(item));
+    const service = new EstagiosService(repository, new TenantContext(), obras);
+
+    const result = await service.updateComentario({
+      obraId: 'obra',
+      estagioId: stage.id,
+      id: comentario.id,
+      texto: 'Atualizado',
+    });
+
+    expect(result.isRight()).toBe(true);
+    expect(repository.findComentarioById).toHaveBeenCalledWith(
+      'obra',
+      stage.id,
+      comentario.id,
+    );
+    expect(result.value.texto).toBe('Atualizado');
+  });
+
+  it('assumes stage responsibility with authenticated user id', async () => {
+    const stage = EstagioEntity.create({
+      tenantId: 'tenant',
+      obraId: 'obra',
+      nome: 'Execução',
+      posicao: 0,
+    });
+    const repository = {
+      findById: jest.fn(),
+      update: jest.fn(),
+    } as unknown as jest.Mocked<IEstagioRepository>;
+    const obras = {
+      findById: jest.fn(),
+    } as unknown as jest.Mocked<IObraRepository>;
+    obras.findById.mockResolvedValue(right({} as never));
+    repository.findById.mockResolvedValue(right(stage));
+    repository.update.mockImplementation(async (item) => right(item));
+    const service = new EstagiosService(repository, new TenantContext(), obras);
+
+    const result = await service.assumir('obra', stage.id, 'user-responsavel');
+
+    expect(result.isRight()).toBe(true);
+    expect(result.value.responsavelUsuarioId).toBe('user-responsavel');
+    expect(repository.update).toHaveBeenCalledTimes(1);
+  });
+
   it('rejects invalid direct percentage before repository update', async () => {
     const repository = {
       findById: jest.fn(),

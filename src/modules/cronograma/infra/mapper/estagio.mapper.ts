@@ -1,4 +1,6 @@
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
+import EstagioAcompanhamentoEntity from '@/modules/cronograma/domain/entities/estagio_acompanhamento.entity';
+import EstagioComentarioEntity from '@/modules/cronograma/domain/entities/estagio_comentario.entity';
 
 export default abstract class EstagioMapper {
   static toEntity(m: Record<string, any>): EstagioEntity {
@@ -40,5 +42,33 @@ export default abstract class EstagioMapper {
       criado_em: e.criadoEm,
       atualizado_em: e.atualizadoEm,
     };
+  }
+
+  static toAcompanhamentoEntity(
+    m: Record<string, any>,
+  ): EstagioAcompanhamentoEntity {
+    return EstagioAcompanhamentoEntity.fromData({
+      id: m.id,
+      tenantId: m.tenantId ?? m.tenant_id,
+      obraId: m.obraId ?? m.obra_id,
+      estagioId: m.estagioId ?? m.estagio_id,
+      percentual: Number(m.percentual),
+      data: m.data,
+      observacao: m.observacao,
+      autorUsuarioId: m.autorUsuarioId ?? m.autor_usuario_id,
+      criadoEm: new Date(m.criadoEm ?? m.criado_em),
+    });
+  }
+
+  static toComentarioEntity(m: Record<string, any>): EstagioComentarioEntity {
+    return EstagioComentarioEntity.fromData({
+      id: m.id,
+      tenantId: m.tenantId ?? m.tenant_id,
+      obraId: m.obraId ?? m.obra_id,
+      estagioId: m.estagioId ?? m.estagio_id,
+      texto: m.texto,
+      autorUsuarioId: m.autorUsuarioId ?? m.autor_usuario_id,
+      criadoEm: new Date(m.criadoEm ?? m.criado_em),
+    });
   }
 }
