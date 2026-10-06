@@ -53,13 +53,18 @@ export default class HabiteSeController {
     return this.withTenant(user, async () => {
       const tenantId = user?.tenantId;
       if (!tenantId) throw new HttpException('Tenant required', 400);
+      if (body.arquivo && !user?.sub) throw new HttpException('Unauthorized', 401);
       const result = await this.createHabiteSe.execute({
         ...body,
         tenantId,
         obraPrivadaId,
+        usuarioId: user?.sub,
       });
       if (result.isLeft()) this.throwHttp(result.value);
-      return HabiteSeResponseDto.fromEntity(result.value);
+      return {
+        ...HabiteSeResponseDto.fromEntity(result.value.habiteSe),
+        arquivoUpload: result.value.arquivo,
+      };
     });
   }
   @Get() async list(
@@ -69,7 +74,9 @@ export default class HabiteSeController {
     return this.withTenant(user, async () => {
       const result = await this.listHabiteSe.execute({ obraPrivadaId });
       if (result.isLeft()) this.throwHttp(result.value);
-      return result.value.map(HabiteSeResponseDto.fromEntity);
+      return result.value.map((entity) =>
+        HabiteSeResponseDto.fromEntity(entity),
+      );
     });
   }
   @Patch(':id') async update(

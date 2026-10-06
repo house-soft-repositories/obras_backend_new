@@ -1,12 +1,16 @@
 import { ResultadoHabiteSe } from '@/modules/obras-privadas/domain/enums/obras_privadas.enum';
-import { PartialType } from '@nestjs/swagger';
+import { ArquivoUploadItemDto } from '@/modules/obras-privadas/dtos/obra_privada_arquivo.dto';
+import { OmitType, PartialType } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsEnum,
   IsNotEmpty,
+  IsObject,
   IsOptional,
   IsString,
   IsUUID,
+  ValidateNested,
 } from 'class-validator';
 export class CreateHabiteSeDto {
   @IsString() @IsNotEmpty() numero: string;
@@ -21,6 +25,12 @@ export class CreateHabiteSeDto {
   @IsOptional() @IsBoolean() divergenciaProjeto?: boolean;
   @IsOptional() @IsString() divergenciaDescricao?: string | null;
   @IsOptional() @IsString() parecer?: string | null;
-  @IsOptional() @IsUUID() arquivoId?: string | null;
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => ArquivoUploadItemDto)
+  arquivo?: ArquivoUploadItemDto;
 }
-export class UpdateHabiteSeDto extends PartialType(CreateHabiteSeDto) {}
+export class UpdateHabiteSeDto extends PartialType(
+  OmitType(CreateHabiteSeDto, ['arquivo'] as const),
+) {}

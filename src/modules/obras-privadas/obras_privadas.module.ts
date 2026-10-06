@@ -322,12 +322,14 @@ import { DataSource } from 'typeorm';
     },
     {
       provide: CREATE_ALVARA_SERVICE,
-      inject: [ALVARA_REPOSITORY, OBRA_PRIVADA_REPOSITORY],
+      inject: [OBRA_PRIVADA_REPOSITORY, DataSource, STORAGE_SERVICE, TenantContext],
       useFactory: (
-        alvaraRepository: IAlvaraRepository,
         obraPrivadaRepository: IObraPrivadaRepository,
+        ds: DataSource,
+        storage: IStorageService,
+        tc: TenantContext,
       ): ICreateAlvaraUseCase =>
-        new CreateAlvaraService(alvaraRepository, obraPrivadaRepository),
+        new CreateAlvaraService(obraPrivadaRepository, ds, storage, tc),
     },
     {
       provide: LIST_ALVARAS_SERVICE,
@@ -431,12 +433,14 @@ import { DataSource } from 'typeorm';
     },
     {
       provide: CREATE_HABITE_SE_SERVICE,
-      inject: [HABITE_SE_REPOSITORY, OBRA_PRIVADA_REPOSITORY],
+      inject: [OBRA_PRIVADA_REPOSITORY, DataSource, STORAGE_SERVICE, TenantContext],
       useFactory: (
-        habiteSeRepository: IHabiteSeRepository,
         obraPrivadaRepository: IObraPrivadaRepository,
+        ds: DataSource,
+        storage: IStorageService,
+        tc: TenantContext,
       ): ICreateHabiteSeUseCase =>
-        new CreateHabiteSeService(habiteSeRepository, obraPrivadaRepository),
+        new CreateHabiteSeService(obraPrivadaRepository, ds, storage, tc),
     },
     {
       provide: LIST_HABITE_SE_SERVICE,

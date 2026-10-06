@@ -4,14 +4,18 @@ import {
   TipoAlvara,
   UsoEdificacao,
 } from '@/modules/obras-privadas/domain/enums/obras_privadas.enum';
-import { PartialType } from '@nestjs/swagger';
+import { ArquivoUploadItemDto } from '@/modules/obras-privadas/dtos/obra_privada_arquivo.dto';
+import { OmitType, PartialType } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsEnum,
   IsInt,
+  IsObject,
   IsOptional,
   IsString,
   IsUUID,
   Min,
+  ValidateNested,
 } from 'class-validator';
 
 export class CreateAlvaraDto {
@@ -31,8 +35,14 @@ export class CreateAlvaraDto {
   @IsOptional() @IsInt() pavimentos?: number | null;
   @IsOptional() @IsInt() unidades?: number | null;
   @IsOptional() @IsString() processoAdministrativo?: string | null;
-  @IsOptional() @IsUUID() arquivoId?: string | null;
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => ArquivoUploadItemDto)
+  arquivo?: ArquivoUploadItemDto;
   @IsOptional() @IsString() observacoes?: string | null;
 }
 
-export class UpdateAlvaraDto extends PartialType(CreateAlvaraDto) {}
+export class UpdateAlvaraDto extends PartialType(
+  OmitType(CreateAlvaraDto, ['arquivo'] as const),
+) {}

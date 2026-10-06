@@ -6,6 +6,10 @@ import {
   TipoAlvara,
   UsoEdificacao,
 } from '@/modules/obras-privadas/domain/enums/obras_privadas.enum';
+import type {
+  ArquivoUploadItemParam,
+  UploadArquivoPreparado,
+} from '@/modules/obras-privadas/domain/usecase/iniciar_upload_arquivo.usecase';
 
 export type CreateAlvaraParam = {
   tenantId: string;
@@ -24,9 +28,15 @@ export type CreateAlvaraParam = {
   pavimentos?: number | null;
   unidades?: number | null;
   processoAdministrativo?: string | null;
-  arquivoId?: string | null;
+  arquivo?: ArquivoUploadItemParam;
+  usuarioId?: string;
   observacoes?: string | null;
 };
 
-type ICreateAlvaraUseCase = UseCase<CreateAlvaraParam, AlvaraEntity>;
+export type CreateAlvaraResult = {
+  alvara: AlvaraEntity;
+  arquivo?: UploadArquivoPreparado;
+};
+
+type ICreateAlvaraUseCase = UseCase<CreateAlvaraParam, CreateAlvaraResult>;
 export default ICreateAlvaraUseCase;

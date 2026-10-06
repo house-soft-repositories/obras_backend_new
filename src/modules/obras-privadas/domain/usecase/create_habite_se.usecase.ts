@@ -1,6 +1,10 @@
 import UseCase from '@/core/types/use_case';
 import HabiteSeEntity from '@/modules/obras-privadas/domain/entities/habite_se.entity';
 import { ResultadoHabiteSe } from '@/modules/obras-privadas/domain/enums/obras_privadas.enum';
+import type {
+  ArquivoUploadItemParam,
+  UploadArquivoPreparado,
+} from '@/modules/obras-privadas/domain/usecase/iniciar_upload_arquivo.usecase';
 export type CreateHabiteSeParam = {
   tenantId: string;
   obraPrivadaId: string;
@@ -16,7 +20,15 @@ export type CreateHabiteSeParam = {
   divergenciaProjeto?: boolean;
   divergenciaDescricao?: string | null;
   parecer?: string | null;
-  arquivoId?: string | null;
+  arquivo?: ArquivoUploadItemParam;
+  usuarioId?: string;
 };
-type ICreateHabiteSeUseCase = UseCase<CreateHabiteSeParam, HabiteSeEntity>;
+export type CreateHabiteSeResult = {
+  habiteSe: HabiteSeEntity;
+  arquivo?: UploadArquivoPreparado;
+};
+type ICreateHabiteSeUseCase = UseCase<
+  CreateHabiteSeParam,
+  CreateHabiteSeResult
+>;
 export default ICreateHabiteSeUseCase;

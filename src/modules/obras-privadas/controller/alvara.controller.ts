@@ -55,13 +55,18 @@ export default class AlvaraController {
     return this.withTenant(user, async () => {
       const tenantId = user?.tenantId;
       if (!tenantId) throw new HttpException('Tenant required', 400);
+      if (body.arquivo && !user?.sub) throw new HttpException('Unauthorized', 401);
       const result = await this.createAlvara.execute({
         ...body,
         tenantId,
         obraPrivadaId,
+        usuarioId: user?.sub,
       });
       if (result.isLeft()) this.throwHttp(result.value);
-      return AlvaraResponseDto.fromEntity(result.value);
+      return {
+        ...AlvaraResponseDto.fromEntity(result.value.alvara),
+        arquivoUpload: result.value.arquivo,
+      };
     });
   }
 
@@ -73,7 +78,7 @@ export default class AlvaraController {
     return this.withTenant(user, async () => {
       const result = await this.listAlvaras.execute({ obraPrivadaId });
       if (result.isLeft()) this.throwHttp(result.value);
-      return result.value.map(AlvaraResponseDto.fromEntity);
+      return result.value.map((entity) => AlvaraResponseDto.fromEntity(entity));
     });
   }
 
