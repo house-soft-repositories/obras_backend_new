@@ -33,6 +33,10 @@ const obraStub = {
   toObject: () => ({ tenantId: 't1' }),
 } as unknown as ObraPrivadaEntity;
 
+const obraExcluidaStub = {
+  toObject: () => ({ tenantId: 't1', deletedAt: new Date('2026-01-01') }),
+} as unknown as ObraPrivadaEntity;
+
 const baseParam = {
   obraPrivadaId: 'obra-1',
   vinculo: VinculoArquivoPrivado.OBRA,
@@ -79,6 +83,25 @@ describe('IniciarUploadArquivoService', () => {
     if (result.isRight()) throw new Error('expected failure');
     expect(result.value.code).toBe(ErrorCodeConstants.OBRA_PRIVADA_NOT_FOUND);
     expect(arquivos.save).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when obra privada is soft deleted', async () => {
+    const arquivos = makeArquivoRepo();
+    const obras = makeObraRepo();
+    const storage = makeStorage();
+    obras.findById.mockResolvedValue(right(obraExcluidaStub));
+    const svc = new IniciarUploadArquivoService(
+      arquivos,
+      obras,
+      storage,
+      makeTC(),
+    );
+    const result = await svc.execute(baseParam);
+    expect(result.isLeft()).toBe(true);
+    if (result.isRight()) throw new Error('expected failure');
+    expect(result.value.code).toBe(ErrorCodeConstants.OBRA_PRIVADA_NOT_FOUND);
+    expect(arquivos.save).not.toHaveBeenCalled();
+    expect(storage.getUploadUrl).not.toHaveBeenCalled();
   });
 
   it('returns 400 when arquivo batch is empty', async () => {

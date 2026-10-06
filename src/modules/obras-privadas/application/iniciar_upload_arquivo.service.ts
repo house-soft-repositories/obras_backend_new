@@ -36,7 +36,7 @@ export default class IniciarUploadArquivoService implements IIniciarUploadArquiv
         );
       const found = await this.obras.findById(param.obraPrivadaId);
       if (found.isLeft()) return left(found.value);
-      if (!found.value)
+      if (!found.value || found.value.toObject().deletedAt)
         return left(
           new ObraPrivadaServiceException({
             code: ErrorCodeConstants.OBRA_PRIVADA_NOT_FOUND,

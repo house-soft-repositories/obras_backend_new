@@ -47,7 +47,7 @@ export default class GerarRelatorioFiscalizacaoPrivadaService implements IGerarR
       const fiscalizacaoProps = fiscalizacao.value.toObject();
       const obra = await this.obras.findById(fiscalizacaoProps.obraPrivadaId);
       if (obra.isLeft()) return left(obra.value);
-      if (!obra.value)
+      if (!obra.value || obra.value.toObject().deletedAt)
         return left(
           new ObraPrivadaServiceException({
             code: ErrorCodeConstants.OBRA_PRIVADA_NOT_FOUND,
