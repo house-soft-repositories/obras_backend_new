@@ -16,6 +16,7 @@ import CronogramaModule from '@/modules/cronograma/cronograma.module';
 import AttachmentsModule from '@/modules/attachments/attachments.module';
 import DocumentosModule from '@/modules/documentos/documentos.module';
 import StorageModule from '@/modules/storage/storage.module';
+import RelatoriosModule from '@/modules/relatorios/relatorios.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import StorageModule from '@/modules/storage/storage.module';
     StorageModule,
     AttachmentsModule,
     DocumentosModule,
+    RelatoriosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
