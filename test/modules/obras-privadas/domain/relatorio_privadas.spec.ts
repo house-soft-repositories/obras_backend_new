@@ -3,7 +3,10 @@ import ExportarObrasPrivadasQueryDto, {
 } from '@/modules/obras-privadas/dtos/exportar_obras_privadas_query.dto';
 import { gerarPdfSimples } from '@/modules/obras-privadas/infra/reporting/pdf_simples';
 import {
+  DadosDossie,
+  formatarData,
   gerarCsvLista,
+  montarSecoesDossie,
   montarSecoesFiscalizacao,
   rotuloEnum,
 } from '@/modules/obras-privadas/domain/relatorios/relatorio_privadas';
@@ -110,5 +113,67 @@ describe('ExportarObrasPrivadasQueryDto', () => {
     expect(new ExportarObrasPrivadasQueryDto().formato).toBe(
       FormatoRelatorioObrasPrivadasDto.CSV,
     );
+  });
+});
+
+describe('formatarData com Date hidratado (regressão iso.slice)', () => {
+  it('formata string ISO', () => {
+    expect(formatarData('2026-06-30')).toBe('30/06/2026');
+  });
+
+  it('formata objeto Date (coluna date hidratada)', () => {
+    expect(formatarData(new Date('2026-06-30T00:00:00.000Z'))).toBe(
+      '30/06/2026',
+    );
+  });
+
+  it('devolve travessão para nulo, indefinido e Date inválido', () => {
+    expect(formatarData(null)).toBe('—');
+    expect(formatarData(undefined)).toBe('—');
+    expect(formatarData(new Date('invalida'))).toBe('—');
+  });
+
+  it('monta seção de alvarás com datas como Date sem quebrar', () => {
+    const dossie = {
+      obra: {
+        codigo: 'OBP-2026-0001',
+        descricao: 'Casa',
+        logradouro: 'Rua A',
+        numero: '10',
+        bairro: 'Centro',
+        uf: 'PI',
+        inscricaoImobiliaria: null,
+        matriculaRgi: null,
+        latitude: null,
+        longitude: null,
+        situacaoAlvara: 'COM_ALVARA_VIGENTE',
+        andamento: 'EM_ANDAMENTO',
+        habiteSe: 'NAO_SOLICITADO',
+        proprietarioNome: 'João Silva',
+        proprietarioDocumento: '52998224725',
+      },
+      alvaras: [
+        {
+          numero: '123',
+          ano: 2026,
+          tipo: 'CONSTRUCAO',
+          motivo: 'ORIGINAL',
+          situacao: 'VIGENTE',
+          dataEmissao: new Date('2026-01-15T00:00:00.000Z'),
+          dataValidade: new Date('2027-01-15T00:00:00.000Z'),
+          areaConstruidaAprovadaM2: '120.00',
+        },
+      ],
+      responsaveis: [],
+      fiscalizacoes: [],
+      autos: [],
+      habiteSe: [],
+      observacoes: [],
+    } as unknown as DadosDossie;
+
+    const secoes = montarSecoesDossie(dossie);
+    const alvaras = secoes.find((secao) => secao.titulo === 'Alvaras');
+    expect(alvaras?.linhas[0]).toContain('emissao 15/01/2026');
+    expect(alvaras?.linhas[0]).toContain('validade 15/01/2027');
   });
 });

@@ -113,9 +113,16 @@ export interface DadosDossie {
 
 const SEP = ';';
 
-export function formatarData(iso: string | null | undefined): string {
-  if (!iso) return '—';
-  const [ano, mes, dia] = iso.slice(0, 10).split('-');
+export function formatarData(iso: string | Date | null | undefined): string {
+  // Colunas date/timestamptz podem chegar hidratadas como Date dependendo da
+  // cadeia entidade→relatório; sem isso o dossiê quebra com
+  // "iso.slice is not a function".
+  const texto =
+    iso instanceof Date
+      ? (Number.isNaN(iso.getTime()) ? null : iso.toISOString().slice(0, 10))
+      : iso;
+  if (!texto) return '—';
+  const [ano, mes, dia] = texto.slice(0, 10).split('-');
   return ano && mes && dia ? `${dia}/${mes}/${ano}` : '—';
 }
 

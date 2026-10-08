@@ -7,7 +7,6 @@ import IAutoInfracaoRepository from '@/modules/obras-privadas/adapters/auto_infr
 import IFiscalizacaoRepository from '@/modules/obras-privadas/adapters/fiscalizacao_repository.interface';
 import IHabiteSeRepository from '@/modules/obras-privadas/adapters/habite_se_repository.interface';
 import IObraPrivadaObservacaoRepository from '@/modules/obras-privadas/adapters/obra_privada_observacao_repository.interface';
-import type { ObraPrivadaProps } from '@/modules/obras-privadas/domain/entities/obra_privada.entity';
 import IGerarDossieObraPrivadaUseCase, {
   GerarDossieObraPrivadaParam,
 } from '@/modules/obras-privadas/domain/usecase/gerar_dossie_obra_privada.usecase';
@@ -16,14 +15,10 @@ import { RelatorioArquivo } from '@/modules/obras-privadas/domain/usecase/gerar_
 import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obra_privada_service.exception';
 import { gerarPdfSimples } from '@/modules/obras-privadas/infra/reporting/pdf_simples';
 import {
-  DadosAutoRelatorio,
-  DadosDossie,
-  DadosFiscalizacaoRelatorio,
-  DadosObraRelatorio,
   enderecoCompleto,
   montarSecoesDossie,
 } from '@/modules/obras-privadas/domain/relatorios/relatorio_privadas';
-import type { PessoaProps } from '@/modules/pessoas/domain/entities/pessoa.entity';
+import DossieObraPrivadaEntity from '@/modules/obras-privadas/domain/entities/dossie_obra_privada.entity';
 
 export default class GerarDossieObraPrivadaService implements IGerarDossieObraPrivadaUseCase {
   constructor(
@@ -63,32 +58,28 @@ export default class GerarDossieObraPrivadaService implements IGerarDossieObraPr
       );
       if (observacoes.isLeft()) return left(observacoes.value);
 
-      const obra = this.toDadosObra(
-        detalhe.value.obra.toObject(),
-        detalhe.value.proprietario?.toObject(),
-      );
-      const dossie: DadosDossie = {
+      const obra = detalhe.value.obra.toObject();
+      const dossie = DossieObraPrivadaEntity.montar({
         obra,
+        proprietario: detalhe.value.proprietario?.toObject() ?? null,
         alvaras: alvaras.value.map((item) => item.toObject()),
         responsaveis: detalhe.value.responsaveis,
-        fiscalizacoes: fiscalizacoes.value.map(
-          (item) => item.toObject() as DadosFiscalizacaoRelatorio,
-        ),
-        autos: autos.value.map((item) => item.toObject() as DadosAutoRelatorio),
+        fiscalizacoes: fiscalizacoes.value.map((item) => item.toObject()),
+        autos: autos.value.map((item) => item.toObject()),
         habiteSe: habiteSe.value.map((item) => item.toObject()),
         observacoes: observacoes.value.map((item) => {
           const value = item.toObject();
           return { texto: value.texto, criadoEm: value.createdAt };
         }),
-      };
+      }).toObject();
 
       return right({
         buffer: gerarPdfSimples(
           'Dossie da Obra Privada',
-          `${obra.codigo} · ${enderecoCompleto(obra)}`,
+          `${dossie.obra.codigo} · ${enderecoCompleto(dossie.obra)}`,
           montarSecoesDossie(dossie),
         ),
-        filename: `dossie-${obra.codigo}.pdf`,
+        filename: `dossie-${dossie.obra.codigo}.pdf`,
         contentType: 'application/pdf',
       });
     } catch (error) {
@@ -101,28 +92,5 @@ export default class GerarDossieObraPrivadaService implements IGerarDossieObraPr
         }),
       );
     }
-  }
-
-  private toDadosObra(
-    obra: ObraPrivadaProps,
-    proprietario: PessoaProps | undefined,
-  ): DadosObraRelatorio {
-    return {
-      codigo: obra.codigo,
-      descricao: obra.descricao,
-      logradouro: obra.logradouro,
-      numero: obra.numero,
-      bairro: obra.bairro,
-      uf: obra.uf,
-      inscricaoImobiliaria: obra.inscricaoImobiliaria,
-      matriculaRgi: obra.matriculaRgi,
-      latitude: obra.latitude,
-      longitude: obra.longitude,
-      situacaoAlvara: obra.situacaoAlvara,
-      andamento: obra.andamento,
-      habiteSe: obra.habiteSe,
-      proprietarioNome: proprietario?.nome ?? '—',
-      proprietarioDocumento: proprietario?.documento ?? '—',
-    };
   }
 }
