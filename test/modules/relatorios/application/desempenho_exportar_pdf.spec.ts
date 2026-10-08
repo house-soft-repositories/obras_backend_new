@@ -2,6 +2,10 @@ import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import { right } from '@/core/types/either';
 import { StatusObra } from '@/modules/obras/domain/enums/status_obra.enum';
 import { TipoObra } from '@/modules/obras/domain/enums/tipo_obra.enum';
+import type IDossieObraRepository from '@/modules/relatorios/adapters/dossie_obra_repository.interface';
+import type IPdfRenderer from '@/modules/relatorios/adapters/pdf_renderer.interface';
+import type IStorageService from '@/modules/storage/adapters/storage_service.interface';
+import mockStorageService from '@test/mocks/storage/adapters/storage_service.mock';
 import DesempenhoObraRelatorioService from '@/modules/relatorios/application/desempenho_obra_relatorio.service';
 import ExportarListaObrasRelatorioService from '@/modules/relatorios/application/exportar_lista_obras_relatorio.service';
 import FluxoFisicoFinanceiroRelatorioService from '@/modules/relatorios/application/fluxo_fisico_financeiro_relatorio.service';
@@ -185,6 +189,9 @@ describe('ExportarListaObrasRelatorioService', () => {
 describe('GerarPdfObraRelatorioService', () => {
   let query: jest.Mocked<RelatoriosQuery>;
   let fluxo: jest.Mocked<FluxoFisicoFinanceiroRelatorioService>;
+  let renderer: jest.Mocked<IPdfRenderer>;
+  let storage: jest.Mocked<IStorageService>;
+  let dossieRepo: jest.Mocked<IDossieObraRepository>;
   let service: GerarPdfObraRelatorioService;
 
   beforeEach(() => {
@@ -192,7 +199,20 @@ describe('GerarPdfObraRelatorioService', () => {
     fluxo = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<FluxoFisicoFinanceiroRelatorioService>;
-    service = new GerarPdfObraRelatorioService(query, fluxo);
+    renderer = {
+      renderHtml: jest.fn(),
+    };
+    storage = mockStorageService();
+    dossieRepo = {
+      carregar: jest.fn(),
+    };
+    service = new GerarPdfObraRelatorioService(
+      query,
+      fluxo,
+      renderer,
+      storage,
+      dossieRepo,
+    );
   });
 
   it('retorna 404 quando a obra nao existe', async () => {

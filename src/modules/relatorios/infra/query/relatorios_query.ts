@@ -4,7 +4,11 @@ import FiltroObrasDto from '@/modules/relatorios/dtos/filtro_obras.dto';
 import { computarDesempenhoObra } from '@/modules/relatorios/domain/logic/desempenho.logic';
 import {
   ContagemPorStatusRelatorio,
+  DetalheObraRelatorio,
+  EstagioDetalheRelatorio,
   LinhaObraRelatorio,
+  MedicaoDetalheRelatorio,
+  ObraDetalheRelatorio,
   ObrasPorOrgaoRelatorio,
   ValoresFluxo,
 } from '@/modules/relatorios/domain/relatorios/relatorios_read_models';
@@ -627,21 +631,21 @@ export default class RelatoriosQuery {
     };
   }
 
-  async carregarDetalheObra(obraId: string) {
+  async carregarDetalheObra(obraId: string): Promise<DetalheObraRelatorio> {
     const schema = this.schema();
     const [[obra], estagios, medicoes] = await Promise.all([
-      this.ds.query<Record<string, unknown>[]>(
+      this.ds.query<ObraDetalheRelatorio[]>(
         `SELECT nome, status, descricao FROM "${schema}"."obras" WHERE id=$1 AND deleted_at IS NULL`,
         [obraId],
       ),
-      this.ds.query<Record<string, unknown>[]>(
+      this.ds.query<EstagioDetalheRelatorio[]>(
         `SELECT nome, percentual_direto, data_fim, status
            FROM "${schema}"."estagio"
           WHERE obra_id=$1 AND ativo=true
           ORDER BY posicao`,
         [obraId],
       ),
-      this.ds.query<Record<string, unknown>[]>(
+      this.ds.query<MedicaoDetalheRelatorio[]>(
         `SELECT m.numero, m.data, m.tipo, COALESCE(SUM(mf.valor), 0) AS valor
            FROM "${schema}"."medicao" m
            LEFT JOIN "${schema}"."medicao_fonte" mf ON mf.medicao_id = m.id

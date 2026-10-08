@@ -24,6 +24,17 @@ RUN pnpm run build
 
 FROM dependencies AS development
 
+# Chromium para o renderer de PDFs (dossiê de obras via Puppeteer).
+RUN apk add --no-cache \
+      chromium \
+      nss \
+      freetype \
+      harfbuzz \
+      ca-certificates \
+      ttf-freefont
+
+ENV CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
+
 COPY nest-cli.json tsconfig.build.json tsconfig.json ./
 COPY src ./src
 
@@ -38,6 +49,17 @@ RUN pnpm install --frozen-lockfile --prod
 FROM node:24-alpine AS runner
 
 ENV NODE_ENV=prd
+
+# Chromium para o renderer de PDFs (dossiê de obras via Puppeteer).
+RUN apk add --no-cache \
+      chromium \
+      nss \
+      freetype \
+      harfbuzz \
+      ca-certificates \
+      ttf-freefont
+
+ENV CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 
 WORKDIR /app
 

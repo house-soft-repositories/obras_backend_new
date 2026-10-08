@@ -151,6 +151,35 @@ export type RelatorioArquivo = {
   contentType: string;
 };
 
+/** Linha crua de obra do detalhe (nome/status/descricao). */
+export type ObraDetalheRelatorio = {
+  nome: string;
+  status: string;
+  descricao: string | null;
+};
+
+/** Linha crua de estágio do detalhe (percentual e prazo do cronograma). */
+export type EstagioDetalheRelatorio = {
+  nome: string;
+  percentual_direto: string | number | null;
+  data_fim: string | null;
+  status: string;
+};
+
+/** Linha crua de medição do detalhe (valor já agregado por fonte). */
+export type MedicaoDetalheRelatorio = {
+  numero: number | string;
+  data: string | null;
+  tipo: string;
+  valor: string | number | null;
+};
+
+export type DetalheObraRelatorio = {
+  obra: ObraDetalheRelatorio | undefined;
+  estagios: EstagioDetalheRelatorio[];
+  medicoes: MedicaoDetalheRelatorio[];
+};
+
 export function toItemListaObras(
   linha: LinhaObraRelatorio,
 ): ItemListaObrasRelatorio {
