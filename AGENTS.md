@@ -12,11 +12,11 @@ Não crie commits, não adicione arquivos ao índice Git e não envie alteraçõ
 docker compose up --build -d api   # rebuilda e sobe o container da API
 docker compose logs -f api         # verificar se o container subiu corretamente
 docker compose exec api pnpm test
-docker compose exec api pnpm test -- test/modules/<name>/<file>.spec.ts
+docker compose exec api pnpm test -- test/modules/<name>/<layer>/<file>.spec.ts
 docker compose exec api pnpm run test:e2e
-docker compose exec api pnpm run test:e2e -- test/modules/<name>/<file>.e2e-spec.ts
+docker compose exec api pnpm run test:e2e -- test/modules/<name>/controller/<file>.e2e-spec.ts
 docker compose exec api pnpm run test:integration
-docker compose exec api pnpm run test:integration -- test/modules/<name>/<layer>/<file>.spec.ts
+docker compose exec api pnpm run test:integration -- test/modules/<name>/infra/<file>.spec.ts
 docker compose exec api pnpm run build
 ```
 
@@ -29,11 +29,16 @@ pnpm install          # instalar dependências
 pnpm run build        # compilar para dist/ (NestJS CLI)
 pnpm run start:dev    # desenvolvimento com hot-reload (sem Docker: localhost:3000)
 pnpm test             # rodar suite Jest
-pnpm test -- test/modules/<name>/<file>.spec.ts
+pnpm test -- test/modules/<name>/<layer>/<file>.spec.ts
 pnpm run test:watch   # modo watch ao iterar em specs
 pnpm run test:e2e     # testes e2e (jest-e2e.json)
+pnpm run test:e2e -- test/modules/<name>/controller/<file>.e2e-spec.ts
 pnpm run test:integration # testes de integração (jest-integration.json)
-pnpm run lint         # ESLint + Prettier fix
+pnpm run test:integration -- test/modules/<name>/infra/<file>.spec.ts
+pnpm run lint         # checa ESLint (sem --fix)
+pnpm run lint:fix     # corrige ESLint (--fix)
+pnpm run format       # aplica Prettier em src/ e test/
+pnpm run format:check # só checa Prettier
 ```
 
 **Checklist antes de abrir PR:** preferir `docker compose up --build -d api && docker compose exec api pnpm run build && docker compose exec api pnpm run lint && docker compose exec api pnpm test`.
@@ -346,9 +351,11 @@ Controllers recebem DTOs, convertem-nos para o parâmetro primitivo do use case 
 
 Referência: `src/core/interface/base_model.ts`
 
-### Transações multitenant com TypeORM (sem SQL cru)
+### Repositórios TypeORM multitenant (sem SQL cru)
 
-Operações atômicas no schema do tenant usam `withTenantManager` de `src/core/multitenancy/tenant_manager.ts` (extraído do padrão de `contrato.repository.ts`). Dentro do callback use **sempre** `manager.getRepository(Model).save(Mapper.toModel(entity))` — **nunca** `manager.query`/`dataSource.query` com `INSERT INTO "schema"...`.
+Operações no schema do tenant usam `withTenantManager` de `src/core/multitenancy/tenant_manager.ts` (também reexportado em helpers locais como `src/modules/contratos/infra/repositories/tenant_repository.helper.ts`). Dentro do callback use **sempre** o `manager` do TypeORM com `manager.getRepository(Model)`, `Repository`, `QueryBuilder` e mappers — **nunca** `manager.query`/`dataSource.query` com SQL hardcoded para `INSERT`, `SELECT`, `UPDATE` ou `DELETE` em tabelas do tenant.
+
+Isso vale para escrita e leitura: repositories e query adapters devem consultar entidades TypeORM tipadas, relações, `where`, `find`, `findOne`, `createQueryBuilder` e `Mapper.toEntity`/`Mapper.toModel`. SQL cru só deve aparecer quando houver justificativa técnica explícita e isolada, nunca como padrão para atravessar módulos ou montar relatórios.
 
 ```typescript
 import { withTenantManager } from '@/core/multitenancy/tenant_manager';
@@ -356,6 +363,16 @@ import { withTenantManager } from '@/core/multitenancy/tenant_manager';
 await withTenantManager(dataSource, tenantContext, async (manager) => {
   await manager.getRepository(AlvaraModel).save(AlvaraMapper.toModel(entity));
 });
+
+const imagens = await withTenantManager(dataSource, tenantContext, (manager) =>
+  manager
+    .getRepository(ArquivoModel)
+    .createQueryBuilder('arquivo')
+    .where('arquivo.obraId = :obraId', { obraId })
+    .andWhere('arquivo.mimeType LIKE :mimeType', { mimeType: 'image/%' })
+    .orderBy('arquivo.createdAt', 'ASC')
+    .getMany(),
+);
 ```
 
 Detalhes em `docs/infra/tenant_transactions.md`.
