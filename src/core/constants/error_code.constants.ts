@@ -321,4 +321,5 @@ export default abstract class ErrorCodeConstants {
   static readonly STORAGE_DELETE_FAILED = 'STORAGE_DELETE_FAILED';
   static readonly STORAGE_PRESIGN_FAILED = 'STORAGE_PRESIGN_FAILED';
   static readonly STORAGE_PROVISION_FAILED = 'STORAGE_PROVISION_FAILED';
+  static readonly STORAGE_GET_FAILED = 'STORAGE_GET_FAILED';
 }

@@ -18,6 +18,13 @@ export default interface IStorageService {
     originalName?: string,
   ): AsyncResult<AppException, string>;
   getUploadUrl(key: string, mimetype: string): AsyncResult<AppException, string>;
+  /**
+   * Lê o conteúdo integral de um objeto pelo storageKey.
+   * Único ponto em que o binário passa pela API (ex.: anexo fotográfico
+   * do dossiê); nos demais fluxos o arquivo vai do bucket ao cliente
+   * por URL pré-assinada via getDownloadUrl.
+   */
+  getObject(key: string): AsyncResult<AppException, Buffer>;
   removeObject(key: string): AsyncResult<AppException, Unit>;
   copyObject(
     sourceKey: string,

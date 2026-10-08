@@ -12,7 +12,8 @@ export default class StorageException extends AppException {
       | typeof ErrorCodeConstants.STORAGE_PUT_FAILED
       | typeof ErrorCodeConstants.STORAGE_DELETE_FAILED
       | typeof ErrorCodeConstants.STORAGE_PRESIGN_FAILED
-      | typeof ErrorCodeConstants.STORAGE_PROVISION_FAILED;
+      | typeof ErrorCodeConstants.STORAGE_PROVISION_FAILED
+      | typeof ErrorCodeConstants.STORAGE_GET_FAILED;
     statusCode: number;
     cause?: unknown;
   }) {

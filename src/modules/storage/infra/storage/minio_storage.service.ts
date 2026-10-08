@@ -160,6 +160,30 @@ export default class MinioStorageService implements IStorageService {
     }
   }
 
+  async getObject(key: string): AsyncResult<AppException, Buffer> {
+    try {
+      const stream = (await this.client.getObject(
+        this.config.bucket,
+        key,
+      )) as unknown as AsyncIterable<unknown>;
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream) {
+        if (Buffer.isBuffer(chunk)) chunks.push(chunk);
+        else if (typeof chunk === 'string') chunks.push(Buffer.from(chunk));
+        else if (chunk instanceof Uint8Array) chunks.push(Buffer.from(chunk));
+      }
+      return right(Buffer.concat(chunks));
+    } catch (error) {
+      return left(
+        new StorageException({
+          code: ErrorCodeConstants.STORAGE_GET_FAILED,
+          statusCode: 500,
+          cause: error,
+        }),
+      );
+    }
+  }
+
   async removeObject(key: string): AsyncResult<AppException, Unit> {
     try {
       await this.client.removeObject(this.config.bucket, key);
