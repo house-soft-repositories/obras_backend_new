@@ -21,18 +21,38 @@ import { Either } from '@/core/types/either';
 import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
-import { MEDICOES_SERVICE } from '@/modules/cronograma/symbols';
-import type { IMedicoesUseCase } from '@/modules/cronograma/domain/usecase/medicoes.usecase';
+import {
+  CREATE_MEDICAO_SERVICE,
+  LIST_MEDICOES_SERVICE,
+  GET_MEDICAO_SERVICE,
+  UPDATE_MEDICAO_SERVICE,
+  REMOVE_MEDICAO_SERVICE,
+} from '@/modules/cronograma/symbols';
+import type ICreateMedicaoUseCase from '@/modules/cronograma/domain/usecase/create_medicao.usecase';
+import type IListMedicoesUseCase from '@/modules/cronograma/domain/usecase/list_medicoes.usecase';
+import type IGetMedicaoUseCase from '@/modules/cronograma/domain/usecase/get_medicao.usecase';
+import type IUpdateMedicaoUseCase from '@/modules/cronograma/domain/usecase/update_medicao.usecase';
+import type IRemoveMedicaoUseCase from '@/modules/cronograma/domain/usecase/remove_medicao.usecase';
 import {
   CreateMedicaoDto,
   UpdateMedicaoDto,
 } from '@/modules/cronograma/dtos/medicao.dto';
+import MedicaoResponseDto from '@/modules/cronograma/dtos/medicao_response.dto';
 
 @Controller('api/obras/:obraId/medicoes')
 @UseGuards(AccessTokenGuard)
 export default class MedicoesController {
   constructor(
-    @Inject(MEDICOES_SERVICE) private readonly service: IMedicoesUseCase,
+    @Inject(CREATE_MEDICAO_SERVICE)
+    private readonly createMedicao: ICreateMedicaoUseCase,
+    @Inject(LIST_MEDICOES_SERVICE)
+    private readonly listMedicoes: IListMedicoesUseCase,
+    @Inject(GET_MEDICAO_SERVICE)
+    private readonly getMedicao: IGetMedicaoUseCase,
+    @Inject(UPDATE_MEDICAO_SERVICE)
+    private readonly updateMedicao: IUpdateMedicaoUseCase,
+    @Inject(REMOVE_MEDICAO_SERVICE)
+    private readonly removeMedicao: IRemoveMedicaoUseCase,
     private readonly tc: TenantRequestContextService,
   ) {}
 
@@ -41,19 +61,21 @@ export default class MedicoesController {
     @Param('obraId', ParseUUIDPipe) obraId: string,
     @Body() body: CreateMedicaoDto,
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
-  ) {
+  ): Promise<MedicaoResponseDto> {
     return this.tc.run(user, async () =>
-      this.unwrap(
-        await this.service.create({
-          obraId,
-          numero: body.numero,
-          orgaoId: body.orgaoId,
-          tipo: body.tipo,
-          dataMedicao: body.dataMedicao,
-          observacoes: body.observacoes,
-          fontes: body.fontes,
-        }),
-      ).toObject(),
+      MedicaoResponseDto.fromEntity(
+        this.unwrap(
+          await this.createMedicao.execute({
+            obraId,
+            numero: body.numero,
+            orgaoId: body.orgaoId,
+            tipo: body.tipo,
+            dataMedicao: body.dataMedicao,
+            observacoes: body.observacoes,
+            fontes: body.fontes,
+          }),
+        ),
+      ),
     );
   }
 
@@ -65,13 +87,13 @@ export default class MedicoesController {
   ) {
     return this.tc.run(user, async () => {
       const page = this.unwrap(
-        await this.service.list(
+        await this.listMedicoes.execute({
           obraId,
-          new PageOptionsEntity(query.order, query.page, query.take),
-        ),
+          options: new PageOptionsEntity(query.order, query.page, query.take),
+        }),
       );
       return {
-        data: page.pageData.map((item) => item.toObject()),
+        data: page.pageData.map((item) => MedicaoResponseDto.fromEntity(item)),
         meta: page.pageMeta,
       };
     });
@@ -82,9 +104,11 @@ export default class MedicoesController {
     @Param('obraId', ParseUUIDPipe) obraId: string,
     @Param('id', ParseUUIDPipe) id: string,
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
-  ) {
+  ): Promise<MedicaoResponseDto> {
     return this.tc.run(user, async () =>
-      this.unwrap(await this.service.get(obraId, id)).toObject(),
+      MedicaoResponseDto.fromEntity(
+        this.unwrap(await this.getMedicao.execute({ obraId, id })),
+      ),
     );
   }
 
@@ -94,20 +118,22 @@ export default class MedicoesController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateMedicaoDto,
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
-  ) {
+  ): Promise<MedicaoResponseDto> {
     return this.tc.run(user, async () =>
-      this.unwrap(
-        await this.service.update({
-          obraId,
-          id,
-          numero: body.numero,
-          orgaoId: body.orgaoId,
-          tipo: body.tipo,
-          dataMedicao: body.dataMedicao,
-          observacoes: body.observacoes,
-          fontes: body.fontes,
-        }),
-      ).toObject(),
+      MedicaoResponseDto.fromEntity(
+        this.unwrap(
+          await this.updateMedicao.execute({
+            obraId,
+            id,
+            numero: body.numero,
+            orgaoId: body.orgaoId,
+            tipo: body.tipo,
+            dataMedicao: body.dataMedicao,
+            observacoes: body.observacoes,
+            fontes: body.fontes,
+          }),
+        ),
+      ),
     );
   }
 
@@ -119,16 +145,16 @@ export default class MedicoesController {
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
   ) {
     return this.tc.run(user, async () =>
-      this.unwrap(await this.service.remove(obraId, id)),
+      this.unwrap(await this.removeMedicao.execute({ obraId, id })),
     );
   }
 
-  private unwrap<T>(result: Either<AppException, T>): T {
+  private readonly unwrap = <T>(result: Either<AppException, T>): T => {
     if (result.isLeft()) {
       throw new HttpException(result.value.message, result.value.statusCode, {
         cause: result.value.cause,
       });
     }
     return result.value;
-  }
+  };
 }

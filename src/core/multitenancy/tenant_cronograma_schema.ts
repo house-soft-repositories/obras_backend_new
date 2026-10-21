@@ -40,8 +40,9 @@ export default abstract class TenantCronogramaSchema {
         "data_fim" date,
         "percentual_direto" numeric(5,2),
         "responsavel_usuario_id" uuid,
-        "criado_em" timestamptz NOT NULL DEFAULT now(),
-        "atualizado_em" timestamptz NOT NULL DEFAULT now(),
+        "estagio_pai_id" uuid,
+        "created_at" timestamptz NOT NULL DEFAULT now(),
+        "updated_at" timestamptz NOT NULL DEFAULT now(),
         CONSTRAINT "PK_estagio" PRIMARY KEY ("id")
       )
     `);
@@ -58,7 +59,7 @@ export default abstract class TenantCronogramaSchema {
         "data" date NOT NULL,
         "observacao" text,
         "autor_usuario_id" uuid NOT NULL,
-        "criado_em" timestamptz NOT NULL DEFAULT now(),
+        "created_at" timestamptz NOT NULL DEFAULT now(),
         CONSTRAINT "PK_estagio_acompanhamento" PRIMARY KEY ("id")
       )
     `);
@@ -70,7 +71,8 @@ export default abstract class TenantCronogramaSchema {
         "estagio_id" uuid NOT NULL,
         "texto" text NOT NULL,
         "autor_usuario_id" uuid NOT NULL,
-        "criado_em" timestamptz NOT NULL DEFAULT now(),
+        "created_at" timestamptz NOT NULL DEFAULT now(),
+        "updated_at" timestamptz NOT NULL DEFAULT now(),
         CONSTRAINT "PK_estagio_comentario" PRIMARY KEY ("id")
       )
     `);
@@ -84,7 +86,8 @@ export default abstract class TenantCronogramaSchema {
         "tipo" varchar(30) NOT NULL,
         "data" date NOT NULL,
         "observacao" text,
-        "criado_em" timestamptz NOT NULL DEFAULT now(),
+        "created_at" timestamptz NOT NULL DEFAULT now(),
+        "updated_at" timestamptz NOT NULL DEFAULT now(),
         CONSTRAINT "PK_medicao" PRIMARY KEY ("id")
       )
     `);
@@ -95,6 +98,8 @@ export default abstract class TenantCronogramaSchema {
         "medicao_id" uuid NOT NULL,
         "fonte_id" uuid NOT NULL,
         "valor" numeric(18,2) NOT NULL,
+        "created_at" timestamptz NOT NULL DEFAULT now(),
+        "updated_at" timestamptz NOT NULL DEFAULT now(),
         CONSTRAINT "PK_medicao_fonte" PRIMARY KEY ("id")
       )
     `);

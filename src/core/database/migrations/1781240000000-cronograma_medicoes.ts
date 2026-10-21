@@ -14,7 +14,8 @@ export default class CronogramaMedicoes1781240000000 implements MigrationInterfa
           "ativo" boolean NOT NULL DEFAULT true, "status" varchar(30) NOT NULL DEFAULT 'PENDENTE',
           "modo_duracao" varchar(40), "data_inicio" date, "data_fim" date,
           "percentual_direto" numeric(5,2), "responsavel_usuario_id" uuid,
-          "criado_em" timestamptz NOT NULL DEFAULT now(), "atualizado_em" timestamptz NOT NULL DEFAULT now(),
+          "estagio_pai_id" uuid,
+          "created_at" timestamptz NOT NULL DEFAULT now(), "updated_at" timestamptz NOT NULL DEFAULT now(),
           CONSTRAINT "PK_estagio" PRIMARY KEY ("id")
         )`);
       await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_estagio_obra_posicao" ON "${schema}"."estagio" ("obra_id", "posicao")`);
@@ -22,13 +23,14 @@ export default class CronogramaMedicoes1781240000000 implements MigrationInterfa
         CREATE TABLE IF NOT EXISTS "${schema}"."estagio_acompanhamento" (
           "id" uuid NOT NULL, "tenant_id" uuid NOT NULL, "obra_id" uuid NOT NULL, "estagio_id" uuid NOT NULL,
           "percentual" numeric(5,2) NOT NULL, "data" date NOT NULL, "observacao" text,
-          "autor_usuario_id" uuid NOT NULL, "criado_em" timestamptz NOT NULL DEFAULT now(),
+          "autor_usuario_id" uuid NOT NULL, "created_at" timestamptz NOT NULL DEFAULT now(),
           CONSTRAINT "PK_estagio_acompanhamento" PRIMARY KEY ("id")
         )`);
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS "${schema}"."estagio_comentario" (
           "id" uuid NOT NULL, "tenant_id" uuid NOT NULL, "obra_id" uuid NOT NULL, "estagio_id" uuid NOT NULL,
-          "texto" text NOT NULL, "autor_usuario_id" uuid NOT NULL, "criado_em" timestamptz NOT NULL DEFAULT now(),
+          "texto" text NOT NULL, "autor_usuario_id" uuid NOT NULL, "created_at" timestamptz NOT NULL DEFAULT now(),
+          "updated_at" timestamptz NOT NULL DEFAULT now(),
           CONSTRAINT "PK_estagio_comentario" PRIMARY KEY ("id")
         )`);
       await queryRunner.query(`
@@ -36,13 +38,14 @@ export default class CronogramaMedicoes1781240000000 implements MigrationInterfa
           "id" uuid NOT NULL, "tenant_id" uuid NOT NULL, "obra_id" uuid NOT NULL,
           "orgao_id" uuid,
           "numero" integer NOT NULL, "tipo" varchar(30) NOT NULL, "data" date NOT NULL,
-          "observacao" text, "criado_em" timestamptz NOT NULL DEFAULT now(),
+          "observacao" text, "created_at" timestamptz NOT NULL DEFAULT now(), "updated_at" timestamptz NOT NULL DEFAULT now(),
           CONSTRAINT "PK_medicao" PRIMARY KEY ("id")
         )`);
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS "${schema}"."medicao_fonte" (
           "id" uuid NOT NULL, "tenant_id" uuid NOT NULL, "medicao_id" uuid NOT NULL,
           "fonte_id" uuid NOT NULL, "valor" numeric(18,2) NOT NULL,
+          "created_at" timestamptz NOT NULL DEFAULT now(), "updated_at" timestamptz NOT NULL DEFAULT now(),
           CONSTRAINT "PK_medicao_fonte" PRIMARY KEY ("id")
         )`);
     }

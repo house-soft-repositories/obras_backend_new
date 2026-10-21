@@ -19,13 +19,14 @@ export interface EstagioProps {
   dataFim: string | null;
   percentualDireto: number | null;
   responsavelUsuarioId: string | null;
+  estagioPaiId: string | null;
   criadoEm: Date;
   atualizadoEm: Date;
 }
 export default class EstagioEntity {
   private constructor(private readonly props: EstagioProps) {}
   static create(
-    p: Omit<
+    createParams: Omit<
       EstagioProps,
       | 'id'
       | 'status'
@@ -35,6 +36,7 @@ export default class EstagioEntity {
       | 'dataFim'
       | 'percentualDireto'
       | 'responsavelUsuarioId'
+      | 'estagioPaiId'
       | 'criadoEm'
       | 'atualizadoEm'
     > &
@@ -46,28 +48,30 @@ export default class EstagioEntity {
           | 'dataInicio'
           | 'dataFim'
           | 'responsavelUsuarioId'
+          | 'estagioPaiId'
         >
       >,
   ): EstagioEntity {
-    const nome = p.nome.trim();
-    if (!nome || p.posicao < 0)
+    const nome = createParams.nome.trim();
+    if (!nome || (createParams.posicao !== undefined && createParams.posicao < 0) || !this.isDateRangeValid(createParams.dataInicio, createParams.dataFim))
       throw new CronogramaDomainException({
         code: ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT,
       });
     const now = new Date();
     return new EstagioEntity({
       id: randomUUID(),
-      tenantId: p.tenantId,
-      obraId: p.obraId,
+      tenantId: createParams.tenantId,
+      obraId: createParams.obraId,
       nome,
-      posicao: p.posicao ?? 0,
+      posicao: createParams.posicao ?? 0,
       ativo: true,
       status: EstagioStatus.PENDENTE,
-      modoDuracao: p.modoDuracao ?? ModoDuracao.NAO_INFORMADO,
-      dataInicio: p.dataInicio ?? null,
-      dataFim: p.dataFim ?? null,
+      modoDuracao: createParams.modoDuracao ?? ModoDuracao.NAO_INFORMADO,
+      dataInicio: createParams.dataInicio ?? null,
+      dataFim: createParams.dataFim ?? null,
       percentualDireto: null,
-      responsavelUsuarioId: p.responsavelUsuarioId ?? null,
+      responsavelUsuarioId: createParams.responsavelUsuarioId ?? null,
+      estagioPaiId: createParams.estagioPaiId ?? null,
       criadoEm: now,
       atualizadoEm: now,
     });
@@ -75,31 +79,52 @@ export default class EstagioEntity {
   static fromData(props: EstagioProps): EstagioEntity {
     return new EstagioEntity(props);
   }
-  update(p: {
+  update(updateParams: {
     nome?: string;
     posicao?: number;
     dataInicio?: string | null;
     dataFim?: string | null;
     responsavelUsuarioId?: string | null;
+    estagioPaiId?: string | null;
   }): EstagioEntity {
-    const nome = p.nome === undefined ? this.nome : p.nome.trim();
-    const posicao = p.posicao ?? this.posicao;
-    if (!nome || posicao < 0)
+    const nome = updateParams.nome === undefined ? this.nome : updateParams.nome.trim();
+    const posicao = updateParams.posicao ?? this.posicao;
+    const dataInicio = updateParams.dataInicio === undefined ? this.dataInicio : updateParams.dataInicio;
+    const dataFim = updateParams.dataFim === undefined ? this.dataFim : updateParams.dataFim;
+    if (!nome || posicao < 0 || !EstagioEntity.isDateRangeValid(dataInicio, dataFim))
       throw new CronogramaDomainException({
         code: ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT,
+      });
+    if (updateParams.estagioPaiId !== undefined && updateParams.estagioPaiId === this.id)
+      throw new CronogramaDomainException({
+        code: ErrorCodeConstants.CRONOGRAMA_ESTAGIO_PAI_INVALID,
       });
     return new EstagioEntity({
       ...this.props,
       nome,
       posicao,
-      dataInicio: p.dataInicio === undefined ? this.dataInicio : p.dataInicio,
-      dataFim: p.dataFim === undefined ? this.dataFim : p.dataFim,
+      dataInicio,
+      dataFim,
       responsavelUsuarioId:
-        p.responsavelUsuarioId === undefined
+        updateParams.responsavelUsuarioId === undefined
           ? this.responsavelUsuarioId
-          : p.responsavelUsuarioId,
+          : updateParams.responsavelUsuarioId,
+      estagioPaiId:
+        updateParams.estagioPaiId === undefined
+          ? this.estagioPaiId
+          : updateParams.estagioPaiId,
       atualizadoEm: new Date(),
     });
+  }
+
+  private static isDateRangeValid(
+    dataInicio?: string | null,
+    dataFim?: string | null,
+  ): boolean {
+    if (!dataInicio || !dataFim) return true;
+    const inicio = Date.parse(dataInicio);
+    const fim = Date.parse(dataFim);
+    return !Number.isNaN(inicio) && !Number.isNaN(fim) && fim >= inicio;
   }
   concluir(): EstagioEntity {
     return new EstagioEntity({
@@ -109,10 +134,11 @@ export default class EstagioEntity {
       atualizadoEm: new Date(),
     });
   }
-  assumir(): EstagioEntity {
+  assumir(responsavelUsuarioId: string): EstagioEntity {
     return new EstagioEntity({
       ...this.props,
       status: EstagioStatus.EM_ANDAMENTO,
+      responsavelUsuarioId,
       atualizadoEm: new Date(),
     });
   }
@@ -128,6 +154,7 @@ export default class EstagioEntity {
       posicao,
       status: EstagioStatus.PENDENTE,
       percentualDireto: null,
+      estagioPaiId: this.estagioPaiId,
       criadoEm: now,
       atualizadoEm: now,
     });
@@ -167,6 +194,9 @@ export default class EstagioEntity {
   }
   get responsavelUsuarioId() {
     return this.props.responsavelUsuarioId;
+  }
+  get estagioPaiId() {
+    return this.props.estagioPaiId;
   }
   get criadoEm() {
     return this.props.criadoEm;

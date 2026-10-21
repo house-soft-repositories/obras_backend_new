@@ -9,7 +9,7 @@ import TenantContext from '@/core/multitenancy/tenant_context';
  * `manager.getRepository(Model)` — nunca `manager.query` (SQL cru) e
  * nunca um repository global fora da transação.
  */
-export async function withTenantManager<T>(
+export async function withManager<T>(
   dataSource: DataSource,
   tenantContext: TenantContext,
   callback: (manager: EntityManager) => Promise<T>,
@@ -33,6 +33,17 @@ export async function withTenantManager<T>(
       await queryRunner.rollbackTransaction();
     throw error;
   } finally {
-    await queryRunner.release();
+    if (!queryRunner.isReleased) await queryRunner.release();
   }
+}
+
+/**
+ * @deprecated Use `withManager`.
+ */
+export async function withTenantManager<T>(
+  dataSource: DataSource,
+  tenantContext: TenantContext,
+  callback: (manager: EntityManager) => Promise<T>,
+): Promise<T> {
+  return withManager(dataSource, tenantContext, callback);
 }

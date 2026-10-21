@@ -1,38 +1,37 @@
-import { DataSource } from 'typeorm';
-import TenantContext from '@/core/multitenancy/tenant_context';
-import AppException from '@/core/exceptions/app_exception';
-import AsyncResult from '@/core/types/async_result';
-import { left, right } from '@/core/types/either';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
+import AppException from '@/core/exceptions/app_exception';
+import TenantContext from '@/core/multitenancy/tenant_context';
+import { withManager } from '@/core/multitenancy/tenant_manager';
 import PageEntity from '@/core/pagination/domain/entities/page.entity';
 import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
 import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
+import AsyncResult from '@/core/types/async_result';
+import { left, right } from '@/core/types/either';
+import { unit, type Unit } from '@/core/types/unit';
 import IEstagioRepository from '@/modules/cronograma/adapters/estagio_repository.interface';
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
-import EstagioAcompanhamentoEntity from '@/modules/cronograma/domain/entities/estagio_acompanhamento.entity';
-import EstagioComentarioEntity from '@/modules/cronograma/domain/entities/estagio_comentario.entity';
-import MedicaoEntity, {
-  MedicaoFonteProps,
-} from '@/modules/cronograma/domain/entities/medicao.entity';
-import EstagioMapper from '@/modules/cronograma/infra/mapper/estagio.mapper';
 import CronogramaRepositoryException from '@/modules/cronograma/exceptions/cronograma_repository.exception';
+import EstagioMapper from '@/modules/cronograma/infra/mapper/estagio.mapper';
+import EstagioModel from '@/modules/cronograma/infra/models/estagio.model';
+import { EstagioStatus } from '@/modules/cronograma/domain/enums/cronograma.enums';
+import DataAgregadasReadModel from '@/modules/cronograma/domain/read_models/data_agregadas.read_model';
+import NextPosicaoReadModel from '@/modules/cronograma/domain/read_models/next_posicao.read_model';
+import { DataSource, IsNull, Not } from 'typeorm';
+
 export default class EstagioRepository implements IEstagioRepository {
   constructor(
     private readonly ds: DataSource,
     private readonly tc: TenantContext,
   ) {}
-  private schema() {
-    return this.tc.require().schemaName;
-  }
+
   async save(e: EstagioEntity): AsyncResult<AppException, EstagioEntity> {
     try {
-      const s = this.schema(),
-        v = EstagioMapper.toModel(e);
-      const [row] = await this.ds.query(
-        `INSERT INTO "${s}"."estagio" (id,tenant_id,obra_id,nome,posicao,ativo,status,modo_duracao,data_inicio,data_fim,percentual_direto,responsavel_usuario_id,criado_em,atualizado_em) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
-        Object.values(v),
-      );
-      return right(EstagioMapper.toEntity(row));
+      return await withManager(this.ds, this.tc, async (manager) => {
+        const repo = manager.getRepository(EstagioModel);
+        const model = EstagioMapper.toModel(e);
+        const saved = await repo.save(model);
+        return right(EstagioMapper.toEntity(saved));
+      });
     } catch (cause) {
       return left(
         new CronogramaRepositoryException({
@@ -42,37 +41,17 @@ export default class EstagioRepository implements IEstagioRepository {
       );
     }
   }
+
   async saveMany(
     items: EstagioEntity[],
   ): AsyncResult<AppException, EstagioEntity[]> {
     try {
-      const s = this.schema();
-      const q = this.ds.createQueryRunner();
-      await q.connect();
-      await q.startTransaction();
-      try {
-        const saved: EstagioEntity[] = [];
-        for (const item of items) {
-          const v = EstagioMapper.toModel(item);
-          const [row] = await q.query(
-            `INSERT INTO "${s}"."estagio" (id,tenant_id,obra_id,nome,posicao,ativo,status,modo_duracao,data_inicio,data_fim,percentual_direto,responsavel_usuario_id,criado_em,atualizado_em) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
-            Object.values(v),
-          );
-          saved.push(EstagioMapper.toEntity(row));
-        }
-        await q.commitTransaction();
-        return right(saved);
-      } catch (cause) {
-        await q.rollbackTransaction();
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-            cause,
-          }),
-        );
-      } finally {
-        await q.release();
-      }
+      return await withManager(this.ds, this.tc, async (manager) => {
+        const repo = manager.getRepository(EstagioModel);
+        const models = items.map((item) => EstagioMapper.toModel(item));
+        const saved = await repo.save(models);
+        return right(saved.map((e) => EstagioMapper.toEntity(e)));
+      });
     } catch (cause) {
       return left(
         new CronogramaRepositoryException({
@@ -82,23 +61,26 @@ export default class EstagioRepository implements IEstagioRepository {
       );
     }
   }
+
   async findById(
     id: string,
     obraId: string,
   ): AsyncResult<AppException, EstagioEntity> {
     try {
-      const [row] = await this.ds.query(
-        `SELECT * FROM "${this.schema()}"."estagio" WHERE id=$1 AND obra_id=$2`,
-        [id, obraId],
-      );
-      if (!row)
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-            statusCode: 404,
-          }),
-        );
-      return right(EstagioMapper.toEntity(row));
+      return await withManager(this.ds, this.tc, async (manager) => {
+        const repo = manager.getRepository(EstagioModel);
+        const model = await repo.findOne({
+          where: { id, obraId },
+        });
+        if (!model)
+          return left(
+            new CronogramaRepositoryException({
+              code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
+              statusCode: 404,
+            }),
+          );
+        return right(EstagioMapper.toEntity(model));
+      });
     } catch (cause) {
       return left(
         new CronogramaRepositoryException({
@@ -108,27 +90,27 @@ export default class EstagioRepository implements IEstagioRepository {
       );
     }
   }
+
   async list(
     obraId: string,
     o: PageOptionsEntity,
   ): AsyncResult<AppException, PageEntity<EstagioEntity>> {
     try {
-      const s = this.schema(),
-        offset = (o.page - 1) * o.take;
-      const rows = await this.ds.query(
-        `SELECT * FROM "${s}"."estagio" WHERE obra_id=$1 ORDER BY posicao ASC,id ASC LIMIT $2 OFFSET $3`,
-        [obraId, o.take, offset],
-      );
-      const [{ count }] = await this.ds.query(
-        `SELECT COUNT(*)::int AS count FROM "${s}"."estagio" WHERE obra_id=$1`,
-        [obraId],
-      );
-      return right(
-        new PageEntity(
-          rows.map(EstagioMapper.toEntity),
-          new PageMetaEntity({ pageOptions: o, itemCount: count }),
-        ),
-      );
+      return await withManager(this.ds, this.tc, async (manager) => {
+        const repo = manager.getRepository(EstagioModel);
+        const [rows, count] = await repo.findAndCount({
+          where: { obraId },
+          order: { posicao: 'ASC', id: 'ASC' },
+          take: o.take,
+          skip: (o.page - 1) * o.take,
+        });
+        return right(
+          new PageEntity(
+            rows.map((e) => EstagioMapper.toEntity(e)),
+            new PageMetaEntity({ pageOptions: o, itemCount: count }),
+          ),
+        );
+      });
     } catch (cause) {
       return left(
         new CronogramaRepositoryException({
@@ -138,31 +120,40 @@ export default class EstagioRepository implements IEstagioRepository {
       );
     }
   }
+
+  async listRootEstagios(
+    obraId: string,
+  ): AsyncResult<AppException, EstagioEntity[]> {
+    try {
+      return await withManager(this.ds, this.tc, async (manager) => {
+        const repo = manager.getRepository(EstagioModel);
+        const rows = await repo.find({
+          where: {
+            obraId,
+            estagioPaiId: IsNull(),
+          },
+          order: { posicao: 'ASC', id: 'ASC' },
+        });
+        return right(rows.map((e) => EstagioMapper.toEntity(e)));
+      });
+    } catch (cause) {
+      return left(
+        new CronogramaRepositoryException({
+          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
+          cause,
+        }),
+      );
+    }
+  }
+
   async update(e: EstagioEntity): AsyncResult<AppException, EstagioEntity> {
     try {
-      const [row] = await this.ds.query(
-        `UPDATE "${this.schema()}"."estagio" SET nome=$1,posicao=$2,modo_duracao=$3,data_inicio=$4,data_fim=$5,percentual_direto=$6,responsavel_usuario_id=$7,atualizado_em=$8 WHERE id=$9 AND obra_id=$10 RETURNING *`,
-        [
-          e.nome,
-          e.posicao,
-          e.modoDuracao,
-          e.dataInicio,
-          e.dataFim,
-          e.percentualDireto,
-          e.responsavelUsuarioId,
-          e.atualizadoEm,
-          e.id,
-          e.obraId,
-        ],
-      );
-      if (!row)
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-            statusCode: 404,
-          }),
-        );
-      return right(EstagioMapper.toEntity(row));
+      return await withManager(this.ds, this.tc, async (manager) => {
+        const repo = manager.getRepository(EstagioModel);
+        const model = EstagioMapper.toModel(e);
+        const saved = await repo.save(model);
+        return right(EstagioMapper.toEntity(saved));
+      });
     } catch (cause) {
       return left(
         new CronogramaRepositoryException({
@@ -172,20 +163,35 @@ export default class EstagioRepository implements IEstagioRepository {
       );
     }
   }
-  async remove(id: string, obraId: string): AsyncResult<AppException, void> {
+
+  async remove(id: string, obraId: string): AsyncResult<AppException, Unit> {
     try {
-      const [row] = await this.ds.query(
-        `DELETE FROM "${this.schema()}"."estagio" WHERE id=$1 AND obra_id=$2 RETURNING id`,
-        [id, obraId],
-      );
-      if (!row)
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-            statusCode: 404,
-          }),
+      return await withManager(this.ds, this.tc, async (manager) => {
+        const repo = manager.getRepository(EstagioModel);
+        const exists = await repo.findOne({ where: { id, obraId } });
+        if (!exists) {
+          return left(
+            new CronogramaRepositoryException({
+              code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
+              statusCode: 404,
+            }),
+          );
+        }
+        await repo.update(
+          { obraId, estagioPaiId: id },
+          { estagioPaiId: null, updatedAt: new Date() },
         );
-      return right(undefined);
+        const result = await repo.delete({ id, obraId });
+        if (result.affected === 0) {
+          return left(
+            new CronogramaRepositoryException({
+              code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
+              statusCode: 404,
+            }),
+          );
+        }
+        return right(unit);
+      });
     } catch (cause) {
       return left(
         new CronogramaRepositoryException({
@@ -195,23 +201,17 @@ export default class EstagioRepository implements IEstagioRepository {
       );
     }
   }
+
   async reorder(
     obraId: string,
     items: { id: string; posicao: number }[],
-  ): AsyncResult<AppException, void> {
+  ): AsyncResult<AppException, Unit> {
     try {
-      const s = this.schema();
-      const q = this.ds.createQueryRunner();
-      await q.connect();
-      await q.startTransaction();
-      try {
+      return await withManager(this.ds, this.tc, async (manager) => {
+        const repo = manager.getRepository(EstagioModel);
         for (const item of items) {
-          const [row] = await q.query(
-            `UPDATE "${s}"."estagio" SET posicao=$1,atualizado_em=now() WHERE id=$2 AND obra_id=$3 RETURNING id`,
-            [item.posicao, item.id, obraId],
-          );
-          if (!row) {
-            await q.rollbackTransaction();
+          const exists = await repo.findOne({ where: { id: item.id, obraId } });
+          if (!exists) {
             return left(
               new CronogramaRepositoryException({
                 code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
@@ -220,246 +220,22 @@ export default class EstagioRepository implements IEstagioRepository {
             );
           }
         }
-        await q.commitTransaction();
-        return right(undefined);
-      } catch (cause) {
-        await q.rollbackTransaction();
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-            cause,
-          }),
-        );
-      } finally {
-        await q.release();
-      }
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async saveAcompanhamento(
-    item: EstagioAcompanhamentoEntity,
-  ): AsyncResult<AppException, EstagioAcompanhamentoEntity> {
-    try {
-      const [row] = await this.ds.query(
-        `INSERT INTO "${this.schema()}"."estagio_acompanhamento" (id,tenant_id,obra_id,estagio_id,percentual,data,observacao,autor_usuario_id,criado_em) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-        [
-          item.id,
-          item.tenantId,
-          item.obraId,
-          item.estagioId,
-          item.percentual,
-          item.data,
-          item.observacao,
-          item.autorUsuarioId,
-          item.criadoEm,
-        ],
-      );
-      return right(EstagioMapper.toAcompanhamentoEntity(row));
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async findAcompanhamentoById(
-    obraId: string,
-    estagioId: string,
-    id: string,
-  ): AsyncResult<AppException, EstagioAcompanhamentoEntity> {
-    try {
-      const [row] = await this.ds.query(
-        `SELECT * FROM "${this.schema()}"."estagio_acompanhamento" WHERE id=$1 AND obra_id=$2 AND estagio_id=$3`,
-        [id, obraId, estagioId],
-      );
-      if (!row)
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-            statusCode: 404,
-          }),
-        );
-      return right(EstagioMapper.toAcompanhamentoEntity(row));
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async updateAcompanhamento(
-    item: EstagioAcompanhamentoEntity,
-  ): AsyncResult<AppException, EstagioAcompanhamentoEntity> {
-    try {
-      const [row] = await this.ds.query(
-        `UPDATE "${this.schema()}"."estagio_acompanhamento" SET percentual=$1,data=$2,observacao=$3 WHERE id=$4 AND obra_id=$5 AND estagio_id=$6 RETURNING *`,
-        [
-          item.percentual,
-          item.data,
-          item.observacao,
-          item.id,
-          item.obraId,
-          item.estagioId,
-        ],
-      );
-      if (!row)
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-            statusCode: 404,
-          }),
-        );
-      return right(EstagioMapper.toAcompanhamentoEntity(row));
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async removeAcompanhamento(
-    obraId: string,
-    estagioId: string,
-    id: string,
-  ): AsyncResult<AppException, void> {
-    try {
-      const [row] = await this.ds.query(
-        `DELETE FROM "${this.schema()}"."estagio_acompanhamento" WHERE id=$1 AND obra_id=$2 AND estagio_id=$3 RETURNING id`,
-        [id, obraId, estagioId],
-      );
-      if (!row)
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-            statusCode: 404,
-          }),
-        );
-      return right(undefined);
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async saveComentario(
-    item: EstagioComentarioEntity,
-  ): AsyncResult<AppException, EstagioComentarioEntity> {
-    try {
-      const [row] = await this.ds.query(
-        `INSERT INTO "${this.schema()}"."estagio_comentario" (id,tenant_id,obra_id,estagio_id,texto,autor_usuario_id,criado_em) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-        [
-          item.id,
-          item.tenantId,
-          item.obraId,
-          item.estagioId,
-          item.texto,
-          item.autorUsuarioId,
-          item.criadoEm,
-        ],
-      );
-      return right(EstagioMapper.toComentarioEntity(row));
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async findComentarioById(
-    obraId: string,
-    estagioId: string,
-    id: string,
-  ): AsyncResult<AppException, EstagioComentarioEntity> {
-    try {
-      const [row] = await this.ds.query(
-        `SELECT * FROM "${this.schema()}"."estagio_comentario" WHERE id=$1 AND obra_id=$2 AND estagio_id=$3`,
-        [id, obraId, estagioId],
-      );
-      if (!row)
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-            statusCode: 404,
-          }),
-        );
-      return right(EstagioMapper.toComentarioEntity(row));
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async updateComentario(
-    item: EstagioComentarioEntity,
-  ): AsyncResult<AppException, EstagioComentarioEntity> {
-    try {
-      const [row] = await this.ds.query(
-        `UPDATE "${this.schema()}"."estagio_comentario" SET texto=$1 WHERE id=$2 AND obra_id=$3 AND estagio_id=$4 RETURNING *`,
-        [item.texto, item.id, item.obraId, item.estagioId],
-      );
-      if (!row)
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-            statusCode: 404,
-          }),
-        );
-      return right(EstagioMapper.toComentarioEntity(row));
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async removeComentario(
-    obraId: string,
-    estagioId: string,
-    id: string,
-  ): AsyncResult<AppException, void> {
-    try {
-      const [row] = await this.ds.query(
-        `DELETE FROM "${this.schema()}"."estagio_comentario" WHERE id=$1 AND obra_id=$2 AND estagio_id=$3 RETURNING id`,
-        [id, obraId, estagioId],
-      );
-      if (!row)
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-            statusCode: 404,
-          }),
-        );
-      return right(undefined);
+        for (const item of items) {
+          const result = await repo.update(
+            { id: item.id, obraId },
+            { posicao: item.posicao, updatedAt: new Date() },
+          );
+          if (result.affected === 0) {
+            return left(
+              new CronogramaRepositoryException({
+                code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
+                statusCode: 404,
+              }),
+            );
+          }
+        }
+        return right(unit);
+      });
     } catch (cause) {
       return left(
         new CronogramaRepositoryException({
@@ -476,18 +252,31 @@ export default class EstagioRepository implements IEstagioRepository {
     percentual: number,
   ): AsyncResult<AppException, EstagioEntity> {
     try {
-      const [row] = await this.ds.query(
-        `UPDATE "${this.schema()}"."estagio" SET percentual_direto=$1,atualizado_em=now() WHERE id=$2 AND obra_id=$3 RETURNING *`,
-        [percentual, id, obraId],
-      );
-      if (!row)
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-            statusCode: 404,
-          }),
+      return await withManager(this.ds, this.tc, async (manager) => {
+        const repo = manager.getRepository(EstagioModel);
+        const result = await repo.update(
+          { id, obraId },
+          { percentualDireto: percentual, updatedAt: new Date() },
         );
-      return right(EstagioMapper.toEntity(row));
+        if (result.affected === 0)
+          return left(
+            new CronogramaRepositoryException({
+              code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
+              statusCode: 404,
+            }),
+          );
+        const model = await repo.findOne({
+          where: { id, obraId },
+        });
+        if (!model)
+          return left(
+            new CronogramaRepositoryException({
+              code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
+              statusCode: 404,
+            }),
+          );
+        return right(EstagioMapper.toEntity(model));
+      });
     } catch (cause) {
       return left(
         new CronogramaRepositoryException({
@@ -500,334 +289,20 @@ export default class EstagioRepository implements IEstagioRepository {
 
   async datasAgregadas(
     obraId: string,
-  ): AsyncResult<
-    AppException,
-    { dataInicio: string | null; dataFim: string | null }
-  > {
+  ): AsyncResult<AppException, DataAgregadasReadModel> {
     try {
-      const [row] = await this.ds.query(
-        `SELECT MIN(data_inicio)::text AS data_inicio, MAX(data_fim)::text AS data_fim FROM "${this.schema()}"."estagio" WHERE obra_id=$1`,
-        [obraId],
-      );
-      return right({ dataInicio: row.data_inicio, dataFim: row.data_fim });
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async nextMedicaoNumero(obraId: string): AsyncResult<AppException, number> {
-    try {
-      const [row] = await this.ds.query(
-        `SELECT COALESCE(MAX(numero),0)+1 AS numero FROM "${this.schema()}"."medicao" WHERE obra_id=$1`,
-        [obraId],
-      );
-      return right(Number(row.numero));
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async saveMedicao(
-    item: MedicaoEntity,
-  ): AsyncResult<AppException, MedicaoEntity> {
-    try {
-      const s = this.schema();
-      const q = this.ds.createQueryRunner();
-      await q.connect();
-      await q.startTransaction();
-      try {
-        const [row] = await q.query(
-          `INSERT INTO "${s}"."medicao" (id,tenant_id,obra_id,orgao_id,numero,tipo,data,observacao,criado_em) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-          [
-            item.id,
-            item.tenantId,
-            item.obraId,
-            item.orgaoId,
-            item.numero,
-            item.tipo,
-            item.dataMedicao,
-            item.observacao,
-            item.criadoEm,
-          ],
-        );
-        const itens: MedicaoFonteProps[] = [];
-        for (const fonte of item.itens) {
-          const [fonteRow] = await q.query(
-            `INSERT INTO "${s}"."medicao_fonte" (id,tenant_id,medicao_id,fonte_id,valor) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-            [
-              fonte.id,
-              fonte.tenantId,
-              fonte.medicaoId,
-              fonte.fonteId,
-              fonte.valor,
-            ],
-          );
-          itens.push({
-            id: fonteRow.id,
-            tenantId: fonteRow.tenant_id,
-            medicaoId: fonteRow.medicao_id,
-            fonteId: fonteRow.fonte_id,
-            valor: Number(fonteRow.valor),
-          });
-        }
-        await q.commitTransaction();
-        return right(
-          MedicaoEntity.fromData({
-            id: row.id,
-            tenantId: row.tenant_id,
-            obraId: row.obra_id,
-            orgaoId: row.orgao_id ?? null,
-            numero: row.numero,
-            tipo: row.tipo,
-            dataMedicao: row.data,
-            observacao: row.observacao,
-            criadoEm: row.criado_em,
-            atualizadoEm: row.criado_em,
-            itens,
-          }),
-        );
-      } catch (cause) {
-        await q.rollbackTransaction();
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-            cause,
-          }),
-        );
-      } finally {
-        await q.release();
-      }
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async listMedicoes(
-    obraId: string,
-    o: PageOptionsEntity,
-  ): AsyncResult<AppException, PageEntity<MedicaoEntity>> {
-    try {
-      const s = this.schema();
-      const rows = await this.ds.query(
-        `SELECT * FROM "${s}"."medicao" WHERE obra_id=$1 ORDER BY data DESC,numero DESC LIMIT $2 OFFSET $3`,
-        [obraId, o.take, (o.page - 1) * o.take],
-      );
-      const [{ count }] = await this.ds.query(
-        `SELECT COUNT(*)::int AS count FROM "${s}"."medicao" WHERE obra_id=$1`,
-        [obraId],
-      );
-      const items = await Promise.all(
-        rows.map(async (row: Record<string, any>) => {
-          const fontes = await this.ds.query(
-            `SELECT * FROM "${s}"."medicao_fonte" WHERE medicao_id=$1`,
-            [row.id],
-          );
-          return MedicaoEntity.fromData({
-            id: row.id,
-            tenantId: row.tenant_id,
-            obraId: row.obra_id,
-            orgaoId: row.orgao_id ?? null,
-            numero: row.numero,
-            tipo: row.tipo,
-            dataMedicao: row.data,
-            observacao: row.observacao,
-            criadoEm: row.criado_em,
-            atualizadoEm: row.criado_em,
-            itens: fontes.map((fonte: Record<string, any>) => ({
-              id: fonte.id,
-              tenantId: fonte.tenant_id,
-              medicaoId: fonte.medicao_id,
-              fonteId: fonte.fonte_id,
-              valor: Number(fonte.valor),
-            })),
-          });
-        }),
-      );
-      return right(
-        new PageEntity(
-          items,
-          new PageMetaEntity({ pageOptions: o, itemCount: count }),
-        ),
-      );
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async findMedicaoById(
-    obraId: string,
-    id: string,
-  ): AsyncResult<AppException, MedicaoEntity> {
-    try {
-      const s = this.schema();
-      const [row] = await this.ds.query(
-        `SELECT * FROM "${s}"."medicao" WHERE id=$1 AND obra_id=$2`,
-        [id, obraId],
-      );
-      if (!row)
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-            statusCode: 404,
-          }),
-        );
-      const fontes = await this.ds.query(
-        `SELECT * FROM "${s}"."medicao_fonte" WHERE medicao_id=$1`,
-        [id],
-      );
-      return right(
-        MedicaoEntity.fromData({
-          id: row.id,
-          tenantId: row.tenant_id,
-          obraId: row.obra_id,
-          orgaoId: row.orgao_id ?? null,
-          numero: row.numero,
-          tipo: row.tipo,
-          dataMedicao: row.data,
-          observacao: row.observacao,
-          criadoEm: row.criado_em,
-          atualizadoEm: row.criado_em,
-          itens: fontes.map((fonte: Record<string, any>) => ({
-            id: fonte.id,
-            tenantId: fonte.tenant_id,
-            medicaoId: fonte.medicao_id,
-            fonteId: fonte.fonte_id,
-            valor: Number(fonte.valor),
-          })),
-        }),
-      );
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async updateMedicao(item: MedicaoEntity): AsyncResult<AppException, MedicaoEntity> {
-    try {
-      const s = this.schema();
-      const q = this.ds.createQueryRunner();
-      await q.connect();
-      await q.startTransaction();
-      try {
-        const [row] = await q.query(
-          `UPDATE "${s}"."medicao" SET numero=$1,orgao_id=$2,tipo=$3,data=$4,observacao=$5 WHERE id=$6 AND obra_id=$7 RETURNING *`,
-          [
-            item.numero,
-            item.orgaoId,
-            item.tipo,
-            item.dataMedicao,
-            item.observacao,
-            item.id,
-            item.obraId,
-          ],
-        );
-        if (!row) {
-          await q.rollbackTransaction();
-          return left(
-            new CronogramaRepositoryException({
-              code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-              statusCode: 404,
-            }),
-          );
-        }
-        await q.query(`DELETE FROM "${s}"."medicao_fonte" WHERE medicao_id=$1`, [
-          item.id,
-        ]);
-        const itens: MedicaoFonteProps[] = [];
-        for (const fonte of item.itens) {
-          const [fonteRow] = await q.query(
-            `INSERT INTO "${s}"."medicao_fonte" (id,tenant_id,medicao_id,fonte_id,valor) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-            [
-              fonte.id,
-              fonte.tenantId,
-              fonte.medicaoId,
-              fonte.fonteId,
-              fonte.valor,
-            ],
-          );
-          itens.push({
-            id: fonteRow.id,
-            tenantId: fonteRow.tenant_id,
-            medicaoId: fonteRow.medicao_id,
-            fonteId: fonteRow.fonte_id,
-            valor: Number(fonteRow.valor),
-          });
-        }
-        await q.commitTransaction();
-        return right(
-          MedicaoEntity.fromData({
-            id: row.id,
-            tenantId: row.tenant_id,
-            obraId: row.obra_id,
-            orgaoId: row.orgao_id ?? null,
-            numero: row.numero,
-            tipo: row.tipo,
-            dataMedicao: row.data,
-            observacao: row.observacao,
-            criadoEm: row.criado_em,
-            atualizadoEm: item.atualizadoEm,
-            itens,
-          }),
-        );
-      } catch (cause) {
-        await q.rollbackTransaction();
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-            cause,
-          }),
-        );
-      } finally {
-        await q.release();
-      }
-    } catch (cause) {
-      return left(
-        new CronogramaRepositoryException({
-          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
-          cause,
-        }),
-      );
-    }
-  }
-
-  async removeMedicao(obraId: string, id: string): AsyncResult<AppException, void> {
-    try {
-      const [row] = await this.ds.query(
-        `DELETE FROM "${this.schema()}"."medicao" WHERE id=$1 AND obra_id=$2 RETURNING id`,
-        [id, obraId],
-      );
-      if (!row)
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-            statusCode: 404,
-          }),
-        );
-      return right(undefined);
+      return await withManager(this.ds, this.tc, async (manager) => {
+        const repo = manager.getRepository(EstagioModel);
+        const qb = repo.createQueryBuilder('estagio');
+        qb.where('estagio.obraId = :obraId', { obraId });
+        qb.select('MIN(estagio.dataInicio)', 'dataInicio');
+        qb.addSelect('MAX(estagio.dataFim)', 'dataFim');
+        const result = await qb.getRawOne<DataAgregadasReadModel>();
+        return right({
+          dataInicio: result?.dataInicio ?? null,
+          dataFim: result?.dataFim ?? null,
+        });
+      });
     } catch (cause) {
       return left(
         new CronogramaRepositoryException({
@@ -840,11 +315,14 @@ export default class EstagioRepository implements IEstagioRepository {
 
   async nextPosicao(obraId: string): AsyncResult<AppException, number> {
     try {
-      const [row] = await this.ds.query(
-        `SELECT COALESCE(MAX(posicao),-1)+1 AS posicao FROM "${this.schema()}"."estagio" WHERE obra_id=$1`,
-        [obraId],
-      );
-      return right(Number(row.posicao));
+      return await withManager(this.ds, this.tc, async (manager) => {
+        const repo = manager.getRepository(EstagioModel);
+        const qb = repo.createQueryBuilder('estagio');
+        qb.where('estagio.obraId = :obraId', { obraId });
+        qb.select('COALESCE(MAX(estagio.posicao), -1) + 1', 'nextPosicao');
+        const result = await qb.getRawOne<NextPosicaoReadModel>();
+        return right(Number(result?.nextPosicao ?? 0));
+      });
     } catch (cause) {
       return left(
         new CronogramaRepositoryException({
@@ -857,18 +335,47 @@ export default class EstagioRepository implements IEstagioRepository {
 
   async atual(obraId: string): AsyncResult<AppException, EstagioEntity> {
     try {
-      const [row] = await this.ds.query(
-        `SELECT * FROM "${this.schema()}"."estagio" WHERE obra_id=$1 AND ativo=true AND status <> 'CONCLUIDO' ORDER BY posicao ASC,id ASC LIMIT 1`,
-        [obraId],
+      return await withManager(this.ds, this.tc, async (manager) => {
+        const repo = manager.getRepository(EstagioModel);
+        const model = await repo.findOne({
+          where: {
+            obraId,
+            ativo: true,
+            status: Not(EstagioStatus.CONCLUIDO),
+          },
+          order: { posicao: 'ASC', id: 'ASC' },
+        });
+        if (!model)
+          return left(
+            new CronogramaRepositoryException({
+              code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
+              statusCode: 404,
+            }),
+          );
+        return right(EstagioMapper.toEntity(model));
+      });
+    } catch (cause) {
+      return left(
+        new CronogramaRepositoryException({
+          code: ErrorCodeConstants.CRONOGRAMA_REPOSITORY_FAILED,
+          cause,
+        }),
       );
-      if (!row)
-        return left(
-          new CronogramaRepositoryException({
-            code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
-            statusCode: 404,
-          }),
-        );
-      return right(EstagioMapper.toEntity(row));
+    }
+  }
+
+  async hasChildren(
+    obraId: string,
+    estagioId: string,
+  ): AsyncResult<AppException, boolean> {
+    try {
+      return await withManager(this.ds, this.tc, async (manager) => {
+        const repo = manager.getRepository(EstagioModel);
+        const count = await repo.count({
+          where: { obraId, estagioPaiId: estagioId },
+        });
+        return right(count > 0);
+      });
     } catch (cause) {
       return left(
         new CronogramaRepositoryException({

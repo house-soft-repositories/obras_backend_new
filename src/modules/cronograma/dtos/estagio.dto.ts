@@ -19,13 +19,15 @@ export class CreateEstagioDto {
   @IsOptional() @IsDateString() dataInicio?: string;
   @IsOptional() @IsDateString() dataFim?: string;
   @IsOptional() @IsUUID() responsavelUsuarioId?: string;
+  @IsOptional() @IsUUID() estagioPaiId?: string;
 }
 export class UpdateEstagioDto {
   @IsOptional() @IsString() @MinLength(1) nome?: string;
   @IsOptional() @IsInt() @Min(0) posicao?: number;
-  @IsOptional() @IsDateString() dataInicio?: string;
-  @IsOptional() @IsDateString() dataFim?: string;
+  @IsOptional() @IsDateString() dataInicio?: string | null;
+  @IsOptional() @IsDateString() dataFim?: string | null;
   @IsOptional() @IsUUID() responsavelUsuarioId?: string;
+  @IsOptional() @IsUUID() estagioPaiId?: string | null;
 }
 export class CreateEstagiosLoteDto {
   @IsArray()
