@@ -16,7 +16,7 @@ import {
   EmpresaContratadaModel,
   EmpresaContratadaTelefoneModel,
 } from '@/modules/contratos/infra/models/empresa_contratada.model';
-import { withTenantManager } from '@/modules/contratos/infra/repositories/tenant_repository.helper';
+import { withManager } from '@/core/multitenancy/tenant_manager';
 
 export default class EmpresaContratadaRepository
   implements IEmpresaContratadaRepository
@@ -30,7 +30,7 @@ export default class EmpresaContratadaRepository
     entity: EmpresaContratadaEntity,
   ): AsyncResult<AppException, EmpresaContratadaEntity> {
     try {
-      const saved = await withTenantManager(
+      const saved = await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
@@ -78,7 +78,7 @@ export default class EmpresaContratadaRepository
     id: string,
   ): AsyncResult<AppException, EmpresaContratadaEntity | null> {
     try {
-      const found = await withTenantManager(
+      const found = await withManager(
         this.dataSource,
         this.tenantContext,
         (manager: EntityManager) => this.findOneWithTelefones(manager, id),
@@ -101,7 +101,7 @@ export default class EmpresaContratadaRepository
   ): AsyncResult<AppException, PageEntity<EmpresaContratadaEntity>> {
     try {
       const tenantId = this.tenantContext.require().tenantId;
-      const page = await withTenantManager(
+      const page = await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
@@ -139,7 +139,7 @@ export default class EmpresaContratadaRepository
   ): AsyncResult<AppException, boolean> {
     try {
       const tenantId = this.tenantContext.require().tenantId;
-      const exists = await withTenantManager(
+      const exists = await withManager(
         this.dataSource,
         this.tenantContext,
         (manager: EntityManager) =>
@@ -167,7 +167,7 @@ export default class EmpresaContratadaRepository
   async delete(id: string): AsyncResult<AppException, void> {
     try {
       const tenantId = this.tenantContext.require().tenantId;
-      await withTenantManager(
+      await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {

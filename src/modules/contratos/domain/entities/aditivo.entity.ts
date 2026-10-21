@@ -99,6 +99,47 @@ export default class AditivoEntity {
   static fromData(p: AditivoProps): AditivoEntity {
     return new AditivoEntity(p);
   }
+  static validate(p: AditivoProps): void {
+    const numero = p.numero?.trim();
+    if (!numero)
+      throw new AditivoDomainException({
+        code: ErrorCodeConstants.ADITIVO_INVALID_INPUT,
+      });
+    if (!Object.values(TipoAditivo).includes(p.tipo))
+      throw new AditivoDomainException({
+        code: ErrorCodeConstants.ADITIVO_INVALID_INPUT,
+      });
+    if (p.tipo === TipoAditivo.PRAZO || p.tipo === TipoAditivo.PRAZO_E_VALOR) {
+      if (!p.tipoPrazoExecucao)
+        throw new AditivoDomainException({
+          code: ErrorCodeConstants.ADITIVO_INVALID_INPUT,
+        });
+      if (
+        p.tipoPrazoExecucao === TipoPrazoExecucao.DIAS &&
+        (p.prazoExecucaoDias == null || p.prazoExecucaoDias < 1)
+      )
+        throw new AditivoDomainException({
+          code: ErrorCodeConstants.ADITIVO_INVALID_INPUT,
+        });
+      if (
+        p.tipoPrazoExecucao === TipoPrazoExecucao.DATA &&
+        !p.prazoExecucaoData
+      )
+        throw new AditivoDomainException({
+          code: ErrorCodeConstants.ADITIVO_INVALID_INPUT,
+        });
+    }
+    if (
+      (p.tipo === TipoAditivo.VALOR || p.tipo === TipoAditivo.PRAZO_E_VALOR) &&
+      p.fontes
+    ) {
+      for (const f of p.fontes)
+        if (!f.valor || Number(f.valor) <= 0)
+          throw new AditivoDomainException({
+            code: ErrorCodeConstants.ADITIVO_INVALID_INPUT,
+          });
+    }
+  }
   toObject(): AditivoProps {
     return { ...this.props };
   }

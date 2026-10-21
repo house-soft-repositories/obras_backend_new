@@ -9,7 +9,7 @@ import ParalisacaoEntity from '@/modules/contratos/domain/entities/paralisacao.e
 import ParalisacaoRepositoryException from '@/modules/contratos/exceptions/paralisacao_repository.exception';
 import ParalisacaoMapper from '@/modules/contratos/infra/mapper/paralisacao.mapper';
 import { ParalisacaoModel } from '@/modules/contratos/infra/models/paralisacao.model';
-import { withTenantManager } from '@/modules/contratos/infra/repositories/tenant_repository.helper';
+import { withManager } from '@/core/multitenancy/tenant_manager';
 
 export default class ParalisacaoRepository implements IParalisacaoRepository {
   constructor(
@@ -21,7 +21,7 @@ export default class ParalisacaoRepository implements IParalisacaoRepository {
     entity: ParalisacaoEntity,
   ): AsyncResult<AppException, ParalisacaoEntity> {
     try {
-      const saved = await withTenantManager(
+      const saved = await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
@@ -50,7 +50,7 @@ export default class ParalisacaoRepository implements IParalisacaoRepository {
   ): AsyncResult<AppException, ParalisacaoEntity[]> {
     try {
       const tenantId = this.tenantContext.require().tenantId;
-      const paralisacoes = await withTenantManager(
+      const paralisacoes = await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
@@ -80,7 +80,7 @@ export default class ParalisacaoRepository implements IParalisacaoRepository {
   ): AsyncResult<AppException, ParalisacaoEntity | null> {
     try {
       const tenantId = this.tenantContext.require().tenantId;
-      const found = await withTenantManager(
+      const found = await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
@@ -107,7 +107,7 @@ export default class ParalisacaoRepository implements IParalisacaoRepository {
   async delete(id: string): AsyncResult<AppException, void> {
     try {
       const tenantId = this.tenantContext.require().tenantId;
-      await withTenantManager(
+      await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {

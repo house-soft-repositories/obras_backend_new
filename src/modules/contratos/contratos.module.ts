@@ -37,6 +37,7 @@ import DeleteEmpresaContratadaService from '@/modules/contratos/application/dele
 import CreateAditivoService from '@/modules/contratos/application/create_aditivo.service';
 import ListAditivosService from '@/modules/contratos/application/list_aditivos.service';
 import GetAditivoService from '@/modules/contratos/application/get_aditivo.service';
+import UpdateAditivoService from '@/modules/contratos/application/update_aditivo.service';
 import DeleteAditivoService from '@/modules/contratos/application/delete_aditivo.service';
 import CreateParalisacaoService from '@/modules/contratos/application/create_paralisacao.service';
 import ListParalisacoesService from '@/modules/contratos/application/list_paralisacoes.service';
@@ -66,6 +67,7 @@ import {
   CREATE_ADITIVO_USE_CASE,
   LIST_ADITIVOS_USE_CASE,
   GET_ADITIVO_USE_CASE,
+  UPDATE_ADITIVO_USE_CASE,
   DELETE_ADITIVO_USE_CASE,
   CREATE_PARALISACAO_USE_CASE,
   LIST_PARALISACOES_USE_CASE,
@@ -223,6 +225,11 @@ import IEmpresaContratadaRepository from '@/modules/contratos/adapters/empresa_c
       useFactory: (ar: IAditivoRepository) => new GetAditivoService(ar),
     },
     {
+      provide: UPDATE_ADITIVO_USE_CASE,
+      inject: [ADITIVO_REPOSITORY],
+      useFactory: (ar: IAditivoRepository) => new UpdateAditivoService(ar),
+    },
+    {
       provide: DELETE_ADITIVO_USE_CASE,
       inject: [ADITIVO_REPOSITORY],
       useFactory: (ar: IAditivoRepository) => new DeleteAditivoService(ar),
@@ -275,6 +282,7 @@ import IEmpresaContratadaRepository from '@/modules/contratos/adapters/empresa_c
     CREATE_ADITIVO_USE_CASE,
     LIST_ADITIVOS_USE_CASE,
     GET_ADITIVO_USE_CASE,
+    UPDATE_ADITIVO_USE_CASE,
     DELETE_ADITIVO_USE_CASE,
     CREATE_PARALISACAO_USE_CASE,
     LIST_PARALISACOES_USE_CASE,

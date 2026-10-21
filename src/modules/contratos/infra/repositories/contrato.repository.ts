@@ -17,7 +17,7 @@ import {
 } from '@/modules/contratos/infra/models/contrato.model';
 import FonteModel from '@/modules/fontes/infra/models/fonte.model';
 import ObraModel from '@/modules/obras/infra/models/obra.model';
-import { withTenantManager } from '@/modules/contratos/infra/repositories/tenant_repository.helper';
+import { withManager } from '@/core/multitenancy/tenant_manager';
 
 export default class ContratoRepository implements IContratoRepository {
   constructor(
@@ -27,7 +27,7 @@ export default class ContratoRepository implements IContratoRepository {
 
   async save(entity: ContratoEntity): AsyncResult<AppException, ContratoEntity> {
     try {
-      const saved = await withTenantManager(
+      const saved = await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
@@ -60,7 +60,7 @@ export default class ContratoRepository implements IContratoRepository {
 
   async findById(id: string): AsyncResult<AppException, ContratoEntity | null> {
     try {
-      const found = await withTenantManager(
+      const found = await withManager(
         this.dataSource,
         this.tenantContext,
         (manager: EntityManager) => this.findOneWithFontes(manager, id),
@@ -83,7 +83,7 @@ export default class ContratoRepository implements IContratoRepository {
   ): AsyncResult<AppException, PageEntity<ContratoEntity>> {
     try {
       const tenantId = this.tenantContext.require().tenantId;
-      const page = await withTenantManager(
+      const page = await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
@@ -120,7 +120,7 @@ export default class ContratoRepository implements IContratoRepository {
   ): AsyncResult<AppException, ContratoEntity | null> {
     try {
       const tenantId = this.tenantContext.require().tenantId;
-      const found = await withTenantManager(
+      const found = await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
@@ -146,7 +146,7 @@ export default class ContratoRepository implements IContratoRepository {
 
   async existsObraAtiva(obraId: string): AsyncResult<AppException, boolean> {
     try {
-      const exists = await withTenantManager(
+      const exists = await withManager(
         this.dataSource,
         this.tenantContext,
         (manager: EntityManager) =>
@@ -169,7 +169,7 @@ export default class ContratoRepository implements IContratoRepository {
 
   async existsFonte(fonteId: string): AsyncResult<AppException, boolean> {
     try {
-      const exists = await withTenantManager(
+      const exists = await withManager(
         this.dataSource,
         this.tenantContext,
         (manager: EntityManager) =>
@@ -195,7 +195,7 @@ export default class ContratoRepository implements IContratoRepository {
     { considerarSabado: boolean; considerarDomingo: boolean } | null
   > {
     try {
-      const calendario = await withTenantManager(
+      const calendario = await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
@@ -228,7 +228,7 @@ export default class ContratoRepository implements IContratoRepository {
   async delete(id: string): AsyncResult<AppException, void> {
     try {
       const tenantId = this.tenantContext.require().tenantId;
-      await withTenantManager(
+      await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {

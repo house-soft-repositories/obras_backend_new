@@ -4,6 +4,7 @@ import AppException from '@/core/exceptions/app_exception';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
+import { unit, type Unit } from '@/core/types/unit';
 import IAditivoRepository from '@/modules/contratos/adapters/aditivo_repository.interface';
 import AditivoEntity from '@/modules/contratos/domain/entities/aditivo.entity';
 import AditivoRepositoryException from '@/modules/contratos/exceptions/aditivo_repository.exception';
@@ -12,7 +13,7 @@ import {
   AditivoFonteModel,
   AditivoModel,
 } from '@/modules/contratos/infra/models/aditivo.model';
-import { withTenantManager } from '@/modules/contratos/infra/repositories/tenant_repository.helper';
+import { withManager } from '@/core/multitenancy/tenant_manager';
 
 export default class AditivoRepository implements IAditivoRepository {
   constructor(
@@ -22,7 +23,7 @@ export default class AditivoRepository implements IAditivoRepository {
 
   async save(entity: AditivoEntity): AsyncResult<AppException, AditivoEntity> {
     try {
-      const saved = await withTenantManager(
+      const saved = await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
@@ -72,7 +73,7 @@ export default class AditivoRepository implements IAditivoRepository {
   ): AsyncResult<AppException, AditivoEntity[]> {
     try {
       const tenantId = this.tenantContext.require().tenantId;
-      const aditivos = await withTenantManager(
+      const aditivos = await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
@@ -101,7 +102,7 @@ export default class AditivoRepository implements IAditivoRepository {
 
   async findById(id: string): AsyncResult<AppException, AditivoEntity | null> {
     try {
-      const found = await withTenantManager(
+      const found = await withManager(
         this.dataSource,
         this.tenantContext,
         (manager: EntityManager) => this.findOneWithFontes(manager, id),
@@ -119,10 +120,10 @@ export default class AditivoRepository implements IAditivoRepository {
     }
   }
 
-  async delete(id: string): AsyncResult<AppException, void> {
+  async delete(id: string): AsyncResult<AppException, Unit> {
     try {
       const tenantId = this.tenantContext.require().tenantId;
-      await withTenantManager(
+      await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
@@ -130,7 +131,7 @@ export default class AditivoRepository implements IAditivoRepository {
         },
       );
 
-      return right(undefined);
+      return right(unit);
     } catch (cause) {
       return left(
         new AditivoRepositoryException({

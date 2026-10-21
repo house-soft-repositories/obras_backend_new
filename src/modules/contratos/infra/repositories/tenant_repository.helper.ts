@@ -1,5 +1,5 @@
 /**
- * @deprecated Importe de `@/core/multitenancy/tenant_manager` em código novo.
- * Mantido apenas como re-export para os repositories de contratos.
+ * @deprecated Use `withManager` directly from `@/core/multitenancy/tenant_manager`.
+ * This file will be removed in a future version.
  */
-export { withTenantManager } from '@/core/multitenancy/tenant_manager';
+export { withManager } from '@/core/multitenancy/tenant_manager';

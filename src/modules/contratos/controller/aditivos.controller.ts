@@ -5,6 +5,7 @@ import {
   Get,
   HttpException,
   Param,
+  Patch,
   Post,
   UseGuards,
   ParseUUIDPipe,
@@ -19,12 +20,18 @@ import {
   CREATE_ADITIVO_USE_CASE,
   LIST_ADITIVOS_USE_CASE,
   GET_ADITIVO_USE_CASE,
+  UPDATE_ADITIVO_USE_CASE,
   DELETE_ADITIVO_USE_CASE,
 } from '@/modules/contratos/symbols';
 import type ICreateAditivoUseCase from '@/modules/contratos/domain/usecase/create_aditivo.usecase';
 import type IListAditivosUseCase from '@/modules/contratos/domain/usecase/list_aditivos.usecase';
 import type IGetAditivoUseCase from '@/modules/contratos/domain/usecase/get_aditivo.usecase';
+import type IUpdateAditivoUseCase from '@/modules/contratos/domain/usecase/update_aditivo.usecase';
 import type IDeleteAditivoUseCase from '@/modules/contratos/domain/usecase/delete_aditivo.usecase';
+import {
+  TipoAditivo,
+  TipoPrazoExecucao,
+} from '@/modules/contratos/domain/enums/contratos.enums';
 
 @Controller('api/contratos/:contratoId/aditivos')
 @UseGuards(AccessTokenGuard)
@@ -36,6 +43,8 @@ export default class AditivosController {
     private readonly listAditivos: IListAditivosUseCase,
     @Inject(GET_ADITIVO_USE_CASE)
     private readonly getAditivo: IGetAditivoUseCase,
+    @Inject(UPDATE_ADITIVO_USE_CASE)
+    private readonly updateAditivo: IUpdateAditivoUseCase,
     @Inject(DELETE_ADITIVO_USE_CASE)
     private readonly deleteAditivo: IDeleteAditivoUseCase,
     private readonly tc: TenantRequestContextService,
@@ -89,6 +98,33 @@ export default class AditivosController {
   ) {
     return this.tc.run(user, async () => {
       const res = await this.getAditivo.execute({ id });
+      if (res.isLeft())
+        throw new HttpException(res.value.message, res.value.statusCode, {
+          cause: res.value.cause,
+        });
+      return res.value.toObject();
+    });
+  }
+
+  @Patch(':id')
+  async update(
+    @Param('contratoId', ParseUUIDPipe) contratoId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: Partial<CriarAditivoDto>,
+    @AuthenticatedUser() user?: AccessTokenPayload,
+  ) {
+    return this.tc.run(user, async () => {
+      const res = await this.updateAditivo.execute({
+        id,
+        numero: body.numero,
+        tipo: body.tipo as TipoAditivo | undefined,
+        dataAssinatura: body.dataAssinatura ?? undefined,
+        tipoPrazoExecucao: body.tipoPrazoExecucao as TipoPrazoExecucao | undefined,
+        prazoExecucaoDias: body.prazoExecucaoDias ?? undefined,
+        prazoExecucaoData: body.prazoExecucaoData ?? undefined,
+        vigenciaAditivada: body.vigenciaAditivada ?? undefined,
+        observacoes: body.observacoes ?? undefined,
+      });
       if (res.isLeft())
         throw new HttpException(res.value.message, res.value.statusCode, {
           cause: res.value.cause,
