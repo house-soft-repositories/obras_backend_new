@@ -196,7 +196,9 @@ export default class ObraPrivadaController {
     });
   }
 
-  @Delete(':id') @HttpCode(204) async excluir(
+  @Delete(':id')
+  @HttpCode(204)
+  async excluir(
     @Param('id') id: string,
     @AuthenticatedUser() u: AccessTokenPayload | undefined,
   ) {

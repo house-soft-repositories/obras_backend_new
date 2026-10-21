@@ -3,6 +3,7 @@ import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.i
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
 import type ICreateAutoInfracaoUseCase from '@/modules/obras-privadas/domain/usecase/create_auto_infracao.usecase';
+import type IDeleteAutoInfracaoUseCase from '@/modules/obras-privadas/domain/usecase/delete_auto_infracao.usecase';
 import type IListAutosInfracaoUseCase from '@/modules/obras-privadas/domain/usecase/list_autos_infracao.usecase';
 import type IUpdateAutoInfracaoUseCase from '@/modules/obras-privadas/domain/usecase/update_auto_infracao.usecase';
 import {
@@ -12,13 +13,16 @@ import {
 import AutoInfracaoResponseDto from '@/modules/obras-privadas/dtos/auto_infracao_response.dto';
 import {
   CREATE_AUTO_INFRACAO_SERVICE,
+  DELETE_AUTO_INFRACAO_SERVICE,
   LIST_AUTOS_INFRACAO_SERVICE,
   UPDATE_AUTO_INFRACAO_SERVICE,
 } from '@/modules/obras-privadas/symbols';
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   HttpException,
   Inject,
   Param,
@@ -37,6 +41,8 @@ export default class AutoInfracaoController {
     private readonly listAutos: IListAutosInfracaoUseCase,
     @Inject(UPDATE_AUTO_INFRACAO_SERVICE)
     private readonly updateAuto: IUpdateAutoInfracaoUseCase,
+    @Inject(DELETE_AUTO_INFRACAO_SERVICE)
+    private readonly deleteAuto: IDeleteAutoInfracaoUseCase,
     private readonly tenantRequestContext: TenantRequestContextService,
   ) {}
   @Post() async create(
@@ -78,6 +84,20 @@ export default class AutoInfracaoController {
       return AutoInfracaoResponseDto.fromEntity(result.value);
     });
   }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async delete(
+    @Param('obraPrivadaId') obraPrivadaId: string,
+    @Param('id') id: string,
+    @AuthenticatedUser() user: AccessTokenPayload | undefined,
+  ) {
+    return this.withTenant(user, async () => {
+      const result = await this.deleteAuto.execute({ id, obraPrivadaId });
+      if (result.isLeft()) this.throwHttp(result.value);
+    });
+  }
+
   private async withTenant<T>(
     user: AccessTokenPayload | undefined,
     callback: () => Promise<T>,

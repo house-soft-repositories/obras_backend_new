@@ -55,6 +55,7 @@ import ListObraPrivadaObservacoesService from '@/modules/obras-privadas/applicat
 import ListObraPrivadaResponsaveisService from '@/modules/obras-privadas/application/list_obra_privada_responsaveis.service';
 import UpdateAlvaraService from '@/modules/obras-privadas/application/update_alvara.service';
 import UpdateAutoInfracaoService from '@/modules/obras-privadas/application/update_auto_infracao.service';
+import DeleteAutoInfracaoService from '@/modules/obras-privadas/application/delete_auto_infracao.service';
 import UpdateFiscalizacaoService from '@/modules/obras-privadas/application/update_fiscalizacao.service';
 import UpdateHabiteSeService from '@/modules/obras-privadas/application/update_habite_se.service';
 import UpdateObraPrivadaResponsavelService from '@/modules/obras-privadas/application/update_obra_privada_responsavel.service';
@@ -105,6 +106,7 @@ import IListObraPrivadaObservacoesUseCase from '@/modules/obras-privadas/domain/
 import IListObraPrivadaResponsaveisUseCase from '@/modules/obras-privadas/domain/usecase/list_obra_privada_responsaveis.usecase';
 import IUpdateAlvaraUseCase from '@/modules/obras-privadas/domain/usecase/update_alvara.usecase';
 import IUpdateAutoInfracaoUseCase from '@/modules/obras-privadas/domain/usecase/update_auto_infracao.usecase';
+import IDeleteAutoInfracaoUseCase from '@/modules/obras-privadas/domain/usecase/delete_auto_infracao.usecase';
 import IUpdateFiscalizacaoUseCase from '@/modules/obras-privadas/domain/usecase/update_fiscalizacao.usecase';
 import IUpdateHabiteSeUseCase from '@/modules/obras-privadas/domain/usecase/update_habite_se.usecase';
 import IUpdateObraPrivadaResponsavelUseCase from '@/modules/obras-privadas/domain/usecase/update_obra_privada_responsavel.usecase';
@@ -145,6 +147,7 @@ import {
   LISTAR_LICENCIAMENTO_SERVICE,
   LISTAR_OBRAS_SERVICE,
   DELETE_ALVARA_SERVICE,
+  DELETE_AUTO_INFRACAO_SERVICE,
   DELETE_FISCALIZACAO_SERVICE,
   DELETE_HABITE_SE_SERVICE,
   DELETE_OBRA_PRIVADA_OBSERVACAO_SERVICE,
@@ -423,6 +426,12 @@ import { DataSource } from 'typeorm';
       inject: [AUTO_INFRACAO_REPOSITORY],
       useFactory: (repo: IAutoInfracaoRepository): IUpdateAutoInfracaoUseCase =>
         new UpdateAutoInfracaoService(repo),
+    },
+    {
+      provide: DELETE_AUTO_INFRACAO_SERVICE,
+      inject: [AUTO_INFRACAO_REPOSITORY],
+      useFactory: (repo: IAutoInfracaoRepository): IDeleteAutoInfracaoUseCase =>
+        new DeleteAutoInfracaoService(repo),
     },
 
     {
@@ -735,6 +744,7 @@ import { DataSource } from 'typeorm';
     CREATE_AUTO_INFRACAO_SERVICE,
     LIST_AUTOS_INFRACAO_SERVICE,
     UPDATE_AUTO_INFRACAO_SERVICE,
+    DELETE_AUTO_INFRACAO_SERVICE,
     HABITE_SE_REPOSITORY,
     CREATE_HABITE_SE_SERVICE,
     LIST_HABITE_SE_SERVICE,

@@ -12,7 +12,9 @@ import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obr
 export default class ExcluirObraService implements IExcluirObraUseCase {
   constructor(private readonly obras: IObraPrivadaRepository) {}
 
-  async execute(param: ExcluirObraParam): AsyncResult<AppException, Unit> {
+  async execute(
+    param: ExcluirObraParam,
+  ): AsyncResult<AppException, Unit> {
     try {
       const found = await this.obras.findById(param.id);
       if (found.isLeft()) return left(found.value);

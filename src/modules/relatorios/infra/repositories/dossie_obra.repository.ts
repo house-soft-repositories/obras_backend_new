@@ -1,6 +1,6 @@
 /**
  * Leitura do dossiê da obra pública via TypeORM (sem SQL cru): usa
- * `withTenantManager` + `manager.getRepository(Model)` com relações e
+ * `withManager` + `manager.getRepository(Model)` com relações e
  * filtros tipados sobre os modelos existentes de Obras, Contratos e
  * Documentos. Estágios e medições vêm de `RelatoriosQuery`
  * (cronograma não tem modelos TypeORM neste backend — nenhum SQL novo).
@@ -9,7 +9,7 @@ import { DataSource, EntityManager, In, IsNull, Like } from 'typeorm';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import AppException from '@/core/exceptions/app_exception';
 import TenantContext from '@/core/multitenancy/tenant_context';
-import { withTenantManager } from '@/core/multitenancy/tenant_manager';
+import { withManager } from '@/core/multitenancy/tenant_manager';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import type IDossieObraRepository from '@/modules/relatorios/adapters/dossie_obra_repository.interface';
@@ -67,7 +67,7 @@ export default class DossieObraRepository implements IDossieObraRepository {
   ): AsyncResult<AppException, DossieObraCarregado | null> {
     try {
       const [bloco, detalhe] = await Promise.all([
-        withTenantManager(
+        withManager(
           this.dataSource,
           this.tenantContext,
           async (manager: EntityManager) => {

@@ -25,24 +25,24 @@ export default class ObraModel extends BaseModelPrimaryColumnUuid {
   @Column({ type: 'varchar' }) tipo!: TipoObra;
   @Column({ type: 'varchar', default: StatusObra.EM_ABERTO })
   status!: StatusObra;
-  @Column({ type: 'varchar', default: TipoFinanciamento.SEM_OGU })
+  @Column({ name: 'tipo_financiamento', type: 'varchar', default: TipoFinanciamento.SEM_OGU })
   tipoFinanciamento!: TipoFinanciamento;
-  @Column({ type: 'varchar', default: ModoDuracao.DEFINIDO_PELO_USUARIO })
+  @Column({ name: 'modo_duracao', type: 'varchar', default: ModoDuracao.DEFINIDO_PELO_USUARIO })
   modoDuracao!: ModoDuracao;
-  @Column({ nullable: true, type: 'date' }) dataInicio!: string | null;
-  @Column({ nullable: true, type: 'date' }) dataPrazo!: string | null;
-  @Column({ type: 'varchar', default: AcaoConveniada.NAO })
+  @Column({ name: 'data_inicio', nullable: true, type: 'date' }) dataInicio!: string | null;
+  @Column({ name: 'data_prazo', nullable: true, type: 'date' }) dataPrazo!: string | null;
+  @Column({ name: 'acao_conveniada', type: 'varchar', default: AcaoConveniada.NAO })
   acaoConveniada!: AcaoConveniada;
-  @Column({ default: false }) prioritaria!: boolean;
-  @Column({ default: false }) exibirCameraAoVivo!: boolean;
-  @Column({ nullable: true, type: 'varchar' }) cameraUrl!: string | null;
-  @Column({ default: false }) privado!: boolean;
-  @Column({ default: false }) invisivel!: boolean;
-  @Column({ default: false }) considerarSabado!: boolean;
-  @Column({ default: false }) considerarDomingo!: boolean;
-  @Column({ default: false }) seguirAutomatico!: boolean;
-  @Column({ default: false }) vincularPagamentoPercentual!: boolean;
-  @Column({ default: false }) corresponsaveisPodemEditar!: boolean;
+  @Column({ name: 'prioritaria', default: false }) prioritaria!: boolean;
+  @Column({ name: 'exibir_camera_ao_vivo', default: false }) exibirCameraAoVivo!: boolean;
+  @Column({ name: 'camera_url', nullable: true, type: 'varchar' }) cameraUrl!: string | null;
+  @Column({ name: 'privado', default: false }) privado!: boolean;
+  @Column({ name: 'invisivel', default: false }) invisivel!: boolean;
+  @Column({ name: 'considerar_sabado', default: false }) considerarSabado!: boolean;
+  @Column({ name: 'considerar_domingo', default: false }) considerarDomingo!: boolean;
+  @Column({ name: 'seguir_automatico', default: false }) seguirAutomatico!: boolean;
+  @Column({ name: 'vincular_pagamento_percentual', default: false }) vincularPagamentoPercentual!: boolean;
+  @Column({ name: 'corresponsaveis_podem_editar', default: false }) corresponsaveisPodemEditar!: boolean;
   @Column({ name: 'orgao_id', type: 'uuid' }) orgaoId!: string;
   @ManyToOne(() => OrgaoModel, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'orgao_id' })
@@ -75,17 +75,17 @@ export default class ObraModel extends BaseModelPrimaryColumnUuid {
   @ManyToOne(() => SubtipologiaModel, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'subtipologia_id' })
   subtipologia?: SubtipologiaModel | null;
-  @Column({ nullable: true, type: 'varchar' }) programaPpa!: string | null;
-  @Column({ nullable: true, type: 'varchar' }) acaoEstrategica!: string | null;
-  @Column({ nullable: true, type: 'varchar' }) acaoOrcamentaria!: string | null;
-  @Column({ nullable: true, type: 'varchar' }) unidadeMedida!: string | null;
+  @Column({ name: 'programa_ppa', nullable: true, type: 'varchar' }) programaPpa!: string | null;
+  @Column({ name: 'acao_estrategica', nullable: true, type: 'varchar' }) acaoEstrategica!: string | null;
+  @Column({ name: 'acao_orcamentaria', nullable: true, type: 'varchar' }) acaoOrcamentaria!: string | null;
+  @Column({ name: 'unidade_medida', nullable: true, type: 'varchar' }) unidadeMedida!: string | null;
   @Column({ nullable: true, type: 'numeric', precision: 18, scale: 4 })
   quantidade!: string | null;
   @Column({ nullable: true, type: 'varchar' }) secretario!: string | null;
-  @Column({ nullable: true, type: 'date' }) dataPactuada!: string | null;
+  @Column({ name: 'data_pactuada', nullable: true, type: 'date' }) dataPactuada!: string | null;
   @Column({ name: 'criado_por_usuario_id', type: 'uuid' }) criadoPorUsuarioId!: string;
   @ManyToOne(() => UserModel, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'criado_por_usuario_id' })
   criadoPorUsuario?: UserModel;
-  @Column({ nullable: true, type: 'timestamptz' }) deletedAt!: Date | null;
+  @Column({ name: 'deleted_at', nullable: true, type: 'timestamptz' }) deletedAt!: Date | null;
 }

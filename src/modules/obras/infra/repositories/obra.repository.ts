@@ -4,6 +4,8 @@ import TenantContext from '@/core/multitenancy/tenant_context';
 import AppException from '@/core/exceptions/app_exception';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
+import { unit, type Unit } from '@/core/types/unit';
+import { withManager } from '@/core/multitenancy/tenant_manager';
 import IObraRepository, { ObraFindPageParams } from '@/modules/obras/adapters/obra_repository.interface';
 import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
 import ObraMapper from '@/modules/obras/infra/mapper/obra.mapper';
@@ -283,11 +285,15 @@ export default class ObraRepository implements IObraRepository {
     }
   }
 
-  async softDelete(id: string): AsyncResult<AppException, void> {
+  async softDelete(id: string): AsyncResult<AppException, Unit> {
     try {
-      const s = this.tc.require().schemaName;
-      await this.ds.query(`UPDATE "${s}"."obras" SET deleted_at = now(), updated_at = now() WHERE id=$1 AND deleted_at IS NULL`, [id]);
-      return right(undefined);
+      await withManager(this.ds, this.tc, async (manager) => {
+        await manager.getRepository(ObraModel).update(
+          { id },
+          { deletedAt: new Date(), updatedAt: new Date() },
+        );
+      });
+      return right(unit);
     } catch (cause) {
       return left(
         new ObraRepositoryException({

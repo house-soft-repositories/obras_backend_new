@@ -1,20 +1,22 @@
 import TenantRequestContextService from '@/core/multitenancy/tenant_request_context.service';
-import AppException from '@/core/exceptions/app_exception';
+import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
+import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
-import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
 import type ICreateObraUseCase from '@/modules/obras/domain/usecase/create_obra.usecase';
-import type IListObrasUseCase from '@/modules/obras/domain/usecase/list_obras.usecase';
-import type IGetObraUseCase from '@/modules/obras/domain/usecase/get_obra.usecase';
-import type IUpdateObraUseCase from '@/modules/obras/domain/usecase/update_obra.usecase';
+import type IDeleteObraUseCase from '@/modules/obras/domain/usecase/delete_obra.usecase';
 import type IDuplicateObraUseCase from '@/modules/obras/domain/usecase/duplicate_obra.usecase';
+import type IGetObraUseCase from '@/modules/obras/domain/usecase/get_obra.usecase';
+import type IListObrasUseCase from '@/modules/obras/domain/usecase/list_obras.usecase';
+import type IUpdateObraUseCase from '@/modules/obras/domain/usecase/update_obra.usecase';
 import CreateObraDto from '@/modules/obras/dtos/create_obra.dto';
 import DuplicateObraDto from '@/modules/obras/dtos/duplicate_obra.dto';
 import ListObrasQueryDto from '@/modules/obras/dtos/list_obras.dto';
-import UpdateObraDto from '@/modules/obras/dtos/update_obra.dto';
 import ObraResponseDto from '@/modules/obras/dtos/obra_response.dto';
+import UpdateObraDto from '@/modules/obras/dtos/update_obra.dto';
 import {
   CREATE_OBRA_SERVICE,
+  DELETE_OBRA_SERVICE,
   DUPLICATE_OBRA_SERVICE,
   GET_OBRA_SERVICE,
   LIST_OBRAS_SERVICE,
@@ -23,6 +25,7 @@ import {
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   Inject,
@@ -33,17 +36,23 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 
 @Controller('api/obras')
 @UseGuards(AccessTokenGuard)
 export default class ObraController {
   constructor(
-    @Inject(CREATE_OBRA_SERVICE) private readonly create: ICreateObraUseCase,
-    @Inject(LIST_OBRAS_SERVICE) private readonly list: IListObrasUseCase,
-    @Inject(GET_OBRA_SERVICE) private readonly get: IGetObraUseCase,
-    @Inject(UPDATE_OBRA_SERVICE) private readonly update: IUpdateObraUseCase,
-    @Inject(DUPLICATE_OBRA_SERVICE) private readonly duplicar: IDuplicateObraUseCase,
+    @Inject(CREATE_OBRA_SERVICE)
+    private readonly create: ICreateObraUseCase,
+    @Inject(LIST_OBRAS_SERVICE)
+    private readonly list: IListObrasUseCase,
+    @Inject(GET_OBRA_SERVICE)
+    private readonly get: IGetObraUseCase,
+    @Inject(UPDATE_OBRA_SERVICE)
+    private readonly update: IUpdateObraUseCase,
+    @Inject(DELETE_OBRA_SERVICE)
+    private readonly deleteService: IDeleteObraUseCase,
+    @Inject(DUPLICATE_OBRA_SERVICE)
+    private readonly duplicar: IDuplicateObraUseCase,
     private readonly tc: TenantRequestContextService,
   ) {}
 
@@ -58,7 +67,10 @@ export default class ObraController {
       const r = await this.create.execute({
         ...b,
         tenantId,
-        criadoPorUsuarioId: (u as unknown as { sub: string })?.sub ?? (u as unknown as { id: string })?.id ?? '',
+        criadoPorUsuarioId:
+          (u as unknown as { sub: string })?.sub ??
+          (u as unknown as { id: string })?.id ??
+          '',
       });
       if (r.isLeft())
         throw new HttpException(r.value.message, r.value.statusCode, {
@@ -116,7 +128,10 @@ export default class ObraController {
     @AuthenticatedUser() u: AccessTokenPayload | undefined,
   ) {
     return this.tc.run(u, async () => {
-      if ('codigo' in body && (body as Record<string, unknown>)['codigo'] !== undefined) {
+      if (
+        'codigo' in body &&
+        (body as Record<string, unknown>)['codigo'] !== undefined
+      ) {
         throw new HttpException('codigo is immutable', 400);
       }
       const r = await this.update.execute({ id, data: body });
@@ -144,6 +159,21 @@ export default class ObraController {
           cause: r.value.cause,
         });
       return ObraResponseDto.fromEntity(r.value);
+    });
+  }
+
+  @Delete(':id')
+  async deleteObra(
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
+    return this.tc.run(u, async () => {
+      const r = await this.deleteService.execute({ id });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
+      return undefined;
     });
   }
 }

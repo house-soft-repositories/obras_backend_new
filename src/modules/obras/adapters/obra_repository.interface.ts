@@ -3,6 +3,7 @@ import AsyncResult from '@/core/types/async_result';
 import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
 import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import PageEntity from '@/core/pagination/domain/entities/page.entity';
+import type { Unit } from '@/core/types/unit';
 
 export interface ObraFindPageParams {
   status?: string;
@@ -19,5 +20,5 @@ export default interface IObraRepository {
   findPage(params: ObraFindPageParams): AsyncResult<AppException, PageEntity<ObraEntity>>;
   findOneWithRelations(id: string): AsyncResult<AppException, ObraEntity | null>;
   updatePartial(entity: ObraEntity): AsyncResult<AppException, ObraEntity>;
-  softDelete(id: string): AsyncResult<AppException, void>;
+  softDelete(id: string): AsyncResult<AppException, Unit>;
 }

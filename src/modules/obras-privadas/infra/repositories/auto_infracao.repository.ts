@@ -6,6 +6,8 @@ import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
 import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
+import { unit, type Unit } from '@/core/types/unit';
+import { withManager } from '@/core/multitenancy/tenant_manager';
 import IAutoInfracaoRepository, {
   AutoInfracaoUpdate,
 } from '@/modules/obras-privadas/adapters/auto_infracao_repository.interface';
@@ -248,5 +250,16 @@ export default class AutoInfracaoRepository implements IAutoInfracaoRepository {
       statusCode: 500,
       cause,
     });
+  }
+
+  async delete(id: string): AsyncResult<AppException, Unit> {
+    try {
+      await withManager(this.dataSource, this.tenantContext, async (manager) => {
+        await manager.getRepository(AutoInfracaoModel).delete({ id });
+      });
+      return right(unit);
+    } catch (cause) {
+      return left(this.failed(cause));
+    }
   }
 }

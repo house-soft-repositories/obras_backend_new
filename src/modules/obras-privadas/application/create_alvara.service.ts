@@ -1,6 +1,6 @@
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import AppException from '@/core/exceptions/app_exception';
-import { withTenantManager } from '@/core/multitenancy/tenant_manager';
+import { withManager } from '@/core/multitenancy/tenant_manager';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
@@ -50,7 +50,7 @@ export default class CreateAlvaraService implements ICreateAlvaraUseCase {
           }),
         );
       }
-      const result = await withTenantManager(
+      const result = await withManager(
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {

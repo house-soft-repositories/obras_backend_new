@@ -1,10 +1,10 @@
-import { randomUUID } from 'node:crypto';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import {
   SituacaoAutoInfracao,
   TipoAutoInfracao,
 } from '@/modules/obras-privadas/domain/enums/obras_privadas.enum';
 import ObraPrivadaDomainException from '@/modules/obras-privadas/exceptions/obra_privada_domain.exception';
+import { randomUUID } from 'node:crypto';
 
 export type AutoInfracaoProps = {
   id: string;
@@ -73,5 +73,9 @@ export default class AutoInfracaoEntity {
 
   get id(): string {
     return this.props.id;
+  }
+
+  get obraPrivadaId() {
+    return this.props.obraPrivadaId;
   }
 }

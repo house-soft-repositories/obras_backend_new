@@ -25,6 +25,7 @@ import CreateObraService from '@/modules/obras/application/create_obra.service';
 import GetObraService from '@/modules/obras/application/get_obra.service';
 import ListObrasService from '@/modules/obras/application/list_obras.service';
 import UpdateObraService from '@/modules/obras/application/update_obra.service';
+import DeleteObraService from '@/modules/obras/application/delete_obra.service';
 import EquipeService from '@/modules/obras/application/equipe.service';
 import TagsService from '@/modules/obras/application/tags.service';
 import CreateClassificacaoService from '@/modules/obras/application/create_classificacao.service';
@@ -126,6 +127,7 @@ import {
   SUBTIPOLOGIA_REPOSITORY,
   TIPOLOGIA_REPOSITORY,
   UPDATE_OBRA_SERVICE,
+DELETE_OBRA_SERVICE,
 } from '@/modules/obras/symbols';
 import PessoasModule from '@/modules/pessoas/pessoas.module';
 import { Module } from '@nestjs/common';
@@ -255,6 +257,12 @@ import { DataSource } from 'typeorm';
       inject: [OBRA_REPOSITORY, DataSource, TenantContext, OBRA_EVENTS],
       useFactory: (repo: IObraRepository, ds: DataSource, tc: TenantContext, events: ObraEventsService) =>
         new DuplicateObraService(repo, ds, tc, events),
+    },
+    {
+      provide: DELETE_OBRA_SERVICE,
+      inject: [OBRA_REPOSITORY],
+      useFactory: (repo: IObraRepository) =>
+        new DeleteObraService(repo),
     },
     {
       provide: EQUIPE_SERVICE,
@@ -401,6 +409,6 @@ import { DataSource } from 'typeorm';
         new UpdateObraService(repo, tc),
     },
   ],
-  exports: [OBRA_REPOSITORY, OBRA_EVENTS, TAG_REPOSITORY, OBSERVACAO_REPOSITORY, EIXO_REPOSITORY, CLASSIFICACAO_REPOSITORY, SUBCLASSIFICACAO_REPOSITORY, TIPOLOGIA_REPOSITORY, SUBTIPOLOGIA_REPOSITORY, GUIAS_REPOSITORY, CREATE_OBRA_SERVICE, LIST_OBRAS_SERVICE, GET_OBRA_SERVICE, UPDATE_OBRA_SERVICE, DUPLICATE_OBRA_SERVICE],
+  exports: [OBRA_REPOSITORY, OBRA_EVENTS, TAG_REPOSITORY, OBSERVACAO_REPOSITORY, EIXO_REPOSITORY, CLASSIFICACAO_REPOSITORY, SUBCLASSIFICACAO_REPOSITORY, TIPOLOGIA_REPOSITORY, SUBTIPOLOGIA_REPOSITORY, GUIAS_REPOSITORY, CREATE_OBRA_SERVICE, LIST_OBRAS_SERVICE, GET_OBRA_SERVICE, UPDATE_OBRA_SERVICE, DELETE_OBRA_SERVICE, DUPLICATE_OBRA_SERVICE],
 })
 export default class ObrasModule {}
