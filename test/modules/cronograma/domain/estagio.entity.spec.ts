@@ -19,4 +19,51 @@ describe('EstagioEntity', () => {
       ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT,
     );
   });
+
+  it('rejects an end date before the start date', () => {
+    expect(() =>
+      EstagioEntity.create({
+        tenantId: 'tenant',
+        obraId: 'obra',
+        nome: 'Etapa',
+        dataInicio: '2026-02-10',
+        dataFim: '2026-02-09',
+      }),
+    ).toThrow(ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT);
+  });
+
+  it('rejects an update that inverts the date range', () => {
+    const stage = EstagioEntity.create({
+      tenantId: 'tenant',
+      obraId: 'obra',
+      nome: 'Etapa',
+      dataInicio: '2026-02-10',
+      dataFim: '2026-02-12',
+    });
+
+    expect(() => stage.update({ dataFim: '2026-02-09' })).toThrow(
+      ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT,
+    );
+  });
+
+  it('rejects self as parent on update', () => {
+    const stage = EstagioEntity.create({ tenantId: 'tenant', obraId: 'obra', nome: 'Etapa' });
+
+    expect(() => stage.update({ estagioPaiId: stage.id })).toThrow(
+      ErrorCodeConstants.CRONOGRAMA_ESTAGIO_PAI_INVALID,
+    );
+  });
+
+  it('accepts a root parent and clearing the parent on update', () => {
+    const parent = EstagioEntity.create({ tenantId: 'tenant', obraId: 'obra', nome: 'Pai' });
+    const child = EstagioEntity.create({
+      tenantId: 'tenant',
+      obraId: 'obra',
+      nome: 'Filho',
+      estagioPaiId: parent.id,
+    });
+
+    expect(child.estagioPaiId).toBe(parent.id);
+    expect(child.update({ estagioPaiId: null }).estagioPaiId).toBeNull();
+  });
 });

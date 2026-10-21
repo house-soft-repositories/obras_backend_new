@@ -1,41 +1,83 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import request from 'supertest';
-import { App } from 'supertest/types';
-import { left, right } from '@/core/types/either';
+import { AppModule } from '@/app.module';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
+import TenantContextException from '@/core/multitenancy/tenant_context.exception';
+import TenantRequestContextService from '@/core/multitenancy/tenant_request_context.service';
 import PageEntity from '@/core/pagination/domain/entities/page.entity';
 import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
 import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
-import TenantContextException from '@/core/multitenancy/tenant_context.exception';
-import TenantRequestContextService from '@/core/multitenancy/tenant_request_context.service';
-import type {
+import { left, right } from '@/core/types/either';
+import { unit } from '@/core/types/unit';
+import ITokenService, {
   AccessTokenPayload,
-  ITokenService,
 } from '@/modules/auth/adapters/token_service.interface';
 import { TOKEN_SERVICE } from '@/modules/auth/symbols';
-import { AppModule } from '@/app.module';
-import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
 import EstagioAcompanhamentoEntity from '@/modules/cronograma/domain/entities/estagio_acompanhamento.entity';
 import EstagioComentarioEntity from '@/modules/cronograma/domain/entities/estagio_comentario.entity';
 import MedicaoEntity from '@/modules/cronograma/domain/entities/medicao.entity';
 import {
-  ESTAGIOS_SERVICE,
-  MEDICOES_SERVICE,
-} from '@/modules/cronograma/symbols';
-import type { IEstagiosUseCase } from '@/modules/cronograma/domain/usecase/estagios.usecase';
-import type { IMedicoesUseCase } from '@/modules/cronograma/domain/usecase/medicoes.usecase';
-import {
   EstagioStatus,
+  ModoDuracao,
   TipoMedicao,
 } from '@/modules/cronograma/domain/enums/cronograma.enums';
+import type { IAcompanhamentosUseCase } from '@/modules/cronograma/domain/usecase/acompanhamentos.usecase';
+import type { IComentariosUseCase } from '@/modules/cronograma/domain/usecase/comentarios.usecase';
+import type { IPredefinidosUseCase } from '@/modules/cronograma/domain/usecase/predefinidos.usecase';
+import {
+  ACOMPANHAMENTOS_SERVICE,
+  ASSUMIR_ESTAGIO_SERVICE,
+  COMENTARIOS_SERVICE,
+  CONCLUIR_ESTAGIO_SERVICE,
+  CREATE_ESTAGIO_SERVICE,
+  CREATE_ESTAGIOS_LOTE_SERVICE,
+  CREATE_MEDICAO_SERVICE,
+  DUPLICAR_ESTAGIO_SERVICE,
+  GET_DATAS_AGREGADAS_SERVICE,
+  GET_ESTAGIO_ATUAL_SERVICE,
+  GET_ESTAGIO_SERVICE,
+  GET_MEDICAO_SERVICE,
+  LIST_ESTAGIOS_SERVICE,
+  LIST_MEDICOES_SERVICE,
+  PREDEFINIDOS_SERVICE,
+  REMOVE_ESTAGIO_SERVICE,
+  REMOVE_MEDICAO_SERVICE,
+  REORDER_ESTAGIOS_SERVICE,
+  UPDATE_ESTAGIO_SERVICE,
+  UPDATE_MEDICAO_SERVICE,
+  UPDATE_PERCENTUAL_DIRETO_SERVICE,
+} from '@/modules/cronograma/symbols';
+import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import request from 'supertest';
+import { App } from 'supertest/types';
+
+type UseCaseMock = { execute: jest.Mock };
 
 describe('Estagios API (e2e)', () => {
   let app: INestApplication<App>;
   let tokenService: jest.Mocked<ITokenService>;
-  let estagiosService: jest.Mocked<IEstagiosUseCase>;
-  let medicoesService: jest.Mocked<IMedicoesUseCase>;
+  let createEstagioUseCase: UseCaseMock;
+  let createEstagiosLoteUseCase: UseCaseMock;
+  let listEstagiosUseCase: UseCaseMock;
+  let getEstagioUseCase: UseCaseMock;
+  let updateEstagioUseCase: UseCaseMock;
+  let removeEstagioUseCase: UseCaseMock;
+  let reorderEstagiosUseCase: UseCaseMock;
+  let updatePercentualDiretoUseCase: UseCaseMock;
+  let getDatasAgregadasUseCase: UseCaseMock;
+  let getEstagioAtualUseCase: UseCaseMock;
+  let assumirEstagioUseCase: UseCaseMock;
+  let concluirEstagioUseCase: UseCaseMock;
+  let duplicarEstagioUseCase: UseCaseMock;
+  let createMedicaoUseCase: UseCaseMock;
+  let listMedicoesUseCase: UseCaseMock;
+  let getMedicaoUseCase: UseCaseMock;
+  let updateMedicaoUseCase: UseCaseMock;
+  let removeMedicaoUseCase: UseCaseMock;
+  let acompanhamentosService: jest.Mocked<IAcompanhamentosUseCase>;
+  let comentariosService: jest.Mocked<IComentariosUseCase>;
+  let predefinidosService: jest.Mocked<IPredefinidosUseCase>;
 
   const tenantId = '9f8b416e-2b4c-4e4a-b1c7-6beeb3d4d7dc';
   const userId = '4c67eb4d-b04d-435d-9435-5f1a8d026cf8';
@@ -55,7 +97,7 @@ describe('Estagios API (e2e)', () => {
       type: 'access',
       role,
       tenantId: selectedTenantId,
-    } as AccessTokenPayload);
+    });
   };
 
   const stage = (id: string, nome: string, posicao: number) =>
@@ -66,12 +108,13 @@ describe('Estagios API (e2e)', () => {
       nome,
       posicao,
       ativo: true,
-      status: 'PENDENTE' as any,
-      modoDuracao: 'NAO_INFORMADO' as any,
+      status: EstagioStatus.EM_ANDAMENTO,
+      modoDuracao: ModoDuracao.NAO_INFORMADO,
       dataInicio: null,
       dataFim: null,
       percentualDireto: null,
       responsavelUsuarioId: null,
+      estagioPaiId: null,
       criadoEm: new Date('2026-01-01T00:00:00.000Z'),
       atualizadoEm: new Date('2026-01-01T00:00:00.000Z'),
     });
@@ -83,31 +126,41 @@ describe('Estagios API (e2e)', () => {
       verifyAccess: jest.fn(),
       verifyRefresh: jest.fn(),
     } as any;
-    estagiosService = {
+    createEstagioUseCase = { execute: jest.fn() };
+    createEstagiosLoteUseCase = { execute: jest.fn() };
+    listEstagiosUseCase = { execute: jest.fn() };
+    getEstagioUseCase = { execute: jest.fn() };
+    updateEstagioUseCase = { execute: jest.fn() };
+    removeEstagioUseCase = { execute: jest.fn() };
+    reorderEstagiosUseCase = { execute: jest.fn() };
+    updatePercentualDiretoUseCase = { execute: jest.fn() };
+    getDatasAgregadasUseCase = { execute: jest.fn() };
+    getEstagioAtualUseCase = { execute: jest.fn() };
+    assumirEstagioUseCase = { execute: jest.fn() };
+    concluirEstagioUseCase = { execute: jest.fn() };
+    duplicarEstagioUseCase = { execute: jest.fn() };
+    createMedicaoUseCase = { execute: jest.fn() };
+    listMedicoesUseCase = { execute: jest.fn() };
+    getMedicaoUseCase = { execute: jest.fn() };
+    updateMedicaoUseCase = { execute: jest.fn() };
+    removeMedicaoUseCase = { execute: jest.fn() };
+    acompanhamentosService = {
       create: jest.fn(),
-      createMany: jest.fn(),
       list: jest.fn(),
       get: jest.fn(),
       update: jest.fn(),
       remove: jest.fn(),
-      reorder: jest.fn(),
-      predefinidos: jest.fn(),
-      createAcompanhamento: jest.fn(),
-      createComentario: jest.fn(),
-      updatePercentualDireto: jest.fn(),
-      datasAgregadas: jest.fn(),
-      createMedicao: jest.fn(),
-      listMedicoes: jest.fn(),
-      concluir: jest.fn(),
-      duplicar: jest.fn(),
-      atual: jest.fn(),
     } as any;
-    medicoesService = {
+    comentariosService = {
       create: jest.fn(),
       list: jest.fn(),
       get: jest.fn(),
       update: jest.fn(),
       remove: jest.fn(),
+    } as any;
+    predefinidosService = {
+      getTemplate: jest.fn(),
+      create: jest.fn(),
     } as any;
     const tenantRequestContext: Pick<TenantRequestContextService, 'run'> = {
       run: jest.fn(
@@ -122,10 +175,48 @@ describe('Estagios API (e2e)', () => {
     })
       .overrideProvider(TOKEN_SERVICE)
       .useValue(tokenService)
-      .overrideProvider(ESTAGIOS_SERVICE)
-      .useValue(estagiosService)
-      .overrideProvider(MEDICOES_SERVICE)
-      .useValue(medicoesService)
+      .overrideProvider(CREATE_ESTAGIO_SERVICE)
+      .useValue(createEstagioUseCase)
+      .overrideProvider(CREATE_ESTAGIOS_LOTE_SERVICE)
+      .useValue(createEstagiosLoteUseCase)
+      .overrideProvider(LIST_ESTAGIOS_SERVICE)
+      .useValue(listEstagiosUseCase)
+      .overrideProvider(GET_ESTAGIO_SERVICE)
+      .useValue(getEstagioUseCase)
+      .overrideProvider(UPDATE_ESTAGIO_SERVICE)
+      .useValue(updateEstagioUseCase)
+      .overrideProvider(REMOVE_ESTAGIO_SERVICE)
+      .useValue(removeEstagioUseCase)
+      .overrideProvider(REORDER_ESTAGIOS_SERVICE)
+      .useValue(reorderEstagiosUseCase)
+      .overrideProvider(UPDATE_PERCENTUAL_DIRETO_SERVICE)
+      .useValue(updatePercentualDiretoUseCase)
+      .overrideProvider(GET_DATAS_AGREGADAS_SERVICE)
+      .useValue(getDatasAgregadasUseCase)
+      .overrideProvider(GET_ESTAGIO_ATUAL_SERVICE)
+      .useValue(getEstagioAtualUseCase)
+      .overrideProvider(ASSUMIR_ESTAGIO_SERVICE)
+      .useValue(assumirEstagioUseCase)
+      .overrideProvider(CONCLUIR_ESTAGIO_SERVICE)
+      .useValue(concluirEstagioUseCase)
+      .overrideProvider(DUPLICAR_ESTAGIO_SERVICE)
+      .useValue(duplicarEstagioUseCase)
+      .overrideProvider(ACOMPANHAMENTOS_SERVICE)
+      .useValue(acompanhamentosService)
+      .overrideProvider(COMENTARIOS_SERVICE)
+      .useValue(comentariosService)
+      .overrideProvider(PREDEFINIDOS_SERVICE)
+      .useValue(predefinidosService)
+      .overrideProvider(CREATE_MEDICAO_SERVICE)
+      .useValue(createMedicaoUseCase)
+      .overrideProvider(LIST_MEDICOES_SERVICE)
+      .useValue(listMedicoesUseCase)
+      .overrideProvider(GET_MEDICAO_SERVICE)
+      .useValue(getMedicaoUseCase)
+      .overrideProvider(UPDATE_MEDICAO_SERVICE)
+      .useValue(updateMedicaoUseCase)
+      .overrideProvider(REMOVE_MEDICAO_SERVICE)
+      .useValue(removeMedicaoUseCase)
       .overrideProvider(TenantRequestContextService)
       .useValue(tenantRequestContext)
       .compile();
@@ -151,9 +242,9 @@ describe('Estagios API (e2e)', () => {
       stage(stageTwoId, 'Licitação', 1),
       stage(stageThreeId, 'Execução', 2),
     ];
-    estagiosService.createMany.mockResolvedValue(right(initialStages));
-    estagiosService.reorder.mockResolvedValue(right(undefined));
-    estagiosService.list.mockResolvedValue(
+    createEstagiosLoteUseCase.execute.mockResolvedValue(right(initialStages));
+    reorderEstagiosUseCase.execute.mockResolvedValue(right(unit));
+    listEstagiosUseCase.execute.mockResolvedValue(
       right(
         new PageEntity(
           [
@@ -186,14 +277,14 @@ describe('Estagios API (e2e)', () => {
       'Licitação',
       'Execução',
     ]);
-    expect(estagiosService.createMany).toHaveBeenCalledWith(
+    expect(createEstagiosLoteUseCase.execute).toHaveBeenCalledWith({
       obraId,
-      expect.arrayContaining([
+      itens: expect.arrayContaining([
         expect.objectContaining({ obraId, nome: 'Projeto' }),
         expect.objectContaining({ obraId, nome: 'Licitação' }),
         expect.objectContaining({ obraId, nome: 'Execução' }),
       ]),
-    );
+    });
 
     await request(app.getHttpServer())
       .post(`/api/obras/${obraId}/estagios/reordenar`)
@@ -212,11 +303,14 @@ describe('Estagios API (e2e)', () => {
       .set('Authorization', 'Bearer token')
       .expect(200);
 
-    expect(estagiosService.reorder).toHaveBeenCalledWith(obraId, [
-      { id: stageThreeId, posicao: 0 },
-      { id: stageOneId, posicao: 1 },
-      { id: stageTwoId, posicao: 2 },
-    ]);
+    expect(reorderEstagiosUseCase.execute).toHaveBeenCalledWith({
+      obraId,
+      itens: [
+        { id: stageThreeId, posicao: 0 },
+        { id: stageOneId, posicao: 1 },
+        { id: stageTwoId, posicao: 2 },
+      ],
+    });
     expect(list.body.data.map((item: any) => item.nome)).toEqual([
       'Execução',
       'Projeto',
@@ -227,16 +321,16 @@ describe('Estagios API (e2e)', () => {
 
   it('creates, gets, updates and removes a stage', async () => {
     tokenFor();
-    estagiosService.create.mockResolvedValue(
+    createEstagioUseCase.execute.mockResolvedValue(
       right(stage(stageOneId, 'Projeto', 0)),
     );
-    estagiosService.get.mockResolvedValue(
+    getEstagioUseCase.execute.mockResolvedValue(
       right(stage(stageOneId, 'Projeto', 0)),
     );
-    estagiosService.update.mockResolvedValue(
+    updateEstagioUseCase.execute.mockResolvedValue(
       right(stage(stageOneId, 'Projeto executivo', 0)),
     );
-    estagiosService.remove.mockResolvedValue(right(undefined));
+    removeEstagioUseCase.execute.mockResolvedValue(right(unit));
 
     const created = await request(app.getHttpServer())
       .post(`/api/obras/${obraId}/estagios`)
@@ -270,7 +364,7 @@ describe('Estagios API (e2e)', () => {
 
   it('returns predefined stages without obra id dependency', async () => {
     tokenFor();
-    estagiosService.predefinidos.mockResolvedValue(
+    predefinidosService.getTemplate.mockResolvedValue(
       right([{ nome: 'Planejamento', posicao: 0 }]),
     );
     const res = await request(app.getHttpServer())
@@ -278,11 +372,12 @@ describe('Estagios API (e2e)', () => {
       .set('Authorization', 'Bearer token')
       .expect(200);
     expect(res.body).toEqual([{ nome: 'Planejamento', posicao: 0 }]);
+    expect(predefinidosService.getTemplate).toHaveBeenCalledWith({ obraId });
   });
 
   it('posts acompanhamento and comentario, gets aggregated dates, and patches direct percentage', async () => {
     tokenFor();
-    estagiosService.createAcompanhamento.mockResolvedValue(
+    acompanhamentosService.create.mockResolvedValue(
       right(
         EstagioAcompanhamentoEntity.fromData({
           id: 'a69b3ead-d36b-4bd3-9d24-f01898af1cb6',
@@ -297,7 +392,7 @@ describe('Estagios API (e2e)', () => {
         }),
       ),
     );
-    estagiosService.createComentario.mockResolvedValue(
+    comentariosService.create.mockResolvedValue(
       right(
         EstagioComentarioEntity.fromData({
           id: '4eb15983-bd0a-4085-9528-0f28dd1037af',
@@ -310,10 +405,10 @@ describe('Estagios API (e2e)', () => {
         }),
       ),
     );
-    estagiosService.datasAgregadas.mockResolvedValue(
+    getDatasAgregadasUseCase.execute.mockResolvedValue(
       right({ dataInicio: '2026-01-10', dataFim: '2026-03-20' }),
     );
-    estagiosService.updatePercentualDireto.mockResolvedValue(
+    updatePercentualDiretoUseCase.execute.mockResolvedValue(
       right(stage(stageOneId, 'Projeto', 0)),
     );
 
@@ -326,7 +421,7 @@ describe('Estagios API (e2e)', () => {
       percentual: 42,
       autorUsuarioId: userId,
     });
-    expect(estagiosService.createAcompanhamento).toHaveBeenCalledWith(
+    expect(acompanhamentosService.create).toHaveBeenCalledWith(
       expect.objectContaining({
         obraId,
         estagioId: stageOneId,
@@ -343,6 +438,14 @@ describe('Estagios API (e2e)', () => {
       texto: 'Comentário de obra',
       autorUsuarioId: userId,
     });
+    expect(comentariosService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        obraId,
+        estagioId: stageOneId,
+        autorUsuarioId: userId,
+        texto: 'Comentário de obra',
+      }),
+    );
 
     const datas = await request(app.getHttpServer())
       .get(`/api/obras/${obraId}/estagios/datas-agregadas`)
@@ -358,16 +461,16 @@ describe('Estagios API (e2e)', () => {
       .set('Authorization', 'Bearer token')
       .send({ percentual: 75 })
       .expect(200);
-    expect(estagiosService.updatePercentualDireto).toHaveBeenCalledWith(
+    expect(updatePercentualDiretoUseCase.execute).toHaveBeenCalledWith({
       obraId,
-      stageOneId,
-      75,
-    );
+      id: stageOneId,
+      percentual: 75,
+    });
   });
 
   it('maps P2 stage scope failures to 404', async () => {
     tokenFor();
-    estagiosService.createAcompanhamento.mockResolvedValue(
+    acompanhamentosService.create.mockResolvedValue(
       left({
         code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
         statusCode: 404,
@@ -403,14 +506,14 @@ describe('Estagios API (e2e)', () => {
       .send({ percentual: -1 })
       .expect(400);
 
-    expect(estagiosService.createAcompanhamento).not.toHaveBeenCalled();
-    expect(estagiosService.createComentario).not.toHaveBeenCalled();
-    expect(estagiosService.updatePercentualDireto).not.toHaveBeenCalled();
+    expect(acompanhamentosService.create).not.toHaveBeenCalled();
+    expect(comentariosService.create).not.toHaveBeenCalled();
+    expect(updatePercentualDiretoUseCase.execute).not.toHaveBeenCalled();
   });
 
   it('maps service not found to 404 for cross-tenant or unknown obra/stage', async () => {
     tokenFor();
-    estagiosService.get.mockResolvedValue(
+    getEstagioUseCase.execute.mockResolvedValue(
       left({
         code: ErrorCodeConstants.CRONOGRAMA_NOT_FOUND,
         statusCode: 404,
@@ -452,19 +555,7 @@ describe('Estagios API (e2e)', () => {
         },
       ],
     });
-    estagiosService.createMedicao.mockResolvedValue(right(medicao));
-    estagiosService.listMedicoes.mockResolvedValue(
-      right(
-        new PageEntity(
-          [medicao],
-          new PageMetaEntity({
-            pageOptions: new PageOptionsEntity('ASC', 1, 10),
-            itemCount: 1,
-          }),
-        ),
-      ),
-    );
-    estagiosService.concluir.mockResolvedValue(
+    concluirEstagioUseCase.execute.mockResolvedValue(
       right(
         EstagioEntity.fromData({
           ...stage(stageOneId, 'Projeto', 0).toObject(),
@@ -473,15 +564,15 @@ describe('Estagios API (e2e)', () => {
         }),
       ),
     );
-    estagiosService.duplicar.mockResolvedValue(
+    duplicarEstagioUseCase.execute.mockResolvedValue(
       right(stage('34a8c44a-970f-42f1-a6ca-d122d257e563', 'Projeto', 3)),
     );
-    estagiosService.atual.mockResolvedValue(
+    getEstagioAtualUseCase.execute.mockResolvedValue(
       right(stage(stageTwoId, 'Licitação', 1)),
     );
 
-    medicoesService.create.mockResolvedValue(right(medicao));
-    medicoesService.list.mockResolvedValue(
+    createMedicaoUseCase.execute.mockResolvedValue(right(medicao));
+    listMedicoesUseCase.execute.mockResolvedValue(
       right(
         new PageEntity(
           [medicao],
@@ -510,7 +601,7 @@ describe('Estagios API (e2e)', () => {
       .expect(201);
     expect(created.body.fontes).toHaveLength(2);
     expect(created.body.orgaoId).toBe('5c5e9408-6a78-46c7-b14f-9c1583477550');
-    expect(medicoesService.create).toHaveBeenCalledWith({
+    expect(createMedicaoUseCase.execute).toHaveBeenCalledWith({
       obraId,
       numero: 1,
       orgaoId: '5c5e9408-6a78-46c7-b14f-9c1583477550',
@@ -548,9 +639,49 @@ describe('Estagios API (e2e)', () => {
     expect(atual.body.id).toBe(stageTwoId);
   });
 
+  it('maps invalid estagioPaiId hierarchy failures to 400', async () => {
+    tokenFor();
+    updateEstagioUseCase.execute.mockResolvedValue(
+      left({
+        code: ErrorCodeConstants.CRONOGRAMA_ESTAGIO_PAI_INVALID,
+        statusCode: 400,
+        message: ErrorCodeConstants.CRONOGRAMA_ESTAGIO_PAI_INVALID,
+      } as any),
+    );
+
+    await request(app.getHttpServer())
+      .patch(`/api/obras/${obraId}/estagios/${stageOneId}`)
+      .set('Authorization', 'Bearer token')
+      .send({ estagioPaiId: stageOneId })
+      .expect(400);
+    expect(updateEstagioUseCase.execute).toHaveBeenCalledWith({
+      obraId,
+      id: stageOneId,
+      estagioPaiId: stageOneId,
+    });
+  });
+
+  it('passes estagioPaiId null through to clear the parent', async () => {
+    tokenFor();
+    updateEstagioUseCase.execute.mockResolvedValue(
+      right(stage(stageOneId, 'Projeto', 0)),
+    );
+
+    await request(app.getHttpServer())
+      .patch(`/api/obras/${obraId}/estagios/${stageOneId}`)
+      .set('Authorization', 'Bearer token')
+      .send({ estagioPaiId: null })
+      .expect(200);
+    expect(updateEstagioUseCase.execute).toHaveBeenCalledWith({
+      obraId,
+      id: stageOneId,
+      estagioPaiId: null,
+    });
+  });
+
   it('maps invalid medicao fonte to 422', async () => {
     tokenFor();
-    estagiosService.createMedicao.mockResolvedValue(
+    createMedicaoUseCase.execute.mockResolvedValue(
       left({
         code: ErrorCodeConstants.MEDICAO_FONTE_INVALIDA,
         statusCode: 422,
@@ -561,9 +692,11 @@ describe('Estagios API (e2e)', () => {
       .post(`/api/obras/${obraId}/medicoes`)
       .set('Authorization', 'Bearer token')
       .send({
+        numero: 1,
         tipo: TipoMedicao.NORMAL,
         dataMedicao: '2026-03-01',
-        itens: [{ fonteId: fonteOneId, valor: 100 }],
+        orgaoId: '5c5e9408-6a78-46c7-b14f-9c1583477550',
+        fontes: [{ fonteId: fonteOneId, valor: 100 }],
       })
       .expect(422);
   });
@@ -575,7 +708,7 @@ describe('Estagios API (e2e)', () => {
       .set('Authorization', 'Bearer token')
       .send({ nome: '', posicao: -1 })
       .expect(400);
-    expect(estagiosService.create).not.toHaveBeenCalled();
+    expect(createEstagioUseCase.execute).not.toHaveBeenCalled();
   });
 
   it('requires authentication before accessing routes', async () => {
