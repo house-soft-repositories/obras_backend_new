@@ -10,7 +10,8 @@ Não crie commits, não adicione arquivos ao índice Git e não envie alteraçõ
 
 ```bash
 docker compose up --build -d api   # rebuilda e sobe o container da API
-docker compose logs -f api         # verificar se o container subiu corretamente
+docker compose ps api              # confirma que o serviço está running/healthy
+docker compose logs --no-color --tail=200 api # verifica boot, compilação e erros de runtime
 docker compose exec api pnpm test
 docker compose exec api pnpm test -- test/modules/<name>/<layer>/<file>.spec.ts
 docker compose exec api pnpm run test:e2e
@@ -20,7 +21,9 @@ docker compose exec api pnpm run test:integration -- test/modules/<name>/infra/<
 docker compose exec api pnpm run build
 ```
 
-Sempre que possível, rode os testes dentro do container `api`, pois ele usa o mesmo ambiente de dependências/serviços do desenvolvimento Docker. Use `docker compose logs api` ou `docker compose logs -f api` quando precisar confirmar boot, erros de runtime ou estado do container.
+O container `api` é o ambiente canônico de validação. Antes de considerar uma alteração válida, suba/rebuilde o serviço com `docker compose up --build -d api`, confirme o estado com `docker compose ps api` e leia os logs com `docker compose logs --no-color --tail=200 api`. A compilação deve ser executada dentro do container com `docker compose exec api pnpm run build`; não considere uma compilação local suficiente quando o Docker estiver disponível. Falhas de boot, compilação, migração, conexão ou runtime nos logs devem ser investigadas e reportadas.
+
+Sempre que possível, rode os testes dentro do container `api`, pois ele usa o mesmo ambiente de dependências/serviços do desenvolvimento Docker. Use `docker compose logs api` ou `docker compose logs -f api` quando precisar acompanhar o boot, erros de runtime ou o estado do container.
 
 **Fallback local (sem Docker):**
 
@@ -41,7 +44,19 @@ pnpm run format       # aplica Prettier em src/ e test/
 pnpm run format:check # só checa Prettier
 ```
 
-**Checklist antes de abrir PR:** preferir `docker compose up --build -d api && docker compose exec api pnpm run build && docker compose exec api pnpm run lint && docker compose exec api pnpm test`.
+**Checklist antes de abrir PR:**
+
+```bash
+docker compose up --build -d api
+docker compose ps api
+docker compose logs --no-color --tail=200 api
+docker compose exec api pnpm run build
+docker compose exec api pnpm run lint
+docker compose exec api pnpm test
+docker compose logs --no-color --tail=200 api
+```
+
+Só usar o fallback local quando Docker não estiver disponível ou quando a validação local for explicitamente necessária para diagnosticar um problema.
 
 ## Architecture
 
@@ -80,6 +95,13 @@ infra/
 ```
 
 ## Code Style
+
+### Variáveis
+
+- Use nomes semânticos em `camelCase` para variáveis, parâmetros, callbacks e aliases locais.
+- Não use abreviações genéricas ou nomes de uma letra como `p`, `q`, `s`, `k`, `x` ou `y` para representar dados de negócio, entidades, repositories, query builders ou contexto de tenant.
+- Prefira nomes que expressem a responsabilidade do valor, por exemplo `createParams`, `queryRunner`, `tenantSchema`, `stageEntity`, `repositoryResult` e `currentPosition`.
+- Exceções ficam restritas a convenções matemáticas realmente locais ou callbacks triviais cujo significado seja inequívoco.
 
 | Elemento                               | Convenção                               | Exemplo                                 |
 | -------------------------------------- | --------------------------------------- | --------------------------------------- |
@@ -124,7 +146,25 @@ type AsyncResult<L extends AppException, R> = Promise<Either<L, R>>;
 
 // Either: left = falha, right = sucesso
 // Métodos disponíveis: .isLeft(), .isRight(), .when({ onSuccess, onFailure }), .map(), .onSuccess(), .onFailure(), .getOrThrow()
+```
 
+Use `Either`/`AsyncResult` em todos os contratos de use case, services de application e repositórios. Para operações que não retornam payload de domínio, **não use `void`/`Void` como lado direito do `Either`**: use `Unit` de `src/core/types/unit.ts`.
+
+```typescript
+import { unit, type Unit } from '@/core/types/unit';
+
+type IDeleteThingUseCase = UseCase<DeleteThingParam, Unit>;
+
+async execute(param: DeleteThingParam): AsyncResult<AppException, Unit> {
+  const removed = await this.repo.delete(param.id);
+  if (removed.isLeft()) return left(removed.value);
+  return right(unit);
+}
+```
+
+`void` fica reservado para funções TypeScript que realmente não participam do contrato funcional (ex.: `onModuleInit(): void`, callbacks sem retorno, `void bootstrap()`). Em adapter/usecase/application/repository que retorna `AsyncResult`, use sempre `Unit` para sucesso sem valor.
+
+```typescript
 // Padrão no application service:
 async execute(param): AsyncResult<AppException, Response> {
   try {
@@ -144,7 +184,7 @@ async execute(param): AsyncResult<AppException, Response> {
 }
 ```
 
-Referência: `src/modules/users/application/create_user.service.ts`
+Referências: `src/modules/users/application/create_user.service.ts`; `src/modules/obras-privadas/application/excluir_obra.service.ts`; `src/modules/documentos/application/remover_arquivo.service.ts`
 
 ### Services de application implementam contratos de use case
 
@@ -247,12 +287,6 @@ async create(
   // Passar para service.execute() como BaseFileInterface
 }
 ```
-
-Referências:
-
-- Único arquivo: `src/modules/procurador/controller/procurador.controller.ts`
-- Múltiplos: `src/modules/imovel/controller/imovel.controller.ts`
-- Geoprocessamento: `src/modules/geoprocessing/controller/geoprocessamento.controller.ts`
 
 ### DI com Symbols + useFactory (sem @Injectable nas classes de domínio/aplicação)
 
@@ -528,4 +562,82 @@ describe('CreateImovelService', () => {
     expect(mockUploadFileUseCase.execute).toHaveBeenCalledTimes(2);
   });
 });
+```
+
+## Monitoring Infrastructure
+
+### IMonitoryService Contract
+
+Interface em `src/core/services/monitory.service.ts` — contrato único para observabilidade (Sentry, Datadog, local logger, etc.).
+
+```typescript
+export default interface IMonitoryService {
+  captureException(exception: Error, context: Record<string, unknown>): void;
+  captureMessage(message: string, level: 'error' | 'warning' | 'info' | 'debug', context: Record<string, unknown>): void;
+  setContext(context: Record<string, unknown>): void;
+  setUser(user: { id: string; email: string }): void;
+  setTag(key: string, value: string): void;
+  trackEventStart(event: { jobId: string; name: string }): void;
+  trackEventSuccess(event: { jobId: string; name: string }): void;
+  trackEventFailure(event: { jobId: string; name: string }, error: Error): void;
+}
+```
+
+### HttpMonitoryFilter — apenas 5xx
+
+`src/core/services/http_monitory.filter.ts` implementa `ExceptionFilter` global (`APP_FILTER`). **Captura apenas exceções com statusCode >= 500** (erros de servidor). Erros 4xx não são reportados ao serviço de monitoramento — são esperados e tratados pela camada de aplicação.
+
+```typescript
+@Catch()
+export default class HttpMonitoryFilter extends BaseExceptionFilter implements ExceptionFilter {
+  catch(exception: unknown, host: ArgumentsHost): void {
+    const statusCode = exception instanceof HttpException ? exception.getStatus() : 500;
+    if (statusCode >= 500) {
+      this.monitoryService.captureException(error, { method, path, statusCode, stackTrace, cause });
+    }
+    super.catch(responseException, host);
+  }
+}
+```
+
+### LocalMonitoryService — logger local (dev/CI)
+
+`src/core/services/local_monitory.service.ts` usa `NestJS Logger` para logar tudo no console. Registrado no `CoreModule` como implementação padrão de `MONITORY_SERVICE` (`useClass: LocalMonitoryService`). Em produção, trocar por implementação Sentry/Datadog via `useFactory` no módulo que prover a integração externa.
+
+### Convenção jobId
+
+Todas as operações assíncronas de longa duração (jobs, imports, exports, relatórios) devem receber e propagar `jobId: string` (UUID) no contexto de monitoramento:
+
+- `trackEventStart({ jobId, name })` no início
+- `trackEventSuccess({ jobId, name })` no sucesso
+- `trackEventFailure({ jobId, name }, error)` na falha
+
+O `jobId` permite correlacionar logs, traces e métricas entre serviços.
+
+### Roadmap externo (Sentry/Datadog)
+
+1. Criar pacote/integração em `src/modules/monitoring/` (ou similar) com `SentryMonitoryService` / `DatadogMonitoryService` implementando `IMonitoryService`.
+2. No módulo que provisiona a integração (ex.: `MonitoringModule`), prover `MONITORY_SERVICE` via `useFactory` que instancia o client oficial (Sentry.init, etc.) e retorna o adapter.
+3. Remover `LocalMonitoryService` do `CoreModule.providers` e exportar apenas o symbol `MONITORY_SERVICE` do `MonitoringModule`.
+4. Garantir que `HttpMonitoryFilter` continue funcionando (já injeta `MONITORY_SERVICE` via symbol).
+5. Documentar variáveis de ambiente necessárias (SENTRY_DSN, DATADOG_API_KEY, etc.) em `.env.example`.
+
+### Injeção via Symbol
+
+```typescript
+// symbols.ts
+export const MONITORY_SERVICE = Symbol('MONITORY_SERVICE');
+
+// core.module.ts
+providers: [
+  { provide: MONITORY_SERVICE, useClass: LocalMonitoryService }, // dev
+  { provide: APP_FILTER, useClass: HttpMonitoryFilter },
+],
+exports: [MONITORY_SERVICE];
+```
+
+Em módulos que precisam emitir eventos de monitoramento:
+
+```typescript
+constructor(@Inject(MONITORY_SERVICE) private readonly monitory: IMonitoryService) {}
 ```

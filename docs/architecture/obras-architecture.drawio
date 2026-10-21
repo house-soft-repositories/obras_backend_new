@@ -1,0 +1,154 @@
+<mxfile host="app.diagrams.net" modified="2026-10-20T00:00:00.000Z" agent="Claude Code" version="24.7.17">
+  <diagram id="context" name="01 - Contexto do sistema">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+        <mxCell id="title" value="Sistema Obras - Diagrama de Contexto" style="text;html=1;fontSize=24;fontStyle=1;align=left;verticalAlign=middle" vertex="1" parent="1"><mxGeometry x="40" y="30" width="700" height="50" as="geometry"/></mxCell>
+        <mxCell id="user" value="Usuário / Operador\nPrefeitura, gestor ou fiscal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16" vertex="1" parent="1"><mxGeometry x="60" y="350" width="220" height="100" as="geometry"/></mxCell>
+        <mxCell id="api" value="Obras Backend API\nNestJS 11\nClean Architecture + DDD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=16;fontStyle=1" vertex="1" parent="1"><mxGeometry x="570" y="310" width="360" height="180" as="geometry"/></mxCell>
+        <mxCell id="db" value="PostgreSQL 16\nDados globais e schemas de tenant" style="shape=cylinder;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=15" vertex="1" parent="1"><mxGeometry x="1240" y="170" width="240" height="120" as="geometry"/></mxCell>
+        <mxCell id="storage" value="Object Storage\nMinIO / Storage de arquivos\nDocumentos e anexos" style="shape=cylinder;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=15" vertex="1" parent="1"><mxGeometry x="1240" y="370" width="240" height="120" as="geometry"/></mxCell>
+        <mxCell id="auth" value="Cliente JWT / Auth\nAutenticação e autorização" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=15" vertex="1" parent="1"><mxGeometry x="1240" y="570" width="240" height="100" as="geometry"/></mxCell>
+        <mxCell id="e1" value="HTTPS / JSON / multipart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeWidth=2" edge="1" parent="1" source="user" target="api"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="persistência multitenant" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeWidth=2" edge="1" parent="1" source="api" target="db"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" value="upload / download" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeWidth=2" edge="1" parent="1" source="api" target="storage"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" value="token JWT" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeWidth=2" edge="1" parent="1" source="api" target="auth"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="components" name="02 - Componentes e camadas">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1800" pageHeight="1200">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+        <mxCell id="title" value="Obras Backend - Componentes por camada" style="text;html=1;fontSize=24;fontStyle=1;align=left" vertex="1" parent="1"><mxGeometry x="40" y="25" width="800" height="45" as="geometry"/></mxCell>
+        <mxCell id="presentation" value="PRESENTATION\nHTTP / NestJS" style="swimlane;html=1;rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=16;horizontal=1" vertex="1" parent="1"><mxGeometry x="40" y="110" width="300" height="700" as="geometry"/></mxCell>
+        <mxCell id="p1" value="Controllers\nobra.controller\naditivos.controller\nestagios.controller" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf" vertex="1" parent="presentation"><mxGeometry x="25" y="75" width="250" height="130" as="geometry"/></mxCell>
+        <mxCell id="p2" value="DTOs + ValidationPipe\nclass-validator\nclass-transformer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf" vertex="1" parent="presentation"><mxGeometry x="25" y="250" width="250" height="110" as="geometry"/></mxCell>
+        <mxCell id="p3" value="AuthGuard\nHTTP Exceptions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf" vertex="1" parent="presentation"><mxGeometry x="25" y="420" width="250" height="100" as="geometry"/></mxCell>
+        <mxCell id="application" value="APPLICATION\nOrquestração" style="swimlane;html=1;rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=16;horizontal=1" vertex="1" parent="1"><mxGeometry x="390" y="110" width="360" height="700" as="geometry"/></mxCell>
+        <mxCell id="a1" value="Use Case contracts\nICreateObraUseCase\nIUpdateAditivoUseCase" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366" vertex="1" parent="application"><mxGeometry x="25" y="75" width="310" height="120" as="geometry"/></mxCell>
+        <mxCell id="a2" value="Application Services\nCreateObraService\nUpdateAditivoService\nEstagiosService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366" vertex="1" parent="application"><mxGeometry x="25" y="245" width="310" height="140" as="geometry"/></mxCell>
+        <mxCell id="a3" value="Either / AsyncResult\nleft(AppException)\nright(Response)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366" vertex="1" parent="application"><mxGeometry x="25" y="445" width="310" height="105" as="geometry"/></mxCell>
+        <mxCell id="domain" value="DOMAIN\nRegras de negócio" style="swimlane;html=1;rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=16;horizontal=1" vertex="1" parent="1"><mxGeometry x="800" y="110" width="360" height="700" as="geometry"/></mxCell>
+        <mxCell id="d1" value="Rich Entities\nObraEntity\nAditivoEntity\nUserEntity" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656" vertex="1" parent="domain"><mxGeometry x="25" y="75" width="310" height="130" as="geometry"/></mxCell>
+        <mxCell id="d2" value="Repository / Service interfaces\nIObraRepository\nIStorageService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656" vertex="1" parent="domain"><mxGeometry x="25" y="250" width="310" height="120" as="geometry"/></mxCell>
+        <mxCell id="d3" value="Domain Exceptions\nValidators\nFactories" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656" vertex="1" parent="domain"><mxGeometry x="25" y="435" width="310" height="105" as="geometry"/></mxCell>
+        <mxCell id="infra" value="INFRASTRUCTURE\nDetalhes técnicos" style="swimlane;html=1;rounded=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=16;horizontal=1" vertex="1" parent="1"><mxGeometry x="1210" y="110" width="360" height="700" as="geometry"/></mxCell>
+        <mxCell id="i1" value="Repositories\nTypeORM + withTenantManager" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450" vertex="1" parent="infra"><mxGeometry x="25" y="75" width="310" height="115" as="geometry"/></mxCell>
+        <mxCell id="i2" value="Mappers\nEntity ⇄ TypeORM Model" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450" vertex="1" parent="infra"><mxGeometry x="25" y="245" width="310" height="105" as="geometry"/></mxCell>
+        <mxCell id="i3" value="PostgreSQL / MinIO\nMigrations / DataSource" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450" vertex="1" parent="infra"><mxGeometry x="25" y="425" width="310" height="105" as="geometry"/></mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=3" edge="1" parent="1" source="presentation" target="application"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=3" edge="1" parent="1" source="application" target="domain"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=3" edge="1" parent="1" source="application" target="infra"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" value="implementa adapters" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1" edge="1" parent="1" source="infra" target="domain"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="modules" name="03 - Módulos NestJS">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1800" pageHeight="1200">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+        <mxCell id="title" value="AppModule - Módulos registrados" style="text;html=1;fontSize=24;fontStyle=1" vertex="1" parent="1"><mxGeometry x="40" y="25" width="700" height="45" as="geometry"/></mxCell>
+        <mxCell id="app" value="AppModule" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=18;fontStyle=1" vertex="1" parent="1"><mxGeometry x="730" y="60" width="260" height="80" as="geometry"/></mxCell>
+        <mxCell id="core" value="CoreModule\nconfig, database, exceptions, Either" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656" vertex="1" parent="1"><mxGeometry x="80" y="220" width="250" height="100" as="geometry"/></mxCell>
+        <mxCell id="tenancy" value="TenancyModule\ntenant context / manager" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656" vertex="1" parent="1"><mxGeometry x="80" y="390" width="250" height="100" as="geometry"/></mxCell>
+        <mxCell id="identity" value="UsersModule + AuthModule\nPessoasModule + OrgaosModule" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf" vertex="1" parent="1"><mxGeometry x="440" y="220" width="300" height="100" as="geometry"/></mxCell>
+        <mxCell id="works" value="ObrasModule\nObrasPrivadasModule\nContratosModule" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366" vertex="1" parent="1"><mxGeometry x="820" y="220" width="300" height="100" as="geometry"/></mxCell>
+        <mxCell id="planning" value="CronogramaModule\nLocalidadesModule\nFontesModule" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366" vertex="1" parent="1"><mxGeometry x="1200" y="220" width="300" height="100" as="geometry"/></mxCell>
+        <mxCell id="files" value="StorageModule\nAttachmentsModule\nDocumentosModule" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450" vertex="1" parent="1"><mxGeometry x="440" y="430" width="300" height="100" as="geometry"/></mxCell>
+        <mxCell id="reports" value="RelatoriosModule\nPDF / consultas / filtros" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6" vertex="1" parent="1"><mxGeometry x="820" y="430" width="300" height="100" as="geometry"/></mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block" edge="1" parent="1" source="app" target="core"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block" edge="1" parent="1" source="app" target="tenancy"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block" edge="1" parent="1" source="app" target="identity"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block" edge="1" parent="1" source="app" target="works"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block" edge="1" parent="1" source="app" target="planning"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block" edge="1" parent="1" source="app" target="files"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block" edge="1" parent="1" source="app" target="reports"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="note" value="Cada módulo normalmente contém: controller, dtos, domain, application, adapters, infra, symbols e module." style="shape=note;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666" vertex="1" parent="1"><mxGeometry x="1200" y="430" width="310" height="110" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="tenant" name="04 - Sequência multitenancy">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1800" pageHeight="1200">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+        <mxCell id="title" value="Fluxo de leitura/escrita em tenant" style="text;html=1;fontSize=24;fontStyle=1" vertex="1" parent="1"><mxGeometry x="40" y="25" width="800" height="45" as="geometry"/></mxCell>
+        <mxCell id="c1" value="Cliente" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;fillColor=#dae8fc;strokeColor=#6c8ebf" vertex="1" parent="1"><mxGeometry x="70" y="110" width="150" height="720" as="geometry"/></mxCell>
+        <mxCell id="c2" value="Controller" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;fillColor=#d5e8d4;strokeColor=#82b366" vertex="1" parent="1"><mxGeometry x="310" y="110" width="170" height="720" as="geometry"/></mxCell>
+        <mxCell id="c3" value="Application Service" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;fillColor=#fff2cc;strokeColor=#d6b656" vertex="1" parent="1"><mxGeometry x="570" y="110" width="190" height="720" as="geometry"/></mxCell>
+        <mxCell id="c4" value="withTenantManager" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;fillColor=#e1d5e7;strokeColor=#9673a6" vertex="1" parent="1"><mxGeometry x="850" y="110" width="210" height="720" as="geometry"/></mxCell>
+        <mxCell id="c5" value="Repository" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;fillColor=#f8cecc;strokeColor=#b85450" vertex="1" parent="1"><mxGeometry x="1150" y="110" width="170" height="720" as="geometry"/></mxCell>
+        <mxCell id="c6" value="Tenant Manager / TypeORM" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;fillColor=#f5f5f5;strokeColor=#666666" vertex="1" parent="1"><mxGeometry x="1410" y="110" width="220" height="720" as="geometry"/></mxCell>
+        <mxCell id="m1" value="request com tenant" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block" edge="1" parent="1" source="c1" target="c2"><mxGeometry y="210" relative="1" as="geometry"/></mxCell>
+        <mxCell id="m2" value="execute(dto → param)" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block" edge="1" parent="1" source="c2" target="c3"><mxGeometry y="290" relative="1" as="geometry"/></mxCell>
+        <mxCell id="m3" value="withTenantManager(dataSource, context)" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block" edge="1" parent="1" source="c3" target="c4"><mxGeometry y="370" relative="1" as="geometry"/></mxCell>
+        <mxCell id="m4" value="manager.getRepository(Model)" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block" edge="1" parent="1" source="c4" target="c5"><mxGeometry y="450" relative="1" as="geometry"/></mxCell>
+        <mxCell id="m5" value="find/save/query tipado" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block" edge="1" parent="1" source="c5" target="c6"><mxGeometry y="530" relative="1" as="geometry"/></mxCell>
+        <mxCell id="m6" value="Model ⇄ Mapper ⇄ Entity" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;dashed=1" edge="1" parent="1" source="c5" target="c3"><mxGeometry y="650" relative="1" as="geometry"/></mxCell>
+        <mxCell id="note" value="Regra: não usar manager.query/dataSource.query para CRUD de tabelas do tenant. Usar Repository, QueryBuilder, relações e Mapper." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656" vertex="1" parent="1"><mxGeometry x="520" y="870" width="760" height="80" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="sequence" name="05 - Sequência criar obra">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1900" pageHeight="1200">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+        <mxCell id="title" value="Caso de uso: criar obra com arquivos" style="text;html=1;fontSize=24;fontStyle=1" vertex="1" parent="1"><mxGeometry x="40" y="25" width="800" height="45" as="geometry"/></mxCell>
+        <mxCell id="actor" value="Cliente" style="shape=umlLifeline;perimeter=lifelinePerimeter;container=1;collapsible=0;fillColor=#dae8fc;strokeColor=#6c8ebf" vertex="1" parent="1"><mxGeometry x="60" y="110" width="130" height="760" as="geometry"/></mxCell>
+        <mxCell id="controller" value="ObraController" style="shape=umlLifeline;perimeter=lifelinePerimeter;container=1;collapsible=0;fillColor=#d5e8d4;strokeColor=#82b366" vertex="1" parent="1"><mxGeometry x="270" y="110" width="170" height="760" as="geometry"/></mxCell>
+        <mxCell id="service" value="CreateObraService" style="shape=umlLifeline;perimeter=lifelinePerimeter;container=1;collapsible=0;fillColor=#fff2cc;strokeColor=#d6b656" vertex="1" parent="1"><mxGeometry x="530" y="110" width="190" height="760" as="geometry"/></mxCell>
+        <mxCell id="upload" value="UploadFileUseCase" style="shape=umlLifeline;perimeter=lifelinePerimeter;container=1;collapsible=0;fillColor=#f8cecc;strokeColor=#b85450" vertex="1" parent="1"><mxGeometry x="820" y="110" width="190" height="760" as="geometry"/></mxCell>
+        <mxCell id="domain" value="ObraEntity" style="shape=umlLifeline;perimeter=lifelinePerimeter;container=1;collapsible=0;fillColor=#e1d5e7;strokeColor=#9673a6" vertex="1" parent="1"><mxGeometry x="1110" y="110" width="150" height="760" as="geometry"/></mxCell>
+        <mxCell id="repo" value="ObraRepository" style="shape=umlLifeline;perimeter=lifelinePerimeter;container=1;collapsible=0;fillColor=#f5f5f5;strokeColor=#666666" vertex="1" parent="1"><mxGeometry x="1360" y="110" width="170" height="760" as="geometry"/></mxCell>
+        <mxCell id="db" value="PostgreSQL / Attachments" style="shape=umlLifeline;perimeter=lifelinePerimeter;container=1;collapsible=0;fillColor=#f5f5f5;strokeColor=#666666" vertex="1" parent="1"><mxGeometry x="1630" y="110" width="220" height="760" as="geometry"/></mxCell>
+        <mxCell id="m1" value="POST /obras (multipart)" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block" edge="1" parent="1" source="actor" target="controller"><mxGeometry y="200" relative="1" as="geometry"/></mxCell>
+        <mxCell id="m2" value="validar DTO + autenticar" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block" edge="1" parent="1" source="controller" target="service"><mxGeometry y="280" relative="1" as="geometry"/></mxCell>
+        <mxCell id="m3" value="upload documentFile" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block" edge="1" parent="1" source="service" target="upload"><mxGeometry y="360" relative="1" as="geometry"/></mxCell>
+        <mxCell id="m4" value="upload perimetroImovelFile" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block" edge="1" parent="1" source="service" target="upload"><mxGeometry y="420" relative="1" as="geometry"/></mxCell>
+        <mxCell id="m5" value="create + validate(props)" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block" edge="1" parent="1" source="service" target="domain"><mxGeometry y="500" relative="1" as="geometry"/></mxCell>
+        <mxCell id="m6" value="save(entity)" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block" edge="1" parent="1" source="service" target="repo"><mxGeometry y="580" relative="1" as="geometry"/></mxCell>
+        <mxCell id="m7" value="persist + attachment" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block" edge="1" parent="1" source="repo" target="db"><mxGeometry y="660" relative="1" as="geometry"/></mxCell>
+        <mxCell id="m8" value="right(response) / left(exception)" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;dashed=1" edge="1" parent="1" source="service" target="controller"><mxGeometry y="760" relative="1" as="geometry"/></mxCell>
+        <mxCell id="note" value="Falha em upload ou persistência: retornar left(error) e executar rollback quando houver UnitOfWork." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656" vertex="1" parent="1"><mxGeometry x="650" y="930" width="700" height="80" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="er" name="06 - ER - Entidade e Relacionamento">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="2200" pageHeight="1500">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+        <mxCell id="er-title" value="Modelo ER - principais entidades persistentes" style="text;html=1;fontSize=24;fontStyle=1" vertex="1" parent="1"><mxGeometry x="40" y="25" width="900" height="45" as="geometry"/></mxCell>
+        <mxCell id="er-note" value="Visão simplificada das relações declaradas nos Models TypeORM. As entidades operacionais são isoladas por tenant; identidade e tenancy ficam no contexto público." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14" vertex="1" parent="1"><mxGeometry x="40" y="85" width="900" height="70" as="geometry"/></mxCell>
+        <mxCell id="er-tenancy" value="TENANCY\n\nPK id\nname\nschema_name" style="shape=table;html=1;whiteSpace=wrap;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1" vertex="1" parent="1"><mxGeometry x="60" y="240" width="220" height="130" as="geometry"/></mxCell>
+        <mxCell id="er-user" value="USER\n\nPK id\nemail\nrole\ntenant_id FK" style="shape=table;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1"><mxGeometry x="60" y="500" width="220" height="150" as="geometry"/></mxCell>
+        <mxCell id="er-orgao" value="ORGAO\n\nPK id\nname\ntenant_id FK" style="shape=table;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1"><mxGeometry x="360" y="220" width="220" height="130" as="geometry"/></mxCell>
+        <mxCell id="er-setor" value="SETOR\n\nPK id\norgao_id FK\nname" style="shape=table;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1"><mxGeometry x="360" y="430" width="220" height="130" as="geometry"/></mxCell>
+        <mxCell id="er-pessoa" value="PESSOA\n\nPK id\nname\ndocument" style="shape=table;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1"><mxGeometry x="360" y="650" width="220" height="130" as="geometry"/></mxCell>
+        <mxCell id="er-obra" value="OBRA\n\nPK id\nname\nstatus\norgao_id FK\nlocalidade_id FK" style="shape=table;html=1;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1"><mxGeometry x="700" y="250" width="250" height="170" as="geometry"/></mxCell>
+        <mxCell id="er-contrato" value="CONTRATO\n\nPK id\nobra_id FK\nempresa_id FK\nvalor\nstatus" style="shape=table;html=1;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1"><mxGeometry x="1040" y="230" width="250" height="170" as="geometry"/></mxCell>
+        <mxCell id="er-empresa" value="EMPRESA_CONTRATADA\n\nPK id\nname\ndocument" style="shape=table;html=1;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1"><mxGeometry x="1040" y="500" width="250" height="140" as="geometry"/></mxCell>
+        <mxCell id="er-aditivo" value="ADITIVO\n\nPK id\ncontrato_id FK\ntype\nvalue\nstatus" style="shape=table;html=1;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1"><mxGeometry x="1380" y="220" width="250" height="170" as="geometry"/></mxCell>
+        <mxCell id="er-paralisacao" value="PARALISACAO\n\nPK id\ncontrato_id FK\nstart_date\nend_date" style="shape=table;html=1;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1"><mxGeometry x="1380" y="500" width="250" height="150" as="geometry"/></mxCell>
+        <mxCell id="er-empenho" value="EMPENHO\n\nPK id\nobra_id FK\nfonte_id FK\nvalue" style="shape=table;html=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" vertex="1" parent="1"><mxGeometry x="700" y="570" width="250" height="150" as="geometry"/></mxCell>
+        <mxCell id="er-medicao" value="MEDICAO / CRONOGRAMA\n\nPK id\nobra_id FK\ncontrato_id FK\nstatus\nvalue" style="shape=table;html=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" vertex="1" parent="1"><mxGeometry x="1040" y="760" width="250" height="160" as="geometry"/></mxCell>
+        <mxCell id="er-fonte" value="FONTE\n\nPK id\nname\ncode" style="shape=table;html=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" vertex="1" parent="1"><mxGeometry x="360" y="900" width="220" height="130" as="geometry"/></mxCell>
+        <mxCell id="er-arquivo" value="ARQUIVO / ATTACHMENT\n\nPK id\nentity_id\nfile_name\nurl\nmime_type" style="shape=table;html=1;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1"><mxGeometry x="1380" y="800" width="270" height="170" as="geometry"/></mxCell>
+        <mxCell id="er-localidade" value="LOCALIDADE\n\nPK id\nname\nstate" style="shape=table;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1"><mxGeometry x="60" y="850" width="220" height="130" as="geometry"/></mxCell>
+        <mxCell id="r1" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-tenancy" target="er-user"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r2" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-orgao" target="er-setor"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r3" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-orgao" target="er-obra"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r4" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-obra" target="er-contrato"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r5" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-empresa" target="er-contrato"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r6" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-contrato" target="er-aditivo"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r7" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-contrato" target="er-paralisacao"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r8" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-obra" target="er-empenho"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r9" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-obra" target="er-medicao"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r10" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-fonte" target="er-empenho"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r11" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-contrato" target="er-medicao"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r12" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-obra" target="er-arquivo"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r13" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-localidade" target="er-obra"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r14" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone" edge="1" parent="1" source="er-pessoa" target="er-obra"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

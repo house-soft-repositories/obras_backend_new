@@ -232,6 +232,36 @@ if (result.isLeft()) {
 const user = result.value;
 ```
 
+### Either, AsyncResult e Unit
+
+`Either<L, R>` representa explicitamente falha ou sucesso: `left(exception)` carrega uma `AppException` concreta e `right(value)` carrega o valor de sucesso. `AsyncResult<L, R>` é apenas o alias assíncrono usado pelos contratos do domínio, application services e repositórios: `Promise<Either<L, R>>`.
+
+Operações sem payload de sucesso devem retornar `Unit`, não `void`/`Void`, quando estiverem dentro de `Either`/`AsyncResult`. O tipo fica em `src/core/types/unit.ts` e o valor único exportado é `unit`.
+
+```typescript
+import type AsyncResult from '@/core/types/async_result';
+import { right, left } from '@/core/types/either';
+import { unit, type Unit } from '@/core/types/unit';
+
+async delete(id: string): AsyncResult<AppException, Unit> {
+  try {
+    await this.repository.delete(id);
+    return right(unit);
+  } catch (error) {
+    return left(new MyRepositoryException({ code, statusCode: 500, cause: error }));
+  }
+}
+```
+
+Use `Unit` em:
+
+- contratos `UseCase<Param, Unit>`;
+- services de `application/` que executam comandos sem resposta;
+- interfaces de repositório/adapters que removem, garantem, sincronizam ou executam comandos sem entidade de retorno;
+- implementações de repositório que retornam `right(unit)` no sucesso.
+
+Não use `void`/`Void` como lado direito de `Either`/`AsyncResult`, porque isso apaga o valor de sucesso e foge do padrão funcional da aplicação. `void` continua aceitável apenas para funções que não retornam `Either`, como lifecycle hooks, callbacks internos e chamadas descartadas explicitamente (`void bootstrap()`).
+
 ### Códigos de erro para o cliente
 
 `AppException` exige um `code` estável e aceita `message` apenas como detalhe opcional. Ela é exclusivamente a base técnica compartilhada: nenhum domínio ou camada deve instanciá-la ou expô-la como seu erro concreto. O cliente traduz erros pelo código, sem depender de texto vindo da API.
