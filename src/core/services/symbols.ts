@@ -1,0 +1,1 @@
+export const MONITORY_SERVICE = Symbol('MONITORY_SERVICE');

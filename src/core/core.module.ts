@@ -10,6 +10,10 @@ import UserModel from '@/modules/users/infra/models/user.model';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import TenantSchemaResolver from '@/core/multitenancy/tenant_schema_resolver';
 import TenantRequestContextService from '@/core/multitenancy/tenant_request_context.service';
+import LocalMonitoryService from '@/core/services/local_monitory.service';
+import HttpMonitoryFilter from '@/core/services/http_monitory.filter';
+import { MONITORY_SERVICE } from '@/core/services/symbols';
+import { APP_FILTER } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -38,6 +42,14 @@ import TenantRequestContextService from '@/core/multitenancy/tenant_request_cont
   ],
   providers: [
     ConfigurationService,
+    {
+      provide: MONITORY_SERVICE,
+      useClass: LocalMonitoryService,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpMonitoryFilter,
+    },
     TenantContext,
     {
       provide: TenantSchemaResolver,
@@ -58,6 +70,7 @@ import TenantRequestContextService from '@/core/multitenancy/tenant_request_cont
     TenantContext,
     TenantSchemaResolver,
     TenantRequestContextService,
+    MONITORY_SERVICE,
   ],
 })
 export default class CoreModule {}
