@@ -14,7 +14,9 @@ import {
   proximoCodigo,
 } from '@/modules/obras-privadas/services/codigo_privado.service';
 
-export default class CreateAutoInfracaoService implements ICreateAutoInfracaoUseCase {
+export default class CreateAutoInfracaoService
+  implements ICreateAutoInfracaoUseCase
+{
   constructor(
     private readonly autoRepository: IAutoInfracaoRepository,
     private readonly obraPrivadaRepository: IObraPrivadaRepository,

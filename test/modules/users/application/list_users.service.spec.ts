@@ -66,7 +66,9 @@ describe('ListUsersService', () => {
       validUser.tenantId,
     );
     expect(result.getOrThrow().toObject().data).toEqual(users);
-    expect(result.getOrThrow().toObject().data[0]).not.toHaveProperty('password');
+    expect(result.getOrThrow().toObject().data[0]).not.toHaveProperty(
+      'password',
+    );
   });
 
   it('propagates repository failures', async () => {

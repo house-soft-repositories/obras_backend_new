@@ -2,7 +2,9 @@ import ObservacaoEntity from '@/modules/obras/domain/entities/observacao.entity'
 import ObservacaoModel from '@/modules/obras/infra/models/observacao.model';
 
 export default abstract class ObservacaoMapper {
-  static toEntity(m: ObservacaoModel & { createdAt?: Date; updatedAt?: Date }): ObservacaoEntity {
+  static toEntity(
+    m: ObservacaoModel & { createdAt?: Date; updatedAt?: Date },
+  ): ObservacaoEntity {
     const anyM = m as unknown as Record<string, unknown>;
     return ObservacaoEntity.fromData({
       id: m.id,

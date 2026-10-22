@@ -6,7 +6,9 @@ import IListObrasNoMesmoImovelUseCase, {
   ListObrasNoMesmoImovelParam,
 } from '@/modules/obras-privadas/domain/usecase/list_obras_no_mesmo_imovel.usecase';
 
-export default class ListObrasNoMesmoImovelService implements IListObrasNoMesmoImovelUseCase {
+export default class ListObrasNoMesmoImovelService
+  implements IListObrasNoMesmoImovelUseCase
+{
   constructor(private readonly obraPrivadaRepository: IObraPrivadaRepository) {}
   async execute(
     param: ListObrasNoMesmoImovelParam,

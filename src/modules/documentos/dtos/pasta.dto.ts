@@ -1,5 +1,11 @@
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
-import { IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export default class PastaDto {
   @IsUUID()

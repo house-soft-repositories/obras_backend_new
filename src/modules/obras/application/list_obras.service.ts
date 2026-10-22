@@ -4,7 +4,9 @@ import TenantContext from '@/core/multitenancy/tenant_context';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
-import IListObrasUseCase, { ListObrasParam } from '@/modules/obras/domain/usecase/list_obras.usecase';
+import IListObrasUseCase, {
+  ListObrasParam,
+} from '@/modules/obras/domain/usecase/list_obras.usecase';
 import ObraServiceException from '@/modules/obras/exceptions/obra_service.exception';
 import PageEntity from '@/core/pagination/domain/entities/page.entity';
 import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
@@ -15,7 +17,9 @@ export default class ListObrasService implements IListObrasUseCase {
     private readonly tc: TenantContext,
   ) {}
 
-  async execute(param: ListObrasParam): AsyncResult<AppException, PageEntity<ObraEntity>> {
+  async execute(
+    param: ListObrasParam,
+  ): AsyncResult<AppException, PageEntity<ObraEntity>> {
     try {
       this.tc.require();
       const result = await this.repo.findPage({

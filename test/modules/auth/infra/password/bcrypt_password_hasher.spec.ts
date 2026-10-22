@@ -11,7 +11,9 @@ describe('BcryptPasswordHasher', () => {
     expect(hash).not.toBe('plain-password');
     expect(bcrypt.getRounds(hash)).toBe(10);
     await expect(hasher.compare('plain-password', hash)).resolves.toBe(true);
-    await expect(hasher.compare('different-password', hash)).resolves.toBe(false);
+    await expect(hasher.compare('different-password', hash)).resolves.toBe(
+      false,
+    );
     expect(configuration.get.mock.calls).toContainEqual(['SALT']);
   });
 });

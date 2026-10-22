@@ -6,7 +6,10 @@ import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 
 const RoleDecorator = (...roles: UserRole[]) =>
   createParamDecorator(
-    (_data: unknown, context: ExecutionContext): AccessTokenPayload | undefined =>
+    (
+      _data: unknown,
+      context: ExecutionContext,
+    ): AccessTokenPayload | undefined =>
       new RolePipe(roles).transform(
         context.switchToHttp().getRequest<AuthenticatedRequest>().auth,
       ),

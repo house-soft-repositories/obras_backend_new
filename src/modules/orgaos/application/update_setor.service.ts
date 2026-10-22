@@ -14,7 +14,9 @@ import SetorServiceException from '@/modules/orgaos/exceptions/setor_service.exc
 export default class UpdateSetorService implements IUpdateSetorUseCase {
   constructor(private readonly repository: ISetorRepository) {}
 
-  async execute(param: UpdateSetorParam): AsyncResult<AppException, SetorEntity> {
+  async execute(
+    param: UpdateSetorParam,
+  ): AsyncResult<AppException, SetorEntity> {
     try {
       const denied = denyUnlessSetorWriter(param.role);
       if (denied) return left(denied);

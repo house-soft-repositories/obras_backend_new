@@ -130,7 +130,11 @@ import IEmpresaContratadaRepository from '@/modules/contratos/adapters/empresa_c
     },
     {
       provide: CREATE_CONTRATO_USE_CASE,
-      inject: [CONTRATO_REPOSITORY, EMPRESA_CONTRATADA_REPOSITORY, TenantContext],
+      inject: [
+        CONTRATO_REPOSITORY,
+        EMPRESA_CONTRATADA_REPOSITORY,
+        TenantContext,
+      ],
       useFactory: (
         cr: IContratoRepository,
         er: IEmpresaContratadaRepository,
@@ -150,10 +154,8 @@ import IEmpresaContratadaRepository from '@/modules/contratos/adapters/empresa_c
     {
       provide: UPDATE_CONTRATO_USE_CASE,
       inject: [CONTRATO_REPOSITORY, EMPRESA_CONTRATADA_REPOSITORY],
-      useFactory: (
-        cr: IContratoRepository,
-        er: IEmpresaContratadaRepository,
-      ) => new UpdateContratoService(cr, er),
+      useFactory: (cr: IContratoRepository, er: IEmpresaContratadaRepository) =>
+        new UpdateContratoService(cr, er),
     },
     {
       provide: DELETE_CONTRATO_USE_CASE,

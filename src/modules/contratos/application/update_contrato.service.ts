@@ -31,9 +31,7 @@ export default class UpdateContratoService implements IUpdateContratoUseCase {
       const previous = found.value.toObject();
 
       if (param.empresaContratadaId) {
-        const emp = await this.empresaRepo.findById(
-          param.empresaContratadaId,
-        );
+        const emp = await this.empresaRepo.findById(param.empresaContratadaId);
         if (emp.isLeft()) return left(emp.value);
         if (!emp.value) {
           return left(
@@ -63,7 +61,8 @@ export default class UpdateContratoService implements IUpdateContratoUseCase {
             ? param.fimVigencia
             : previous.fimVigencia,
         dataOs: param.dataOs ?? previous.dataOs,
-        tipoPrazoExecucao: param.tipoPrazoExecucao ?? previous.tipoPrazoExecucao,
+        tipoPrazoExecucao:
+          param.tipoPrazoExecucao ?? previous.tipoPrazoExecucao,
         prazoExecucaoDias:
           param.prazoExecucaoDias !== undefined
             ? param.prazoExecucaoDias

@@ -7,7 +7,16 @@ import { ClassificacaoEntity } from '@/modules/obras/domain/entities/cadastro.en
 
 export default class ListClassificacaosService {
   constructor(private readonly repository: IClassificacaoRepository) {}
-  execute(param: { page: number; take: number; apenasAtivos?: boolean; parentId?: string }): AsyncResult<AppException, PageEntity<ClassificacaoEntity>> {
-    return this.repository.findPage(new PageOptionsEntity('ASC', param.page, param.take), param.apenasAtivos, param.parentId);
+  execute(param: {
+    page: number;
+    take: number;
+    apenasAtivos?: boolean;
+    parentId?: string;
+  }): AsyncResult<AppException, PageEntity<ClassificacaoEntity>> {
+    return this.repository.findPage(
+      new PageOptionsEntity('ASC', param.page, param.take),
+      param.apenasAtivos,
+      param.parentId,
+    );
   }
 }

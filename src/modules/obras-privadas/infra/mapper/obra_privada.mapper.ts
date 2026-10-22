@@ -53,8 +53,41 @@ export type LicenciamentoRow = {
 };
 
 export default abstract class ObraPrivadaMapper {
-  static toModel(e:ObraPrivadaEntity):Partial<ObraPrivadaModel>{ return e.toObject(); }
-  static toEntity(m:ObraPrivadaModel):ObraPrivadaEntity{ return ObraPrivadaEntity.fromData({ id:m.id, tenantId:(m as any).tenantId??'', codigo:m.codigo, descricao:m.descricao, observacoes:m.observacoes, proprietarioPessoaId:m.proprietarioPessoaId, orgaoId:m.orgaoId, inscricaoImobiliaria:m.inscricaoImobiliaria, matriculaRgi:m.matriculaRgi, cartorio:m.cartorio, cep:m.cep, logradouro:m.logradouro, numero:m.numero, complemento:m.complemento, bairro:m.bairro, localidadeId:m.localidadeId, uf:m.uf, latitude:m.latitude, longitude:m.longitude, geoOrigem:m.geoOrigem, situacaoAlvara:m.situacaoAlvara, andamento:m.andamento, habiteSe:m.habiteSe, dataInicio:m.dataInicio, dataPrevistaConclusao:m.dataPrevistaConclusao, createdAt:m.createdAt, updatedAt:m.updatedAt, deletedAt:(m as any).deletedAt??null }); }
+  static toModel(e: ObraPrivadaEntity): Partial<ObraPrivadaModel> {
+    return e.toObject();
+  }
+  static toEntity(m: ObraPrivadaModel): ObraPrivadaEntity {
+    return ObraPrivadaEntity.fromData({
+      id: m.id,
+      tenantId: (m as any).tenantId ?? '',
+      codigo: m.codigo,
+      descricao: m.descricao,
+      observacoes: m.observacoes,
+      proprietarioPessoaId: m.proprietarioPessoaId,
+      orgaoId: m.orgaoId,
+      inscricaoImobiliaria: m.inscricaoImobiliaria,
+      matriculaRgi: m.matriculaRgi,
+      cartorio: m.cartorio,
+      cep: m.cep,
+      logradouro: m.logradouro,
+      numero: m.numero,
+      complemento: m.complemento,
+      bairro: m.bairro,
+      localidadeId: m.localidadeId,
+      uf: m.uf,
+      latitude: m.latitude,
+      longitude: m.longitude,
+      geoOrigem: m.geoOrigem,
+      situacaoAlvara: m.situacaoAlvara,
+      andamento: m.andamento,
+      habiteSe: m.habiteSe,
+      dataInicio: m.dataInicio,
+      dataPrevistaConclusao: m.dataPrevistaConclusao,
+      createdAt: m.createdAt,
+      updatedAt: m.updatedAt,
+      deletedAt: (m as any).deletedAt ?? null,
+    });
+  }
   static toListReadModel(row: ObraPrivadaListRow): ObraPrivadaListReadModel {
     const ultima = toIsoDate(row.ultimaVisitaEm);
     return {
@@ -100,7 +133,9 @@ export default abstract class ObraPrivadaMapper {
       diasAteVencimento: validade
         ? Math.round(
             (Date.parse(`${validade}T00:00:00Z`) -
-              Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`)) /
+              Date.parse(
+                `${new Date().toISOString().slice(0, 10)}T00:00:00Z`,
+              )) /
               MS_DIA,
           )
         : null,

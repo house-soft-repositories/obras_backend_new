@@ -1,5 +1,7 @@
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
-import PastaEntity, { NOME_PASTA_RAIZ } from '@/modules/documentos/domain/entities/pasta.entity';
+import PastaEntity, {
+  NOME_PASTA_RAIZ,
+} from '@/modules/documentos/domain/entities/pasta.entity';
 
 const OBRA_ID = '11111111-1111-4111-8111-111111111111';
 const USUARIO_ID = '22222222-2222-4222-8222-222222222222';
@@ -26,7 +28,11 @@ describe('PastaEntity', () => {
           nome: '   ',
           criadoPorUsuarioId: null,
         }),
-      ).toThrow(expect.objectContaining({ code: ErrorCodeConstants.PASTA_INVALID_NAME }));
+      ).toThrow(
+        expect.objectContaining({
+          code: ErrorCodeConstants.PASTA_INVALID_NAME,
+        }),
+      );
     });
   });
 

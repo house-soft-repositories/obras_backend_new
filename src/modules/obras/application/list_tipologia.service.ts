@@ -7,7 +7,16 @@ import { TipologiaEntity } from '@/modules/obras/domain/entities/cadastro.entity
 
 export default class ListTipologiasService {
   constructor(private readonly repository: ITipologiaRepository) {}
-  execute(param: { page: number; take: number; apenasAtivos?: boolean; parentId?: string }): AsyncResult<AppException, PageEntity<TipologiaEntity>> {
-    return this.repository.findPage(new PageOptionsEntity('ASC', param.page, param.take), param.apenasAtivos, param.parentId);
+  execute(param: {
+    page: number;
+    take: number;
+    apenasAtivos?: boolean;
+    parentId?: string;
+  }): AsyncResult<AppException, PageEntity<TipologiaEntity>> {
+    return this.repository.findPage(
+      new PageOptionsEntity('ASC', param.page, param.take),
+      param.apenasAtivos,
+      param.parentId,
+    );
   }
 }

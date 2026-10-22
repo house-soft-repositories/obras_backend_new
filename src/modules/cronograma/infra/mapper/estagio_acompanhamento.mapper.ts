@@ -2,7 +2,10 @@ import EstagioAcompanhamentoEntity from '@/modules/cronograma/domain/entities/es
 import EstagioAcompanhamentoModel from '@/modules/cronograma/infra/models/estagio_acompanhamento.model';
 import BaseMapper from '@/core/types/base_mapper';
 
-export default abstract class EstagioAcompanhamentoMapper extends BaseMapper<EstagioAcompanhamentoEntity, EstagioAcompanhamentoModel> {
+export default abstract class EstagioAcompanhamentoMapper extends BaseMapper<
+  EstagioAcompanhamentoEntity,
+  EstagioAcompanhamentoModel
+> {
   static toEntity(m: EstagioAcompanhamentoModel): EstagioAcompanhamentoEntity {
     return EstagioAcompanhamentoEntity.fromData({
       id: m.id,
@@ -17,7 +20,9 @@ export default abstract class EstagioAcompanhamentoMapper extends BaseMapper<Est
     });
   }
 
-  static toModel(e: EstagioAcompanhamentoEntity): Partial<EstagioAcompanhamentoModel> {
+  static toModel(
+    e: EstagioAcompanhamentoEntity,
+  ): Partial<EstagioAcompanhamentoModel> {
     return {
       id: e.id,
       tenantId: e.tenantId,

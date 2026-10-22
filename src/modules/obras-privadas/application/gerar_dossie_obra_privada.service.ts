@@ -20,7 +20,9 @@ import {
 } from '@/modules/obras-privadas/domain/relatorios/relatorio_privadas';
 import DossieObraPrivadaEntity from '@/modules/obras-privadas/domain/entities/dossie_obra_privada.entity';
 
-export default class GerarDossieObraPrivadaService implements IGerarDossieObraPrivadaUseCase {
+export default class GerarDossieObraPrivadaService
+  implements IGerarDossieObraPrivadaUseCase
+{
   constructor(
     private readonly detalharObra: IDetalharObraUseCase,
     private readonly alvaras: IAlvaraRepository,

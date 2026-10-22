@@ -60,9 +60,10 @@ export function montarHtmlDossie(param: HtmlDossieParam): string {
   const geradoEm = param.geradoEm ?? new Date().toISOString();
   const secoes = param.secoes
     .map(
-      (s) => `<section class="secao"><h2>${escapeHtml(s.titulo)}</h2><ul>${s.linhas
-        .map((l) => `<li>${escapeHtml(l)}</li>`)
-        .join('')}</ul></section>`,
+      (s) =>
+        `<section class="secao"><h2>${escapeHtml(s.titulo)}</h2><ul>${s.linhas
+          .map((l) => `<li>${escapeHtml(l)}</li>`)
+          .join('')}</ul></section>`,
     )
     .join('\n');
 
@@ -73,7 +74,9 @@ export function montarHtmlDossie(param: HtmlDossieParam): string {
         `<figcaption><div class="legenda">${i + 1}. ${escapeHtml(f.legenda)}</div>` +
         `<div class="data">${escapeHtml(formatarData(f.data))}</div></figcaption></figure>` +
         // Duas fotos por página, como no legado (pdfkit): quebra após cada par.
-        (i % 2 === 1 && i < param.fotos.length - 1 ? '<div class="quebra"></div>' : ''),
+        (i % 2 === 1 && i < param.fotos.length - 1
+          ? '<div class="quebra"></div>'
+          : ''),
     )
     .join('\n');
 
@@ -88,11 +91,13 @@ export function montarHtmlDossie(param: HtmlDossieParam): string {
       ? `<section class="anexo"><h2>Anexo fotográfico</h2>${figuras}${omitidas}</section>`
       : `<section class="anexo"><h2>Anexo fotográfico</h2><p class="vazio">Sem fotos cadastradas para esta obra.</p>${omitidas}</section>`;
 
-  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"/><title>${escapeHtml(
-    param.titulo,
-  )}</title><style>${CSS}</style></head><body>` +
+  return (
+    `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"/><title>${escapeHtml(
+      param.titulo,
+    )}</title><style>${CSS}</style></head><body>` +
     `<header class="capa"><h1>${escapeHtml(param.titulo)}</h1>` +
     `<p class="sub">${escapeHtml(param.subtitulo)}</p>` +
     `<p class="meta">Gerado em ${escapeHtml(geradoEm)}</p></header>` +
-    `<main>${secoes}</main>${anexo}</body></html>`;
+    `<main>${secoes}</main>${anexo}</body></html>`
+  );
 }

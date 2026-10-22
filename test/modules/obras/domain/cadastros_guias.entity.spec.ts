@@ -12,7 +12,10 @@ import GuiaDomainException from '@/modules/obras/exceptions/guia_domain.exceptio
 
 describe('cadastros e guias entities', () => {
   it('creates and updates an eixo', () => {
-    const eixo = EixoEntity.create({ tenantId: 'tenant-1', nome: ' Mobilidade ' });
+    const eixo = EixoEntity.create({
+      tenantId: 'tenant-1',
+      nome: ' Mobilidade ',
+    });
     eixo.update({ nome: 'Infraestrutura', ativo: false });
 
     expect(eixo.toObject()).toMatchObject({

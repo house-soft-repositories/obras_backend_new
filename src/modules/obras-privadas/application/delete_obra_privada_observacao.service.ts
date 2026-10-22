@@ -9,7 +9,9 @@ import IDeleteObraPrivadaObservacaoUseCase, {
 } from '@/modules/obras-privadas/domain/usecase/delete_obra_privada_observacao.usecase';
 import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obra_privada_service.exception';
 
-export default class DeleteObraPrivadaObservacaoService implements IDeleteObraPrivadaObservacaoUseCase {
+export default class DeleteObraPrivadaObservacaoService
+  implements IDeleteObraPrivadaObservacaoUseCase
+{
   constructor(
     private readonly observacaoRepository: IObraPrivadaObservacaoRepository,
   ) {}

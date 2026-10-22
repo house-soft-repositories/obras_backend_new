@@ -7,7 +7,16 @@ import { SubclassificacaoEntity } from '@/modules/obras/domain/entities/cadastro
 
 export default class ListSubclassificacaosService {
   constructor(private readonly repository: ISubclassificacaoRepository) {}
-  execute(param: { page: number; take: number; apenasAtivos?: boolean; parentId?: string }): AsyncResult<AppException, PageEntity<SubclassificacaoEntity>> {
-    return this.repository.findPage(new PageOptionsEntity('ASC', param.page, param.take), param.apenasAtivos, param.parentId);
+  execute(param: {
+    page: number;
+    take: number;
+    apenasAtivos?: boolean;
+    parentId?: string;
+  }): AsyncResult<AppException, PageEntity<SubclassificacaoEntity>> {
+    return this.repository.findPage(
+      new PageOptionsEntity('ASC', param.page, param.take),
+      param.apenasAtivos,
+      param.parentId,
+    );
   }
 }

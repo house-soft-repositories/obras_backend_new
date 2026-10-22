@@ -9,7 +9,9 @@ import IDesempenhoObraRelatorioUseCase, {
 import RelatoriosServiceException from '@/modules/relatorios/exceptions/relatorios_service.exception';
 import RelatoriosQuery from '@/modules/relatorios/infra/query/relatorios_query';
 
-export default class DesempenhoObraRelatorioService implements IDesempenhoObraRelatorioUseCase {
+export default class DesempenhoObraRelatorioService
+  implements IDesempenhoObraRelatorioUseCase
+{
   constructor(private readonly query: RelatoriosQuery) {}
 
   async execute(

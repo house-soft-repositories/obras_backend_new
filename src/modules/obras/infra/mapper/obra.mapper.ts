@@ -20,9 +20,11 @@ export default abstract class ObraMapper {
       tipo: m.tipo,
       status: m.status,
       tipoFinanciamento:
-        (anyM['tipoFinanciamento'] as TipoFinanciamento) ?? TipoFinanciamento.SEM_OGU,
+        (anyM['tipoFinanciamento'] as TipoFinanciamento) ??
+        TipoFinanciamento.SEM_OGU,
       modoDuracao:
-        (anyM['modoDuracao'] as ModoDuracao) ?? ModoDuracao.DEFINIDO_PELO_USUARIO,
+        (anyM['modoDuracao'] as ModoDuracao) ??
+        ModoDuracao.DEFINIDO_PELO_USUARIO,
       dataInicio: (anyM['dataInicio'] as string | null) ?? null,
       dataPrazo: (anyM['dataPrazo'] as string | null) ?? null,
       acaoConveniada:

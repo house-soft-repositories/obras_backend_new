@@ -7,7 +7,10 @@ type TenancyDomainErrorCode =
   | typeof ErrorCodeConstants.TENANCY_INVALID_CNPJ;
 
 export default class TenancyDomainException extends AppException {
-  constructor({ code, message }: { code: TenancyDomainErrorCode; message?: string }) {
+  constructor({
+    code,
+    message,
+  }: { code: TenancyDomainErrorCode; message?: string }) {
     super({ code, statusCode: 400, message });
   }
 }

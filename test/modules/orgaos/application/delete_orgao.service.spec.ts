@@ -4,7 +4,10 @@ import DeleteOrgaoService from '@/modules/orgaos/application/delete_orgao.servic
 import OrgaoEntity from '@/modules/orgaos/domain/entities/orgao.entity';
 import OrgaoRepositoryException from '@/modules/orgaos/exceptions/orgao_repository.exception';
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
-import { orgaoIds, validOrgao } from '@test/constants/orgaos/domain/entities/orgao_setor.constants';
+import {
+  orgaoIds,
+  validOrgao,
+} from '@test/constants/orgaos/domain/entities/orgao_setor.constants';
 import mockOrgaoRepository from '@test/mocks/orgaos/adapters/orgao_repository.mock';
 
 describe('DeleteOrgaoService', () => {

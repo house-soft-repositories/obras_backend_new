@@ -12,24 +12,23 @@ const tenant = {
   schemaName: 'tenant_00000000000000000000000000000000',
 };
 
-const modelFrom = (stage: EstagioEntity): EstagioModel =>
-  ({
-    id: stage.id,
-    tenantId: stage.tenantId,
-    obraId: stage.obraId,
-    nome: stage.nome,
-    posicao: stage.posicao,
-    ativo: stage.ativo,
-    status: stage.status,
-    modoDuracao: stage.modoDuracao,
-    dataInicio: stage.dataInicio,
-    dataFim: stage.dataFim,
-    percentualDireto: stage.percentualDireto,
-    responsavelUsuarioId: stage.responsavelUsuarioId,
-    estagioPaiId: stage.estagioPaiId,
-    createdAt: stage.criadoEm,
-    updatedAt: stage.atualizadoEm,
-  });
+const modelFrom = (stage: EstagioEntity): EstagioModel => ({
+  id: stage.id,
+  tenantId: stage.tenantId,
+  obraId: stage.obraId,
+  nome: stage.nome,
+  posicao: stage.posicao,
+  ativo: stage.ativo,
+  status: stage.status,
+  modoDuracao: stage.modoDuracao,
+  dataInicio: stage.dataInicio,
+  dataFim: stage.dataFim,
+  percentualDireto: stage.percentualDireto,
+  responsavelUsuarioId: stage.responsavelUsuarioId,
+  estagioPaiId: stage.estagioPaiId,
+  createdAt: stage.criadoEm,
+  updatedAt: stage.atualizadoEm,
+});
 
 const stageOf = (p: {
   id?: string;
@@ -93,7 +92,9 @@ describe('EstagioRepository', () => {
     expect(result.isRight()).toBe(true);
     expect(queryRunner.startTransaction).toHaveBeenCalledTimes(1);
     expect(queryRunner.query).toHaveBeenCalledWith(
-      expect.stringContaining(`SET LOCAL search_path TO "${tenant.schemaName}"`),
+      expect.stringContaining(
+        `SET LOCAL search_path TO "${tenant.schemaName}"`,
+      ),
     );
     expect(estagioRepoMock.save).toHaveBeenCalledWith(
       expect.objectContaining({ id: stage.id, nome: 'Execução' }),
@@ -104,7 +105,10 @@ describe('EstagioRepository', () => {
   });
 
   it('saves batch stages in a single transaction', async () => {
-    const stages = [stageOf({ nome: 'Projeto' }), stageOf({ nome: 'Entrega', posicao: 1 })];
+    const stages = [
+      stageOf({ nome: 'Projeto' }),
+      stageOf({ nome: 'Entrega', posicao: 1 }),
+    ];
     const estagioRepoMock = {
       save: jest.fn(async (items: EstagioModel[]) => items),
     };
@@ -226,8 +230,15 @@ describe('EstagioRepository', () => {
   });
 
   it('reorders all stages and commits', async () => {
-    const stage1 = stageOf({ id: '33333333-3333-3333-3333-333333333333', nome: 'Projeto' });
-    const stage2 = stageOf({ id: '44444444-4444-4444-4444-444444444444', nome: 'Entrega', posicao: 1 });
+    const stage1 = stageOf({
+      id: '33333333-3333-3333-3333-333333333333',
+      nome: 'Projeto',
+    });
+    const stage2 = stageOf({
+      id: '44444444-4444-4444-4444-444444444444',
+      nome: 'Entrega',
+      posicao: 1,
+    });
     const estagioRepoMock = {
       findOne: jest.fn(async (opts) => {
         if (opts.where.id === stage1.id) return modelFrom(stage1);
@@ -442,7 +453,9 @@ describe('EstagioRepository', () => {
     );
 
     expect(result.isRight()).toBe(true);
-    expect(estagioRepoMock.findOne).toHaveBeenCalledWith({ where: { id: 'stage', obraId: 'obra' } });
+    expect(estagioRepoMock.findOne).toHaveBeenCalledWith({
+      where: { id: 'stage', obraId: 'obra' },
+    });
     expect(estagioRepoMock.update).toHaveBeenCalledWith(
       { obraId: 'obra', estagioPaiId: 'stage' },
       expect.objectContaining({ estagioPaiId: null }),

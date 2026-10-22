@@ -23,8 +23,23 @@ export default class ListObrasQueryDto extends PaginationOptionsDto {
   @IsOptional() @IsString() bairro?: string;
   @IsOptional() @IsUUID() orgaoId?: string;
   @IsOptional() @IsUUID() localidadeId?: string;
-  @IsOptional() @Transform(({ value }) => value === 'true' || value === true, { toClassOnly: true }) @IsBoolean() autuada?: boolean;
-  @IsOptional() @Transform(({ value }) => value === 'true' || value === true, { toClassOnly: true }) @IsBoolean() embargada?: boolean;
-  @IsOptional() @Transform(({ value }) => value === 'true' || value === true, { toClassOnly: true }) @IsBoolean() fiscalizada?: boolean;
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true, {
+    toClassOnly: true,
+  })
+  @IsBoolean()
+  autuada?: boolean;
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true, {
+    toClassOnly: true,
+  })
+  @IsBoolean()
+  embargada?: boolean;
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true, {
+    toClassOnly: true,
+  })
+  @IsBoolean()
+  fiscalizada?: boolean;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) semVisitaHaDias?: number;
 }

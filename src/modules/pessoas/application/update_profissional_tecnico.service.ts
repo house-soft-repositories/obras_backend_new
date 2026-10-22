@@ -31,7 +31,8 @@ export default class UpdateProfissionalTecnicoService
       if (!view.value) return left(this.notFound());
       return right(view.value);
     } catch (error) {
-      if (error instanceof ProfissionalTecnicoDomainException) return left(error);
+      if (error instanceof ProfissionalTecnicoDomainException)
+        return left(error);
       if (error instanceof AppException) return left(error);
       return left(
         new ProfissionalTecnicoServiceException({

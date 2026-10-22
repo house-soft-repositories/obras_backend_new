@@ -11,7 +11,10 @@ export async function withCadastroTransaction<TModel extends object, TResult>(
   dataSource: DataSource,
   tenantContext: TenantContext,
   model: EntityTarget<TModel>,
-  callback: (repository: Repository<TModel>, tenantId: string) => Promise<TResult>,
+  callback: (
+    repository: Repository<TModel>,
+    tenantId: string,
+  ) => Promise<TResult>,
 ): AsyncResult<AppException, TResult> {
   try {
     const { tenantId } = tenantContext.require();
@@ -22,10 +25,12 @@ export async function withCadastroTransaction<TModel extends object, TResult>(
     );
     return right(result);
   } catch (cause) {
-    return left(new CadastroRepositoryException({
-      code: ErrorCodeConstants.CADASTRO_REPOSITORY_FAILED,
-      statusCode: 500,
-      cause,
-    }));
+    return left(
+      new CadastroRepositoryException({
+        code: ErrorCodeConstants.CADASTRO_REPOSITORY_FAILED,
+        statusCode: 500,
+        cause,
+      }),
+    );
   }
 }

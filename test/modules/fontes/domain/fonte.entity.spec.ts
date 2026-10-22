@@ -37,7 +37,9 @@ describe('FonteEntity', () => {
       FonteEntity.create({ nome: '  ' });
     } catch (error) {
       expect(error).toBeInstanceOf(FonteDomainException);
-      expect((error as FonteDomainException).code).toBe(ErrorCodeConstants.FONTE_INVALID_NAME);
+      expect((error as FonteDomainException).code).toBe(
+        ErrorCodeConstants.FONTE_INVALID_NAME,
+      );
     }
   });
 });

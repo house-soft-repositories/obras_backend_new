@@ -12,7 +12,9 @@ import EstagioAcompanhamentoMapper from '@/modules/cronograma/infra/mapper/estag
 import EstagioAcompanhamentoModel from '@/modules/cronograma/infra/models/estagio_acompanhamento.model';
 import { DataSource } from 'typeorm';
 
-export default class AcompanhamentoRepository implements IAcompanhamentoRepository {
+export default class AcompanhamentoRepository
+  implements IAcompanhamentoRepository
+{
   constructor(
     private readonly ds: DataSource,
     private readonly tc: TenantContext,
@@ -24,9 +26,7 @@ export default class AcompanhamentoRepository implements IAcompanhamentoReposito
     try {
       return await withManager(this.ds, this.tc, async (manager) => {
         const repo = manager.getRepository(EstagioAcompanhamentoModel);
-        const model = EstagioAcompanhamentoMapper.toModel(
-          item,
-        );
+        const model = EstagioAcompanhamentoMapper.toModel(item);
         const saved = await repo.save(model);
         return right(EstagioAcompanhamentoMapper.toEntity(saved));
       });
@@ -99,9 +99,7 @@ export default class AcompanhamentoRepository implements IAcompanhamentoReposito
     try {
       return await withManager(this.ds, this.tc, async (manager) => {
         const repo = manager.getRepository(EstagioAcompanhamentoModel);
-        const model = EstagioAcompanhamentoMapper.toModel(
-          item,
-        );
+        const model = EstagioAcompanhamentoMapper.toModel(item);
         const saved = await repo.save(model);
         return right(EstagioAcompanhamentoMapper.toEntity(saved));
       });

@@ -96,7 +96,14 @@ import { DataSource } from 'typeorm';
         renderer: IPdfRenderer,
         storage: IStorageService,
         dossie: IDossieObraRepository,
-      ) => new GerarPdfObraRelatorioService(query, fluxo, renderer, storage, dossie),
+      ) =>
+        new GerarPdfObraRelatorioService(
+          query,
+          fluxo,
+          renderer,
+          storage,
+          dossie,
+        ),
     },
     {
       provide: GERAR_DOSSIE_OBRA_SERVICE,

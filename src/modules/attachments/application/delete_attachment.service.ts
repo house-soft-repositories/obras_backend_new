@@ -10,7 +10,9 @@ import IDeleteAttachmentUseCase, {
 } from '@/modules/attachments/domain/usecase/delete_attachment.usecase';
 import AttachmentServiceException from '@/modules/attachments/exceptions/attachment_service.exception';
 
-export default class DeleteAttachmentService implements IDeleteAttachmentUseCase {
+export default class DeleteAttachmentService
+  implements IDeleteAttachmentUseCase
+{
   constructor(
     private readonly repository: IAttachmentRepository,
     private readonly storage: IStorageService,

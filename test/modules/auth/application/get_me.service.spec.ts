@@ -34,7 +34,10 @@ describe('GetMeService', () => {
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
       expect(result.value.id).toBe(userWithTenant.id);
-      expect(result.value.tenant).toEqual({ id: tenantId, name: validTenancy.name });
+      expect(result.value.tenant).toEqual({
+        id: tenantId,
+        name: validTenancy.name,
+      });
     }
   });
 

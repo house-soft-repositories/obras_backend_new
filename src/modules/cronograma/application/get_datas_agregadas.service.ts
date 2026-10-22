@@ -4,11 +4,15 @@ import AsyncResult from '@/core/types/async_result';
 import { left } from '@/core/types/either';
 import IEstagioRepository from '@/modules/cronograma/adapters/estagio_repository.interface';
 import DataAgregadasReadModel from '@/modules/cronograma/domain/read_models/data_agregadas.read_model';
-import IGetDatasAgregadasUseCase, { GetDatasAgregadasParam } from '@/modules/cronograma/domain/usecase/get_datas_agregadas.usecase';
+import IGetDatasAgregadasUseCase, {
+  GetDatasAgregadasParam,
+} from '@/modules/cronograma/domain/usecase/get_datas_agregadas.usecase';
 import CronogramaServiceException from '@/modules/cronograma/exceptions/cronograma_service.exception';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 
-export default class GetDatasAgregadasService implements IGetDatasAgregadasUseCase {
+export default class GetDatasAgregadasService
+  implements IGetDatasAgregadasUseCase
+{
   constructor(
     private readonly repository: IEstagioRepository,
     private readonly obras: IObraRepository,

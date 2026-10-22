@@ -5,7 +5,10 @@ import TenantContext from '@/core/multitenancy/tenant_context';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
-import type { IndicadorFinanceiro, VisaoFisicoFinanceira } from '@/modules/obras/domain/usecase/visao_fisico_financeira.usecase';
+import type {
+  IndicadorFinanceiro,
+  VisaoFisicoFinanceira,
+} from '@/modules/obras/domain/usecase/visao_fisico_financeira.usecase';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
 
 export default class VisaoFisicoFinanceiraService {
@@ -27,7 +30,12 @@ export default class VisaoFisicoFinanceiraService {
       const obra = await this.obras.findById(obraId);
       if (obra.isLeft()) return left(obra.value);
       if (!obra.value)
-        return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBRA_NOT_FOUND, statusCode: 404 }));
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.OBRA_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
       const s = this.tc.require().schemaName;
       const [[c], [a], [m], [e], [l], [p]] = await Promise.all([
         this.ds.query<{ sum: string }[]>(
@@ -42,7 +50,10 @@ export default class VisaoFisicoFinanceiraService {
           `SELECT COALESCE(SUM(mf.valor), 0) AS sum FROM "${s}"."medicao" me JOIN "${s}"."medicao_fonte" mf ON mf.medicao_id = me.id WHERE me.obra_id=$1`,
           [obraId],
         ),
-        this.ds.query<{ sum: string }[]>(`SELECT COALESCE(SUM(valor), 0) AS sum FROM "${s}"."empenho" WHERE obra_id=$1`, [obraId]),
+        this.ds.query<{ sum: string }[]>(
+          `SELECT COALESCE(SUM(valor), 0) AS sum FROM "${s}"."empenho" WHERE obra_id=$1`,
+          [obraId],
+        ),
         this.ds.query<{ sum: string }[]>(
           `SELECT COALESCE(SUM(l.valor), 0) AS sum FROM "${s}"."liquidacao" l JOIN "${s}"."empenho" e ON e.id = l.empenho_id WHERE e.obra_id=$1`,
           [obraId],
@@ -71,7 +82,13 @@ export default class VisaoFisicoFinanceiraService {
       });
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBRA_REPOSITORY_FAILED, statusCode: 500, cause }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.OBRA_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
 }

@@ -124,14 +124,24 @@ describe('ListarObrasRelatorioService', () => {
           linhaBase({
             obraId: 'com-coord',
             localizacoes: [
-              { localidade: 'Centro', uf: 'UF', latitude: -23.5, longitude: -46.6 },
+              {
+                localidade: 'Centro',
+                uf: 'UF',
+                latitude: -23.5,
+                longitude: -46.6,
+              },
             ],
           }),
           linhaBase({ obraId: 'sem-coord', localizacoes: [] }),
           linhaBase({
             obraId: 'coord-nula',
             localizacoes: [
-              { localidade: 'Bairro', uf: 'UF', latitude: null, longitude: null },
+              {
+                localidade: 'Bairro',
+                uf: 'UF',
+                latitude: null,
+                longitude: null,
+              },
             ],
           }),
         ],
@@ -151,7 +161,10 @@ describe('ListarObrasRelatorioService', () => {
     it('filtra obras sem prazo de estagio', async () => {
       query.listarComFiltro.mockResolvedValue({
         linhas: [
-          linhaBase({ obraId: 'com-prazo', prazoConclusaoEstagio: '2026-06-30' }),
+          linhaBase({
+            obraId: 'com-prazo',
+            prazoConclusaoEstagio: '2026-06-30',
+          }),
           linhaBase({ obraId: 'sem-prazo', prazoConclusaoEstagio: null }),
         ],
         total: 2,

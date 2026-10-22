@@ -7,7 +7,9 @@ import IObraRepository from '@/modules/obras/adapters/obra_repository.interface'
 import IMedicaoRepository from '@/modules/cronograma/adapters/medicao_repository.interface';
 import MedicaoEntity from '@/modules/cronograma/domain/entities/medicao.entity';
 import CronogramaServiceException from '@/modules/cronograma/exceptions/cronograma_service.exception';
-import IRemoveMedicaoUseCase, { RemoveMedicaoParam } from '@/modules/cronograma/domain/usecase/remove_medicao.usecase';
+import IRemoveMedicaoUseCase, {
+  RemoveMedicaoParam,
+} from '@/modules/cronograma/domain/usecase/remove_medicao.usecase';
 
 export default class RemoveMedicaoService implements IRemoveMedicaoUseCase {
   constructor(
@@ -21,7 +23,10 @@ export default class RemoveMedicaoService implements IRemoveMedicaoUseCase {
     return this.repo.remove(param.obraId, param.id);
   }
 
-  private async get(obraId: string, id: string): AsyncResult<AppException, MedicaoEntity> {
+  private async get(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, MedicaoEntity> {
     const obra = await this.ensureObra(obraId);
     if (obra.isLeft()) return left(obra.value);
     return this.repo.findById(obraId, id);

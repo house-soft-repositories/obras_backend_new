@@ -81,9 +81,7 @@ export default class CreateUserService implements ICreateUserUseCase {
     }
   }
 
-  private resolveTargetTenantId(
-    param: CreateUserParam,
-  ): string | null {
+  private resolveTargetTenantId(param: CreateUserParam): string | null {
     if (
       param.creator.role === UserRole.ADMIN ||
       param.creator.role === UserRole.STAFF
@@ -116,14 +114,17 @@ export default class CreateUserService implements ICreateUserUseCase {
       email: param.email,
       password: await this.passwordHasher.hash(param.passwordHash),
     };
-    if (param.role === UserRole.SUPERADMIN) return UserEntity.createSuperAdmin(props);
+    if (param.role === UserRole.SUPERADMIN)
+      return UserEntity.createSuperAdmin(props);
     if (!tenantId) {
       throw new UserDomainException({
         code: ErrorCodeConstants.USER_INVALID_TENANT,
       });
     }
-    if (param.role === UserRole.ADMIN) return UserEntity.createAdmin(props, tenantId);
-    if (param.role === UserRole.STAFF) return UserEntity.createStaff(props, tenantId);
+    if (param.role === UserRole.ADMIN)
+      return UserEntity.createAdmin(props, tenantId);
+    if (param.role === UserRole.STAFF)
+      return UserEntity.createStaff(props, tenantId);
     return UserEntity.createUser(props, tenantId);
   }
 
@@ -157,7 +158,10 @@ export default class CreateUserService implements ICreateUserUseCase {
     }
 
     if (param.setorId) {
-      const setor = await this.repository.findSetorById(param.setorId, tenantId);
+      const setor = await this.repository.findSetorById(
+        param.setorId,
+        tenantId,
+      );
       if (setor.isLeft()) return left(setor.value);
       if (orgaoId && setor.value.orgaoId !== orgaoId) {
         return left(

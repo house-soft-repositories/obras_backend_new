@@ -47,7 +47,9 @@ describe('DuplicarArvoreService', () => {
       const saved = pastas.save.mock.calls
         .map((c) => c[0])
         .find((p: PastaEntity) => p.id === id);
-      return Promise.resolve(right(saved ? PastaEntity.fromData(saved.toObject()) : null));
+      return Promise.resolve(
+        right(saved ? PastaEntity.fromData(saved.toObject()) : null),
+      );
     });
     arquivos.findByObraId.mockResolvedValue(right([arquivo]));
     storage.copyObject.mockResolvedValue(right(unit));

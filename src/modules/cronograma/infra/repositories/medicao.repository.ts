@@ -32,8 +32,8 @@ export default class MedicaoRepository implements IMedicaoRepository {
         const medicaoModel = MedicaoMapper.toModel(item);
         const savedMedicao = await medicaoRepo.save(medicaoModel);
 
-        const fonteModels = item.itens.map(
-          (fonte) => MedicaoFonteMapper.toModel(fonte),
+        const fonteModels = item.itens.map((fonte) =>
+          MedicaoFonteMapper.toModel(fonte),
         );
         await fonteRepo.save(fonteModels);
 
@@ -148,8 +148,8 @@ export default class MedicaoRepository implements IMedicaoRepository {
           medicaoId: savedMedicao.id,
         });
 
-        const fonteModels = item.itens.map(
-          (fonte) => MedicaoFonteMapper.toModel(fonte),
+        const fonteModels = item.itens.map((fonte) =>
+          MedicaoFonteMapper.toModel(fonte),
         );
         await fonteRepo.save(fonteModels);
 
@@ -205,7 +205,9 @@ export default class MedicaoRepository implements IMedicaoRepository {
         const qb = repo.createQueryBuilder('medicao');
         qb.where('medicao.obraId = :obraId', { obraId });
         qb.select('COALESCE(MAX(medicao.numero), 0) + 1', 'numero');
-        const result = await qb.getRawOne<{ numero?: string | number | null }>();
+        const result = await qb.getRawOne<{
+          numero?: string | number | null;
+        }>();
         return right(Number(result?.numero ?? 1));
       });
     } catch (cause) {

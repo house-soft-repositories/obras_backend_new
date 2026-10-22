@@ -29,6 +29,14 @@ export default abstract class TenancyMapper {
     });
   }
   static toReadModel(model: TenancyModel): TenancyReadModel {
-    return { id: model.id, name: model.name, slug: model.slug, cnpj: model.cnpj, active: model.active, createdAt: model.createdAt, updatedAt: model.updatedAt };
+    return {
+      id: model.id,
+      name: model.name,
+      slug: model.slug,
+      cnpj: model.cnpj,
+      active: model.active,
+      createdAt: model.createdAt,
+      updatedAt: model.updatedAt,
+    };
   }
 }

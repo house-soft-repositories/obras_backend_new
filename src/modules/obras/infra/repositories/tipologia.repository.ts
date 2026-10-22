@@ -12,23 +12,58 @@ import { withCadastroTransaction } from '@/modules/obras/infra/repositories/cada
 import { DataSource, FindOptionsWhere } from 'typeorm';
 
 export default class TipologiaRepository implements ITipologiaRepository {
-  constructor(private readonly ds: DataSource, private readonly tc: TenantContext) {}
+  constructor(
+    private readonly ds: DataSource,
+    private readonly tc: TenantContext,
+  ) {}
 
-  findPage(page: PageOptionsEntity, ativos = false): AsyncResult<AppException, PageEntity<TipologiaEntity>> {
-    return withCadastroTransaction(this.ds, this.tc, TipologiaModel, async (repo, tenantId) => {
-      const [models, count] = await repo.findAndCount({ where: { tenantId, ...(ativos ? { ativo: true } : {}) } as FindOptionsWhere<TipologiaModel>, order: { nome: 'ASC' }, take: page.take ?? 20, skip: page.skip });
-      return new PageEntity(models.map((model) => TipologiaMapper.toEntity(model)), new PageMetaEntity({ pageOptions: page, itemCount: count }));
-    });
+  findPage(
+    page: PageOptionsEntity,
+    ativos = false,
+  ): AsyncResult<AppException, PageEntity<TipologiaEntity>> {
+    return withCadastroTransaction(
+      this.ds,
+      this.tc,
+      TipologiaModel,
+      async (repo, tenantId) => {
+        const [models, count] = await repo.findAndCount({
+          where: {
+            tenantId,
+            ...(ativos ? { ativo: true } : {}),
+          } as FindOptionsWhere<TipologiaModel>,
+          order: { nome: 'ASC' },
+          take: page.take ?? 20,
+          skip: page.skip,
+        });
+        return new PageEntity(
+          models.map((model) => TipologiaMapper.toEntity(model)),
+          new PageMetaEntity({ pageOptions: page, itemCount: count }),
+        );
+      },
+    );
   }
 
   findOne(id: string): AsyncResult<AppException, TipologiaEntity | null> {
-    return withCadastroTransaction(this.ds, this.tc, TipologiaModel, async (repo, tenantId) => {
-      const model = await repo.findOneBy({ id, tenantId });
-      return model ? TipologiaMapper.toEntity(model) : null;
-    });
+    return withCadastroTransaction(
+      this.ds,
+      this.tc,
+      TipologiaModel,
+      async (repo, tenantId) => {
+        const model = await repo.findOneBy({ id, tenantId });
+        return model ? TipologiaMapper.toEntity(model) : null;
+      },
+    );
   }
 
   save(entity: TipologiaEntity): AsyncResult<AppException, TipologiaEntity> {
-    return withCadastroTransaction(this.ds, this.tc, TipologiaModel, async (repo) => TipologiaMapper.toEntity(await repo.save(repo.create(TipologiaMapper.toModel(entity)))));
+    return withCadastroTransaction(
+      this.ds,
+      this.tc,
+      TipologiaModel,
+      async (repo) =>
+        TipologiaMapper.toEntity(
+          await repo.save(repo.create(TipologiaMapper.toModel(entity))),
+        ),
+    );
   }
 }

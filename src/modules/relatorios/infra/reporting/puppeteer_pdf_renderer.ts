@@ -7,9 +7,7 @@
  */
 import { existsSync } from 'node:fs';
 import type IPdfRenderer from '@/modules/relatorios/adapters/pdf_renderer.interface';
-import {
-  CHROMIUM_NAO_ENCONTRADO,
-} from '@/modules/relatorios/infra/reporting/chromium_erro';
+import { CHROMIUM_NAO_ENCONTRADO } from '@/modules/relatorios/infra/reporting/chromium_erro';
 import puppeteer from 'puppeteer-core';
 
 const CANDIDATOS_BINARIO = [

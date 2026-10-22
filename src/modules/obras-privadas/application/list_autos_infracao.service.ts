@@ -5,7 +5,9 @@ import AutoInfracaoEntity from '@/modules/obras-privadas/domain/entities/auto_in
 import IListAutosInfracaoUseCase, {
   ListAutosInfracaoParam,
 } from '@/modules/obras-privadas/domain/usecase/list_autos_infracao.usecase';
-export default class ListAutosInfracaoService implements IListAutosInfracaoUseCase {
+export default class ListAutosInfracaoService
+  implements IListAutosInfracaoUseCase
+{
   constructor(private readonly autoRepository: IAutoInfracaoRepository) {}
   async execute(
     param: ListAutosInfracaoParam,

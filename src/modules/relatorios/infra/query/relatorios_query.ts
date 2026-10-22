@@ -173,13 +173,9 @@ export default class RelatoriosQuery {
         localidade: localizacao.localidade,
         uf: localizacao.uf,
         latitude:
-          localizacao.latitude === null
-            ? null
-            : Number(localizacao.latitude),
+          localizacao.latitude === null ? null : Number(localizacao.latitude),
         longitude:
-          localizacao.longitude === null
-            ? null
-            : Number(localizacao.longitude),
+          localizacao.longitude === null ? null : Number(localizacao.longitude),
       })),
       dataCriacao: paraIso(obra.created_at) ?? '',
       ultimaAtualizacao: paraIso(obra.updated_at),
@@ -238,22 +234,16 @@ export default class RelatoriosQuery {
     if (filtro.tipologiaId)
       conditions.push(`o.tipologia_id = ${push(filtro.tipologiaId)}`);
     if (filtro.classificacaoId)
-      conditions.push(
-        `o.classificacao_id = ${push(filtro.classificacaoId)}`,
-      );
+      conditions.push(`o.classificacao_id = ${push(filtro.classificacaoId)}`);
     if (filtro.tipo) conditions.push(`o.tipo = ${push(filtro.tipo)}`);
     if (filtro.statusObra?.length)
       conditions.push(`o.status = ANY(${push(filtro.statusObra)})`);
-    if (filtro.orgaoId)
-      conditions.push(`o.orgao_id = ${push(filtro.orgaoId)}`);
-    if (filtro.setorId)
-      conditions.push(`o.setor_id = ${push(filtro.setorId)}`);
+    if (filtro.orgaoId) conditions.push(`o.orgao_id = ${push(filtro.orgaoId)}`);
+    if (filtro.setorId) conditions.push(`o.setor_id = ${push(filtro.setorId)}`);
     if (filtro.localidadeId)
       conditions.push(`o.localidade_id = ${push(filtro.localidadeId)}`);
     if (filtro.prioritaria !== undefined)
-      conditions.push(
-        `o.prioritaria = ${push(filtro.prioritaria === 'true')}`,
-      );
+      conditions.push(`o.prioritaria = ${push(filtro.prioritaria === 'true')}`);
     if (filtro.dataCriacaoDe)
       conditions.push(
         `o.created_at::date >= (${push(filtro.dataCriacaoDe)}::date)`,
@@ -272,9 +262,7 @@ export default class RelatoriosQuery {
         `(o.updated_at IS NULL OR o.updated_at::date <= (${push(filtro.atualizadoAte)}::date))`,
       );
     if (filtro.prazoEstagioDe)
-      conditions.push(
-        `est.data_fim >= (${push(filtro.prazoEstagioDe)}::date)`,
-      );
+      conditions.push(`est.data_fim >= (${push(filtro.prazoEstagioDe)}::date)`);
     if (filtro.prazoEstagioAte)
       conditions.push(
         `est.data_fim <= (${push(filtro.prazoEstagioAte)}::date)`,
@@ -295,9 +283,7 @@ export default class RelatoriosQuery {
         `c.numero ILIKE ${push(`%${filtro.numeroContrato.trim()}%`)}`,
       );
     if (filtro.responsavel?.trim())
-      conditions.push(
-        `u.name ILIKE ${push(`%${filtro.responsavel.trim()}%`)}`,
-      );
+      conditions.push(`u.name ILIKE ${push(`%${filtro.responsavel.trim()}%`)}`);
     if (filtro.estagioAtual?.trim())
       conditions.push(
         `est.nome ILIKE ${push(`%${filtro.estagioAtual.trim()}%`)}`,
@@ -486,15 +472,11 @@ export default class RelatoriosQuery {
       // O total acima é pré-percentual.
       if (filtro.percentualMin !== undefined) {
         const minimo = Number(filtro.percentualMin);
-        linhas = linhas.filter(
-          (linha) => linha.percentualRealizado >= minimo,
-        );
+        linhas = linhas.filter((linha) => linha.percentualRealizado >= minimo);
       }
       if (filtro.percentualMax !== undefined) {
         const maximo = Number(filtro.percentualMax);
-        linhas = linhas.filter(
-          (linha) => linha.percentualRealizado <= maximo,
-        );
+        linhas = linhas.filter((linha) => linha.percentualRealizado <= maximo);
       }
       return { linhas, total };
     } catch (cause) {

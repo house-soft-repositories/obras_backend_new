@@ -16,9 +16,13 @@ export default class MedicaoFonteModel extends BaseModelPrimaryColumnUuid {
   @Column({ type: 'numeric', precision: 18, scale: 4 })
   valor!: number;
 
-  @ManyToOne(() => MedicaoModel, (medicao) => medicao.fontes, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(
+    () => MedicaoModel,
+    (medicao) => medicao.fontes,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
   @JoinColumn({ name: 'medicao_id' })
   medicao!: MedicaoModel;
 }

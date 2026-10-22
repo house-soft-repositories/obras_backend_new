@@ -12,16 +12,22 @@ import UserSessionModel from '@/modules/auth/infra/models/user_session.model';
 export default class UserSessionRepository implements IUserSessionRepository {
   constructor(private readonly repository: Repository<UserSessionModel>) {}
 
-  async save(session: UserSessionEntity): AsyncResult<AppException, UserSessionEntity> {
+  async save(
+    session: UserSessionEntity,
+  ): AsyncResult<AppException, UserSessionEntity> {
     try {
       const model = this.repository.create(UserSessionMapper.toModel(session));
-      return right(UserSessionMapper.toEntity(await this.repository.save(model)));
+      return right(
+        UserSessionMapper.toEntity(await this.repository.save(model)),
+      );
     } catch (error) {
       return left(this.failure(error));
     }
   }
 
-  async findActiveById(id: string): AsyncResult<AppException, UserSessionEntity> {
+  async findActiveById(
+    id: string,
+  ): AsyncResult<AppException, UserSessionEntity> {
     try {
       const model = await this.repository
         .createQueryBuilder('session')

@@ -23,13 +23,18 @@ export default class RefreshTokenService implements IRefreshTokenUseCase {
     private readonly sessionRepository: IUserSessionRepository,
   ) {}
 
-  async execute(param: RefreshTokenParam): AsyncResult<AppException, TokenPairResponse> {
+  async execute(
+    param: RefreshTokenParam,
+  ): AsyncResult<AppException, TokenPairResponse> {
     try {
       const payload = await this.tokenService.verifyRefresh(param.refreshToken);
       const session = await this.sessionRepository.findActiveById(payload.sid);
       if (session.isLeft()) return left(this.invalidRefreshToken());
 
-      const matches = await this.passwordHasher.compare(param.refreshToken, session.value.refreshTokenHash);
+      const matches = await this.passwordHasher.compare(
+        param.refreshToken,
+        session.value.refreshTokenHash,
+      );
       if (!matches) return left(this.invalidRefreshToken());
 
       const user = await this.userRepository.findById(session.value.userId);

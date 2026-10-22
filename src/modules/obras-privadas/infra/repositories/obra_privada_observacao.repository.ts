@@ -13,7 +13,9 @@ import { DataSource } from 'typeorm';
 
 const SELECT_COLUMNS = `id, tenant_id AS "tenantId", obra_privada_id AS "obraPrivadaId", texto, autor_usuario_id AS "autorUsuarioId", created_at AS "createdAt"`;
 
-export default class ObraPrivadaObservacaoRepository implements IObraPrivadaObservacaoRepository {
+export default class ObraPrivadaObservacaoRepository
+  implements IObraPrivadaObservacaoRepository
+{
   constructor(
     private readonly dataSource: DataSource,
     private readonly tenantContext: TenantContext,

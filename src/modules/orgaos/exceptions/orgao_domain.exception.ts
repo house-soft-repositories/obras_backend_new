@@ -8,7 +8,10 @@ type OrgaoDomainErrorCode =
   | typeof ErrorCodeConstants.ORGAO_INVALID_EMAIL;
 
 export default class OrgaoDomainException extends AppException {
-  constructor({ code, cause }: { code: OrgaoDomainErrorCode; cause?: unknown }) {
+  constructor({
+    code,
+    cause,
+  }: { code: OrgaoDomainErrorCode; cause?: unknown }) {
     super({ code, statusCode: 400, cause });
   }
 }

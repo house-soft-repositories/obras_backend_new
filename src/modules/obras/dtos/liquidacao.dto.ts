@@ -1,4 +1,12 @@
-import { IsDateString, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MinLength } from 'class-validator';
+import {
+  IsDateString,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  IsUUID,
+  MinLength,
+} from 'class-validator';
 
 export class CriarLiquidacaoDto {
   @IsUUID() empenhoId!: string;

@@ -123,14 +123,20 @@ import MedicaoFonteModel from '@/modules/cronograma/infra/models/medicao_fonte.m
     {
       provide: CREATE_ESTAGIO_SERVICE,
       inject: [ESTAGIO_REPOSITORY, TenantContext, OBRA_REPOSITORY],
-      useFactory: (r: IEstagioRepository, tc: TenantContext, o: IObraRepository) =>
-        new CreateEstagioService(r, tc, o),
+      useFactory: (
+        r: IEstagioRepository,
+        tc: TenantContext,
+        o: IObraRepository,
+      ) => new CreateEstagioService(r, tc, o),
     },
     {
       provide: CREATE_ESTAGIOS_LOTE_SERVICE,
       inject: [ESTAGIO_REPOSITORY, TenantContext, OBRA_REPOSITORY],
-      useFactory: (r: IEstagioRepository, tc: TenantContext, o: IObraRepository) =>
-        new CreateEstagiosLoteService(r, tc, o),
+      useFactory: (
+        r: IEstagioRepository,
+        tc: TenantContext,
+        o: IObraRepository,
+      ) => new CreateEstagiosLoteService(r, tc, o),
     },
     {
       provide: LIST_ESTAGIOS_SERVICE,
@@ -230,11 +236,7 @@ import MedicaoFonteModel from '@/modules/cronograma/infra/models/medicao_fonte.m
     },
     {
       provide: PREDEFINIDOS_SERVICE,
-      inject: [
-        ESTAGIO_REPOSITORY,
-        TenantContext,
-        OBRA_REPOSITORY,
-      ],
+      inject: [ESTAGIO_REPOSITORY, TenantContext, OBRA_REPOSITORY],
       useFactory: (
         r: IEstagioRepository,
         tc: TenantContext,
@@ -258,33 +260,19 @@ import MedicaoFonteModel from '@/modules/cronograma/infra/models/medicao_fonte.m
     },
     {
       provide: LIST_MEDICOES_SERVICE,
-      inject: [
-        MEDICAO_REPOSITORY,
-        OBRA_REPOSITORY,
-      ],
-      useFactory: (
-        r: IMedicaoRepository,
-        o: IObraRepository,
-      ) => new ListMedicoesService(r, o),
+      inject: [MEDICAO_REPOSITORY, OBRA_REPOSITORY],
+      useFactory: (r: IMedicaoRepository, o: IObraRepository) =>
+        new ListMedicoesService(r, o),
     },
     {
       provide: GET_MEDICAO_SERVICE,
-      inject: [
-        MEDICAO_REPOSITORY,
-        OBRA_REPOSITORY,
-      ],
-      useFactory: (
-        r: IMedicaoRepository,
-        o: IObraRepository,
-      ) => new GetMedicaoService(r, o),
+      inject: [MEDICAO_REPOSITORY, OBRA_REPOSITORY],
+      useFactory: (r: IMedicaoRepository, o: IObraRepository) =>
+        new GetMedicaoService(r, o),
     },
     {
       provide: UPDATE_MEDICAO_SERVICE,
-      inject: [
-        MEDICAO_REPOSITORY,
-        OBRA_REPOSITORY,
-        FONTE_REPOSITORY,
-      ],
+      inject: [MEDICAO_REPOSITORY, OBRA_REPOSITORY, FONTE_REPOSITORY],
       useFactory: (
         r: IMedicaoRepository,
         o: IObraRepository,
@@ -293,14 +281,9 @@ import MedicaoFonteModel from '@/modules/cronograma/infra/models/medicao_fonte.m
     },
     {
       provide: REMOVE_MEDICAO_SERVICE,
-      inject: [
-        MEDICAO_REPOSITORY,
-        OBRA_REPOSITORY,
-      ],
-      useFactory: (
-        r: IMedicaoRepository,
-        o: IObraRepository,
-      ) => new RemoveMedicaoService(r, o),
+      inject: [MEDICAO_REPOSITORY, OBRA_REPOSITORY],
+      useFactory: (r: IMedicaoRepository, o: IObraRepository) =>
+        new RemoveMedicaoService(r, o),
     },
     {
       provide: FONTE_REPOSITORY,

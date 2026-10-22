@@ -11,7 +11,9 @@ import ICreateObraPrivadaResponsavelUseCase, {
 import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obra_privada_service.exception';
 import IProfissionalTecnicoRepository from '@/modules/pessoas/adapters/profissional_tecnico_repository.interface';
 
-export default class CreateObraPrivadaResponsavelService implements ICreateObraPrivadaResponsavelUseCase {
+export default class CreateObraPrivadaResponsavelService
+  implements ICreateObraPrivadaResponsavelUseCase
+{
   constructor(
     private readonly responsavelRepository: IObraPrivadaResponsavelRepository,
     private readonly obraPrivadaRepository: IObraPrivadaRepository,

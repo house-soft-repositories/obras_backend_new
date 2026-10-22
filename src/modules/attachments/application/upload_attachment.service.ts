@@ -21,7 +21,9 @@ export function assertReadableFile(file: BaseFileInterface): void {
     });
 }
 
-export default class UploadAttachmentService implements IUploadAttachmentUseCase {
+export default class UploadAttachmentService
+  implements IUploadAttachmentUseCase
+{
   constructor(
     private readonly repository: IAttachmentRepository,
     private readonly storage: IStorageService,

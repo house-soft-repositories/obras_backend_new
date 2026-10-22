@@ -53,7 +53,9 @@ describe('withCadastroTransaction', () => {
 
     expect(result.isRight()).toBe(true);
     expect(result.value).toBe('ok');
-    expect(queryRunner.manager.getRepository).toHaveBeenCalledWith(CadastroModel);
+    expect(queryRunner.manager.getRepository).toHaveBeenCalledWith(
+      CadastroModel,
+    );
     expect(callback).toHaveBeenCalledWith(repository, 'tenant-id');
     expect(queryRunner.query).toHaveBeenCalledWith(
       'SET LOCAL search_path TO "tenant_schema", public',

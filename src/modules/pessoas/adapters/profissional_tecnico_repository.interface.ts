@@ -10,14 +10,19 @@ export default interface IProfissionalTecnicoRepository {
   save(
     entity: ProfissionalTecnicoEntity,
   ): AsyncResult<AppException, ProfissionalTecnicoEntity>;
-  findById(id: string): AsyncResult<AppException, ProfissionalTecnicoEntity | null>;
+  findById(
+    id: string,
+  ): AsyncResult<AppException, ProfissionalTecnicoEntity | null>;
   findByPessoaId(
     pessoaId: string,
   ): AsyncResult<AppException, ProfissionalTecnicoEntity | null>;
   findViewById(
     id: string,
   ): AsyncResult<AppException, ProfissionalTecnicoComPessoaProps | null>;
-  findAllViews(): AsyncResult<AppException, ProfissionalTecnicoComPessoaProps[]>;
+  findAllViews(): AsyncResult<
+    AppException,
+    ProfissionalTecnicoComPessoaProps[]
+  >;
   searchViews(
     pageOptions: PageOptionsEntity,
     query: string,

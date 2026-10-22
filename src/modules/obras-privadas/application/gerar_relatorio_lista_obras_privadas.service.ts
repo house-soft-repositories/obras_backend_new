@@ -18,7 +18,9 @@ import {
 
 const MAX_ITENS_EXPORTACAO = 1000;
 
-export default class GerarRelatorioListaObrasPrivadasService implements IGerarRelatorioListaObrasPrivadasUseCase {
+export default class GerarRelatorioListaObrasPrivadasService
+  implements IGerarRelatorioListaObrasPrivadasUseCase
+{
   constructor(private readonly listarObras: IListarObrasUseCase) {}
 
   async execute(

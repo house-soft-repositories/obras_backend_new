@@ -16,9 +16,7 @@ export default class ExcluirArquivoService implements IExcluirArquivoUseCase {
     private readonly storage: IStorageService,
   ) {}
 
-  async execute(
-    param: ExcluirArquivoParam,
-  ): AsyncResult<AppException, Unit> {
+  async execute(param: ExcluirArquivoParam): AsyncResult<AppException, Unit> {
     try {
       const found = await this.arquivos.findById(param.id);
       if (found.isLeft()) return left(found.value);

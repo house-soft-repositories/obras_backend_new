@@ -59,7 +59,8 @@ export default class CreateProfissionalTecnicoService
 
       return this.getView(saved.value.id);
     } catch (error) {
-      if (error instanceof ProfissionalTecnicoDomainException) return left(error);
+      if (error instanceof ProfissionalTecnicoDomainException)
+        return left(error);
       if (error instanceof AppException) return left(error);
       return left(
         new ProfissionalTecnicoServiceException({

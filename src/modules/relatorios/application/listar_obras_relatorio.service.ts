@@ -19,7 +19,9 @@ import RelatoriosServiceException from '@/modules/relatorios/exceptions/relatori
 // o filtro SQL e recorte em memória só do critério da tela.
 const TAMANHO_TELAS_SECUNDARIAS = 10000;
 
-export default class ListarObrasRelatorioService implements IListarObrasRelatorioUseCase {
+export default class ListarObrasRelatorioService
+  implements IListarObrasRelatorioUseCase
+{
   constructor(private readonly query: RelatoriosQuery) {}
 
   async execute(
@@ -48,9 +50,7 @@ export default class ListarObrasRelatorioService implements IListarObrasRelatori
         pagina: 1,
         tamanho: TAMANHO_TELAS_SECUNDARIAS,
       });
-      return right(
-        RelatorioObrasEntity.fromLinhas(linhas).paraMapa(),
-      );
+      return right(RelatorioObrasEntity.fromLinhas(linhas).paraMapa());
     } catch (error) {
       return this.failure(error);
     }
@@ -65,9 +65,7 @@ export default class ListarObrasRelatorioService implements IListarObrasRelatori
         pagina: 1,
         tamanho: TAMANHO_TELAS_SECUNDARIAS,
       });
-      return right(
-        RelatorioObrasEntity.fromLinhas(linhas).paraCalendario(),
-      );
+      return right(RelatorioObrasEntity.fromLinhas(linhas).paraCalendario());
     } catch (error) {
       return this.failure(error);
     }

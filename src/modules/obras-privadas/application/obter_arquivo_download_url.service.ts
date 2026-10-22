@@ -10,7 +10,9 @@ import IObterArquivoDownloadUrlUseCase, {
 import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obra_privada_service.exception';
 import IStorageService from '@/modules/storage/adapters/storage_service.interface';
 
-export default class ObterArquivoDownloadUrlService implements IObterArquivoDownloadUrlUseCase {
+export default class ObterArquivoDownloadUrlService
+  implements IObterArquivoDownloadUrlUseCase
+{
   constructor(
     private readonly arquivos: IObraPrivadaArquivoRepository,
     private readonly storage: IStorageService,
@@ -35,7 +37,11 @@ export default class ObterArquivoDownloadUrlService implements IObterArquivoDown
         value.nomeOriginal,
       );
       if (url.isLeft()) return left(url.value);
-      return right({ url: url.value, nome: value.nome, mimeType: value.mimeType });
+      return right({
+        url: url.value,
+        nome: value.nome,
+        mimeType: value.mimeType,
+      });
     } catch (error) {
       if (error instanceof AppException) return left(error);
       return left(

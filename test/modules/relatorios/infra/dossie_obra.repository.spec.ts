@@ -1,7 +1,10 @@
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import { DataSource } from 'typeorm';
-import { AditivoFonteModel, AditivoModel } from '@/modules/contratos/infra/models/aditivo.model';
+import {
+  AditivoFonteModel,
+  AditivoModel,
+} from '@/modules/contratos/infra/models/aditivo.model';
 import {
   ContratoFonteModel,
   ContratoModel,
@@ -87,7 +90,10 @@ function setup(
 }
 
 function repoMock(findResult: unknown = [], findOneResult: unknown = null) {
-  return { find: jest.fn().mockResolvedValue(findResult), findOne: jest.fn().mockResolvedValue(findOneResult) };
+  return {
+    find: jest.fn().mockResolvedValue(findResult),
+    findOne: jest.fn().mockResolvedValue(findOneResult),
+  };
 }
 
 describe('DossieObraRepository', () => {
@@ -115,7 +121,10 @@ describe('DossieObraRepository', () => {
       id: 'contrato-1',
       numero: 'CT-10',
       objeto: 'Execução',
-      empresaContratada: { razaoSocial: 'Construtora X', cnpj: '12345678000190' },
+      empresaContratada: {
+        razaoSocial: 'Construtora X',
+        cnpj: '12345678000190',
+      },
       dataAssinatura: '2024-02-01',
       dataOs: '2024-02-10',
       fimVigencia: null,
@@ -127,21 +136,62 @@ describe('DossieObraRepository', () => {
       [ObraModel, repoMock([], obraModel())],
       [ObraResponsavelModel, repoMock(responsaveis)],
       [ContratoModel, repoMock([contrato])],
-      [ContratoFonteModel, repoMock([{ valor: '60000.00' }, { valor: '40000.00' }])],
-      [AditivoModel, repoMock([{ id: 'ad-1', numero: 'AD-01', tipo: 'VALOR', dataAssinatura: '2025-01-15', vigenciaAditivada: null, prazoExecucaoDias: null }])],
+      [
+        ContratoFonteModel,
+        repoMock([{ valor: '60000.00' }, { valor: '40000.00' }]),
+      ],
+      [
+        AditivoModel,
+        repoMock([
+          {
+            id: 'ad-1',
+            numero: 'AD-01',
+            tipo: 'VALOR',
+            dataAssinatura: '2025-01-15',
+            vigenciaAditivada: null,
+            prazoExecucaoDias: null,
+          },
+        ]),
+      ],
       [AditivoFonteModel, repoMock([{ aditivoId: 'ad-1', valor: '10000.00' }])],
-      [ParalisacaoModel, repoMock([{ dataParalisacao: '2025-03-01', motivo: 'Chuvas', dataReinicio: null, diasParados: null }])],
+      [
+        ParalisacaoModel,
+        repoMock([
+          {
+            dataParalisacao: '2025-03-01',
+            motivo: 'Chuvas',
+            dataReinicio: null,
+            diasParados: null,
+          },
+        ]),
+      ],
       [
         ArquivoModel,
         repoMock([
-          { id: 'f1', storageKey: 'k/f1.jpg', mimeType: 'image/jpeg', nome: 'f1.jpg', descricao: null, createdAt: new Date('2026-09-01T10:00:00.000Z') },
+          {
+            id: 'f1',
+            storageKey: 'k/f1.jpg',
+            mimeType: 'image/jpeg',
+            nome: 'f1.jpg',
+            descricao: null,
+            createdAt: new Date('2026-09-01T10:00:00.000Z'),
+          },
         ]),
       ],
     ]);
     const { repository, runner } = setup(repos, {
       obra: { nome: 'Escola', status: 'EM_DESENVOLVIMENTO', descricao: null },
-      estagios: [{ nome: 'Fundação', percentual_direto: '100', data_fim: '2024-06-30', status: 'CONCLUIDO' }],
-      medicoes: [{ numero: 1, data: '2024-07-05', tipo: 'PARCIAL', valor: '50000' }],
+      estagios: [
+        {
+          nome: 'Fundação',
+          percentual_direto: '100',
+          data_fim: '2024-06-30',
+          status: 'CONCLUIDO',
+        },
+      ],
+      medicoes: [
+        { numero: 1, data: '2024-07-05', tipo: 'PARCIAL', valor: '50000' },
+      ],
     });
 
     const result = await repository.carregar(OBRA_ID);
@@ -170,7 +220,11 @@ describe('DossieObraRepository', () => {
         expect.objectContaining({ numero: 1, valor: '50000.00' }),
       );
       expect(result.value.fotos).toEqual([
-        expect.objectContaining({ id: 'f1', legenda: 'f1.jpg', data: '2026-09-01' }),
+        expect.objectContaining({
+          id: 'f1',
+          legenda: 'f1.jpg',
+          data: '2026-09-01',
+        }),
       ]);
     }
     expect(runner.commitTransaction).toHaveBeenCalled();
@@ -199,7 +253,9 @@ describe('DossieObraRepository', () => {
     expect(findOneArg.where.id).toBe(OBRA_ID);
     expect(findOneArg.relations).toEqual({ orgao: true, localidade: true });
 
-    const responsavelArg = (responsavelRepo.find.mock.calls as unknown[][])[0][0] as {
+    const responsavelArg = (
+      responsavelRepo.find.mock.calls as unknown[][]
+    )[0][0] as {
       where: { obraId: string };
       relations: { usuario: boolean };
     };
@@ -252,7 +308,9 @@ describe('DossieObraRepository', () => {
       isTransactionActive: true,
       manager: { getRepository },
     };
-    const ds = { createQueryRunner: jest.fn(() => runner) } as unknown as DataSource;
+    const ds = {
+      createQueryRunner: jest.fn(() => runner),
+    } as unknown as DataSource;
     const tc = {
       require: () => ({ schemaName: 'tenant_t', tenantId: 'tenant-1' }),
     } as unknown as TenantContext;
@@ -269,7 +327,9 @@ describe('DossieObraRepository', () => {
 
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
-      expect(result.value.code).toBe(ErrorCodeConstants.RELATORIO_REPOSITORY_FAILED);
+      expect(result.value.code).toBe(
+        ErrorCodeConstants.RELATORIO_REPOSITORY_FAILED,
+      );
     }
     expect(runner.rollbackTransaction).toHaveBeenCalled();
   });

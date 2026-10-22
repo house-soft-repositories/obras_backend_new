@@ -10,7 +10,11 @@ type AuthServiceErrorCode =
   | typeof ErrorCodeConstants.AUTH_TENANCY_SWITCH_UNAVAILABLE;
 
 export default class AuthServiceException extends AppException {
-  constructor({ code, statusCode, cause }: { code: AuthServiceErrorCode; statusCode: number; cause?: unknown }) {
+  constructor({
+    code,
+    statusCode,
+    cause,
+  }: { code: AuthServiceErrorCode; statusCode: number; cause?: unknown }) {
     super({ code, statusCode, cause });
   }
 }

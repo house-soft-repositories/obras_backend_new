@@ -153,7 +153,10 @@ export default class FonteRepository implements IFonteRepository {
   async delete(id: string): AsyncResult<AppException, void> {
     try {
       const schema = this.tenantContext.require().schemaName;
-      await this.dataSource.query(`DELETE FROM "${schema}"."fontes" WHERE id = $1`, [id]);
+      await this.dataSource.query(
+        `DELETE FROM "${schema}"."fontes" WHERE id = $1`,
+        [id],
+      );
       return right(undefined);
     } catch (cause) {
       return left(this.toFailure(cause));
@@ -179,7 +182,8 @@ export default class FonteRepository implements IFonteRepository {
     const err = error as Record<string, unknown>;
     const driverErr = (err?.driverError as Record<string, unknown>) ?? err;
     const code = (driverErr?.code as string) ?? (err?.code as string) ?? null;
-    const constraintName = (driverErr?.constraint as string) ?? (err?.constraint as string) ?? null;
+    const constraintName =
+      (driverErr?.constraint as string) ?? (err?.constraint as string) ?? null;
     return code === '23505' && constraintName === constraint;
   }
 }

@@ -50,9 +50,9 @@ describe('validacao de documento (RN-PRV-02)', () => {
     });
 
     it('PJ exige CNPJ', () => {
-      expect(DocumentoValidator.validate('11.222.333/0001-81', 'JURIDICA')).toBe(
-        true,
-      );
+      expect(
+        DocumentoValidator.validate('11.222.333/0001-81', 'JURIDICA'),
+      ).toBe(true);
       expect(DocumentoValidator.validate('529.982.247-25', 'JURIDICA')).toBe(
         false,
       );

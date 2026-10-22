@@ -14,7 +14,9 @@ import {
   proximoCodigo,
 } from '@/modules/obras-privadas/services/codigo_privado.service';
 
-export default class CreateFiscalizacaoService implements ICreateFiscalizacaoUseCase {
+export default class CreateFiscalizacaoService
+  implements ICreateFiscalizacaoUseCase
+{
   constructor(
     private readonly fiscalizacaoRepository: IFiscalizacaoRepository,
     private readonly obraPrivadaRepository: IObraPrivadaRepository,

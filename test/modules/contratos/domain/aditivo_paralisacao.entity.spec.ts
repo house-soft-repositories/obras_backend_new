@@ -31,8 +31,23 @@ describe('AditivoEntity', () => {
     [{ ...base, numero: ' ' }],
     [{ ...base, tipoPrazoExecucao: null }],
     [{ ...base, prazoExecucaoDias: 0 }],
-    [{ ...base, tipoPrazoExecucao: TipoPrazoExecucao.DATA, prazoExecucaoDias: null, prazoExecucaoData: null }],
-    [{ ...base, tipo: TipoAditivo.VALOR, tipoPrazoExecucao: null, prazoExecucaoDias: null, fontes: [{ fonteId: 'fonte-1', valor: '0' }] }],
+    [
+      {
+        ...base,
+        tipoPrazoExecucao: TipoPrazoExecucao.DATA,
+        prazoExecucaoDias: null,
+        prazoExecucaoData: null,
+      },
+    ],
+    [
+      {
+        ...base,
+        tipo: TipoAditivo.VALOR,
+        tipoPrazoExecucao: null,
+        prazoExecucaoDias: null,
+        fontes: [{ fonteId: 'fonte-1', valor: '0' }],
+      },
+    ],
   ])('rejects invalid aditivo input', (props) => {
     expect.assertions(2);
 

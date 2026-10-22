@@ -6,7 +6,9 @@ import {
 import { randomUUID } from 'node:crypto';
 
 export default abstract class AditivoMapper {
-  static toEntity(model: AditivoModel & { fontes?: { fonteId: string; valor: string }[] }) {
+  static toEntity(
+    model: AditivoModel & { fontes?: { fonteId: string; valor: string }[] },
+  ) {
     return AditivoEntity.fromData({
       id: model.id,
       tenantId: model.tenantId,

@@ -4,7 +4,10 @@ import DeleteSetorService from '@/modules/orgaos/application/delete_setor.servic
 import SetorEntity from '@/modules/orgaos/domain/entities/setor.entity';
 import SetorRepositoryException from '@/modules/orgaos/exceptions/setor_repository.exception';
 import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
-import { orgaoIds, validSetor } from '@test/constants/orgaos/domain/entities/orgao_setor.constants';
+import {
+  orgaoIds,
+  validSetor,
+} from '@test/constants/orgaos/domain/entities/orgao_setor.constants';
 import mockSetorRepository from '@test/mocks/orgaos/adapters/setor_repository.mock';
 
 describe('DeleteSetorService', () => {

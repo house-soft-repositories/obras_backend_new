@@ -27,26 +27,82 @@ export default class PredefinidosService implements IPredefinidosUseCase {
   ): PredefinidoTemplate[] {
     const templates: Record<string, PredefinidoTemplate[]> = {
       [TipoFinanciamento.COM_OGU]: [
-        { nome: 'EM LICITACAO', posicao: 0, modoDuracao: ModoDuracao.NAO_INFORMADO },
-        { nome: 'CONTRATADA', posicao: 1, modoDuracao: ModoDuracao.NAO_INFORMADO },
-        { nome: 'ORDEM DE SERVICO', posicao: 2, modoDuracao: ModoDuracao.NAO_INFORMADO },
-        { nome: 'EM EXECUCAO', posicao: 3, modoDuracao: ModoDuracao.DIAS_CORRIDOS },
+        {
+          nome: 'EM LICITACAO',
+          posicao: 0,
+          modoDuracao: ModoDuracao.NAO_INFORMADO,
+        },
+        {
+          nome: 'CONTRATADA',
+          posicao: 1,
+          modoDuracao: ModoDuracao.NAO_INFORMADO,
+        },
+        {
+          nome: 'ORDEM DE SERVICO',
+          posicao: 2,
+          modoDuracao: ModoDuracao.NAO_INFORMADO,
+        },
+        {
+          nome: 'EM EXECUCAO',
+          posicao: 3,
+          modoDuracao: ModoDuracao.DIAS_CORRIDOS,
+        },
         { nome: 'MEDICAO', posicao: 4, modoDuracao: ModoDuracao.DIAS_CORRIDOS },
-        { nome: 'PRESTACAO DE CONTAS', posicao: 5, modoDuracao: ModoDuracao.NAO_INFORMADO },
-        { nome: 'CONCLUIDA', posicao: 6, modoDuracao: ModoDuracao.NAO_INFORMADO },
+        {
+          nome: 'PRESTACAO DE CONTAS',
+          posicao: 5,
+          modoDuracao: ModoDuracao.NAO_INFORMADO,
+        },
+        {
+          nome: 'CONCLUIDA',
+          posicao: 6,
+          modoDuracao: ModoDuracao.NAO_INFORMADO,
+        },
       ],
       [TipoFinanciamento.SEM_OGU]: [
-        { nome: 'EM LICITACAO', posicao: 0, modoDuracao: ModoDuracao.NAO_INFORMADO },
-        { nome: 'CONTRATADA', posicao: 1, modoDuracao: ModoDuracao.NAO_INFORMADO },
-        { nome: 'ORDEM DE SERVICO', posicao: 2, modoDuracao: ModoDuracao.NAO_INFORMADO },
-        { nome: 'EM EXECUCAO', posicao: 3, modoDuracao: ModoDuracao.DIAS_CORRIDOS },
-        { nome: 'CONCLUIDA', posicao: 4, modoDuracao: ModoDuracao.NAO_INFORMADO },
+        {
+          nome: 'EM LICITACAO',
+          posicao: 0,
+          modoDuracao: ModoDuracao.NAO_INFORMADO,
+        },
+        {
+          nome: 'CONTRATADA',
+          posicao: 1,
+          modoDuracao: ModoDuracao.NAO_INFORMADO,
+        },
+        {
+          nome: 'ORDEM DE SERVICO',
+          posicao: 2,
+          modoDuracao: ModoDuracao.NAO_INFORMADO,
+        },
+        {
+          nome: 'EM EXECUCAO',
+          posicao: 3,
+          modoDuracao: ModoDuracao.DIAS_CORRIDOS,
+        },
+        {
+          nome: 'CONCLUIDA',
+          posicao: 4,
+          modoDuracao: ModoDuracao.NAO_INFORMADO,
+        },
       ],
       [TipoFinanciamento.INVESTIMENTO_PRIVADO]: [
         { nome: 'PROJETO', posicao: 0, modoDuracao: ModoDuracao.NAO_INFORMADO },
-        { nome: 'LICENCIAMENTO', posicao: 1, modoDuracao: ModoDuracao.NAO_INFORMADO },
-        { nome: 'EM EXECUCAO', posicao: 2, modoDuracao: ModoDuracao.DIAS_CORRIDOS },
-        { nome: 'CONCLUIDA', posicao: 3, modoDuracao: ModoDuracao.NAO_INFORMADO },
+        {
+          nome: 'LICENCIAMENTO',
+          posicao: 1,
+          modoDuracao: ModoDuracao.NAO_INFORMADO,
+        },
+        {
+          nome: 'EM EXECUCAO',
+          posicao: 2,
+          modoDuracao: ModoDuracao.DIAS_CORRIDOS,
+        },
+        {
+          nome: 'CONCLUIDA',
+          posicao: 3,
+          modoDuracao: ModoDuracao.NAO_INFORMADO,
+        },
       ],
     };
 
@@ -66,7 +122,8 @@ export default class PredefinidosService implements IPredefinidosUseCase {
         }),
       );
 
-    const tipoFinanciamento = p.tipoFinanciamento ?? obra.value.tipoFinanciamento;
+    const tipoFinanciamento =
+      p.tipoFinanciamento ?? obra.value.tipoFinanciamento;
 
     const templates = this.getTemplatesForTipoFinanciamento(tipoFinanciamento);
     return right(templates);
@@ -95,7 +152,8 @@ export default class PredefinidosService implements IPredefinidosUseCase {
     try {
       const raizes = await this.repo.listRootEstagios(p.obraId);
       if (raizes.isLeft()) return left(raizes.value);
-      let ordem = raizes.value.reduce((max, e) => Math.max(max, e.posicao), -1) + 1;
+      let ordem =
+        raizes.value.reduce((max, e) => Math.max(max, e.posicao), -1) + 1;
       const tenantId = this.tc.require().tenantId;
       const estagios = templates.map((template) => {
         const estagio = EstagioEntity.create({

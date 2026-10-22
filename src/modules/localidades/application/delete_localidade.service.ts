@@ -9,12 +9,12 @@ import IDeleteLocalidadeUseCase, {
 } from '@/modules/localidades/domain/usecase/delete_localidade.usecase';
 import LocalidadeServiceException from '@/modules/localidades/exceptions/localidade_service.exception';
 
-export default class DeleteLocalidadeService implements IDeleteLocalidadeUseCase {
+export default class DeleteLocalidadeService
+  implements IDeleteLocalidadeUseCase
+{
   constructor(private readonly repository: ILocalidadeRepository) {}
 
-  async execute(
-    param: DeleteLocalidadeParam,
-  ): AsyncResult<AppException, void> {
+  async execute(param: DeleteLocalidadeParam): AsyncResult<AppException, void> {
     try {
       const denied = denyUnlessWriter(param.role);
       if (denied) return left(denied);

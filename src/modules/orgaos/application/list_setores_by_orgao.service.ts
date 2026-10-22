@@ -6,7 +6,9 @@ import IListSetoresByOrgaoUseCase, {
 } from '@/modules/orgaos/domain/usecase/list_setores_by_orgao.usecase';
 import { SetorWithOrgaoReadModel } from '@/modules/orgaos/infra/read-models/setor_with_orgao_read_model';
 
-export default class ListSetoresByOrgaoService implements IListSetoresByOrgaoUseCase {
+export default class ListSetoresByOrgaoService
+  implements IListSetoresByOrgaoUseCase
+{
   constructor(private readonly repository: ISetorRepository) {}
 
   async execute(

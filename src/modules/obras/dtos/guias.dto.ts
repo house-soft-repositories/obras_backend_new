@@ -1,4 +1,11 @@
-import { IsEnum, IsNumberString, IsOptional, IsString, IsUUID, Length } from 'class-validator';
+import {
+  IsEnum,
+  IsNumberString,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Length,
+} from 'class-validator';
 import { SituacaoLicenca } from '@/modules/obras/domain/enums/situacao_licenca.enum';
 import { SituacaoTitularidade } from '@/modules/obras/domain/enums/situacao_titularidade.enum';
 import { TipoRecebimento } from '@/modules/obras/domain/enums/tipo_recebimento.enum';

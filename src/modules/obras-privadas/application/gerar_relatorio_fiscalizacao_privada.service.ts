@@ -20,7 +20,9 @@ import {
 } from '@/modules/obras-privadas/domain/relatorios/relatorio_privadas';
 import IPessoaRepository from '@/modules/pessoas/adapters/pessoa_repository.interface';
 
-export default class GerarRelatorioFiscalizacaoPrivadaService implements IGerarRelatorioFiscalizacaoPrivadaUseCase {
+export default class GerarRelatorioFiscalizacaoPrivadaService
+  implements IGerarRelatorioFiscalizacaoPrivadaUseCase
+{
   constructor(
     private readonly fiscalizacoes: IFiscalizacaoRepository,
     private readonly obras: IObraPrivadaRepository,

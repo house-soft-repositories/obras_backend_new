@@ -9,7 +9,10 @@ export default class ListProfissionaisTecnicosService
 {
   constructor(private readonly repository: IProfissionalTecnicoRepository) {}
 
-  async execute(): AsyncResult<AppException, ProfissionalTecnicoComPessoaProps[]> {
+  async execute(): AsyncResult<
+    AppException,
+    ProfissionalTecnicoComPessoaProps[]
+  > {
     return this.repository.findAllViews();
   }
 }

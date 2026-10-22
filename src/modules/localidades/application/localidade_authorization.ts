@@ -11,7 +11,8 @@ export function denyUnlessWriter(role: UserRole) {
 }
 
 export function denyUnlessReader(role: UserRole) {
-  if ([UserRole.ADMIN, UserRole.STAFF, UserRole.USER].includes(role)) return null;
+  if ([UserRole.ADMIN, UserRole.STAFF, UserRole.USER].includes(role))
+    return null;
   return new LocalidadeServiceException({
     code: ErrorCodeConstants.LOCALIDADE_ACCESS_FORBIDDEN,
     statusCode: 403,

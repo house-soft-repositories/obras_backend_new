@@ -40,8 +40,9 @@ describe('LocalMonitoryService', () => {
   ] as const)('routes %s messages to Logger.%s', (level, method) => {
     service.captureMessage('message', level, { source: 'test' });
 
-    expect({ error: loggerError, warn: loggerWarn, debug: loggerDebug }[method])
-      .toHaveBeenCalledWith('message', JSON.stringify({ source: 'test' }));
+    expect(
+      { error: loggerError, warn: loggerWarn, debug: loggerDebug }[method],
+    ).toHaveBeenCalledWith('message', JSON.stringify({ source: 'test' }));
     expect(loggerLog).not.toHaveBeenCalled();
   });
 

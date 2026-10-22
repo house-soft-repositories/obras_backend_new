@@ -9,7 +9,9 @@ import IUpdateObraPrivadaResponsavelUseCase, {
 } from '@/modules/obras-privadas/domain/usecase/update_obra_privada_responsavel.usecase';
 import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obra_privada_service.exception';
 
-export default class UpdateObraPrivadaResponsavelService implements IUpdateObraPrivadaResponsavelUseCase {
+export default class UpdateObraPrivadaResponsavelService
+  implements IUpdateObraPrivadaResponsavelUseCase
+{
   constructor(
     private readonly responsavelRepository: IObraPrivadaResponsavelRepository,
   ) {}

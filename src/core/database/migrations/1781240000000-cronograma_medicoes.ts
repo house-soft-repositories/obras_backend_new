@@ -1,10 +1,14 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export default class CronogramaMedicoes1781240000000 implements MigrationInterface {
+export default class CronogramaMedicoes1781240000000
+  implements MigrationInterface
+{
   name = 'CronogramaMedicoes1781240000000';
 
   async up(queryRunner: QueryRunner): Promise<void> {
-    const tenancies = (await queryRunner.query('SELECT schema_name FROM public.tenancies')) as { schema_name: string }[];
+    const tenancies = (await queryRunner.query(
+      'SELECT schema_name FROM public.tenancies',
+    )) as { schema_name: string }[];
     for (const { schema_name: schema } of tenancies) {
       if (!/^tenant_[0-9a-f]{32}$/.test(schema)) continue;
       await queryRunner.query(`
@@ -18,7 +22,9 @@ export default class CronogramaMedicoes1781240000000 implements MigrationInterfa
           "created_at" timestamptz NOT NULL DEFAULT now(), "updated_at" timestamptz NOT NULL DEFAULT now(),
           CONSTRAINT "PK_estagio" PRIMARY KEY ("id")
         )`);
-      await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_estagio_obra_posicao" ON "${schema}"."estagio" ("obra_id", "posicao")`);
+      await queryRunner.query(
+        `CREATE INDEX IF NOT EXISTS "IDX_estagio_obra_posicao" ON "${schema}"."estagio" ("obra_id", "posicao")`,
+      );
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS "${schema}"."estagio_acompanhamento" (
           "id" uuid NOT NULL, "tenant_id" uuid NOT NULL, "obra_id" uuid NOT NULL, "estagio_id" uuid NOT NULL,
@@ -52,10 +58,18 @@ export default class CronogramaMedicoes1781240000000 implements MigrationInterfa
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
-    const tenancies = (await queryRunner.query('SELECT schema_name FROM public.tenancies')) as { schema_name: string }[];
+    const tenancies = (await queryRunner.query(
+      'SELECT schema_name FROM public.tenancies',
+    )) as { schema_name: string }[];
     for (const { schema_name: schema } of tenancies) {
       if (!/^tenant_[0-9a-f]{32}$/.test(schema)) continue;
-      for (const table of ['medicao_fonte', 'medicao', 'estagio_comentario', 'estagio_acompanhamento', 'estagio'])
+      for (const table of [
+        'medicao_fonte',
+        'medicao',
+        'estagio_comentario',
+        'estagio_acompanhamento',
+        'estagio',
+      ])
         await queryRunner.query(`DROP TABLE IF EXISTS "${schema}"."${table}"`);
     }
   }

@@ -6,7 +6,10 @@ type SetorDomainErrorCode =
   | typeof ErrorCodeConstants.SETOR_INVALID_ORGAO;
 
 export default class SetorDomainException extends AppException {
-  constructor({ code, cause }: { code: SetorDomainErrorCode; cause?: unknown }) {
+  constructor({
+    code,
+    cause,
+  }: { code: SetorDomainErrorCode; cause?: unknown }) {
     super({ code, statusCode: 400, cause });
   }
 }

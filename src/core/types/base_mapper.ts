@@ -1,6 +1,5 @@
-export default abstract class BaseMapper<E,M> {
+export default abstract class BaseMapper<E, M> {
+  abstract toModel(entity: E): Partial<M>;
 
-  abstract toModel(entity: E): Partial<M>
-
-  abstract toEntity(model:M): E
+  abstract toEntity(model: M): E;
 }

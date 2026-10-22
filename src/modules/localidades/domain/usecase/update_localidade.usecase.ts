@@ -9,6 +9,9 @@ export type UpdateLocalidadeParam = UpdateLocalidadeProps & {
   role: UserRole;
 };
 
-type IUpdateLocalidadeUseCase = UseCase<UpdateLocalidadeParam, LocalidadeEntity>;
+type IUpdateLocalidadeUseCase = UseCase<
+  UpdateLocalidadeParam,
+  LocalidadeEntity
+>;
 
 export default IUpdateLocalidadeUseCase;

@@ -1,7 +1,14 @@
 import { BaseModelPrimaryColumnUuid } from '@/core/interface/base_model';
 import FonteModel from '@/modules/fontes/infra/models/fonte.model';
 import ObraModel from '@/modules/obras/infra/models/obra.model';
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from 'typeorm';
 import { SituacaoTitularidade } from '@/modules/obras/domain/enums/situacao_titularidade.enum';
 import { SituacaoLicenca } from '@/modules/obras/domain/enums/situacao_licenca.enum';
 import { TipoRecebimento } from '@/modules/obras/domain/enums/tipo_recebimento.enum';

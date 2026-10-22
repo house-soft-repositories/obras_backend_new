@@ -14,6 +14,9 @@ export interface ListUsersParam {
   take?: number;
 }
 
-type IListUsersUseCase = UseCase<ListUsersParam, PageEntity<UsuarioWithOrganizationalReadModel>>;
+type IListUsersUseCase = UseCase<
+  ListUsersParam,
+  PageEntity<UsuarioWithOrganizationalReadModel>
+>;
 
 export default IListUsersUseCase;

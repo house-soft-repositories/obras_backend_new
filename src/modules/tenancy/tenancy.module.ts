@@ -9,7 +9,11 @@ import ICreateTenancyUseCase from '@/modules/tenancy/domain/usecase/create_tenan
 import ListTenanciesService from '@/modules/tenancy/application/list_tenancies.service';
 import type IStorageService from '@/modules/storage/adapters/storage_service.interface';
 import IListTenanciesUseCase from '@/modules/tenancy/domain/usecase/list_tenancies.usecase';
-import { CREATE_TENANCY_SERVICE, LIST_TENANCIES_SERVICE, TENANCY_REPOSITORY } from '@/modules/tenancy/symbols';
+import {
+  CREATE_TENANCY_SERVICE,
+  LIST_TENANCIES_SERVICE,
+  TENANCY_REPOSITORY,
+} from '@/modules/tenancy/symbols';
 import StorageModule from '@/modules/storage/storage.module';
 import { STORAGE_SERVICE } from '@/modules/storage/symbols';
 

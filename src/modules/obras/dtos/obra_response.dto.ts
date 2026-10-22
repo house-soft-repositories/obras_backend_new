@@ -47,7 +47,17 @@ export default class ObraResponseDto {
     };
   }
 
-  static fromPage(page: { data: ObraEntity[]; meta: { page: number; take: number; itemCount: number; pageCount: number; hasPreviousPage: boolean; hasNextPage: boolean } }) {
+  static fromPage(page: {
+    data: ObraEntity[];
+    meta: {
+      page: number;
+      take: number;
+      itemCount: number;
+      pageCount: number;
+      hasPreviousPage: boolean;
+      hasNextPage: boolean;
+    };
+  }) {
     return {
       data: page.data.map((e) => this.fromEntity(e as unknown as ObraEntity)),
       meta: page.meta,

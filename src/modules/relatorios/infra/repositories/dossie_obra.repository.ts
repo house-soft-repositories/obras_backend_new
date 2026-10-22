@@ -31,7 +31,10 @@ import type {
 } from '@/modules/relatorios/domain/relatorios/relatorios_read_models';
 import RelatoriosRepositoryException from '@/modules/relatorios/exceptions/relatorios_repository.exception';
 import RelatoriosQuery from '@/modules/relatorios/infra/query/relatorios_query';
-import { AditivoFonteModel, AditivoModel } from '@/modules/contratos/infra/models/aditivo.model';
+import {
+  AditivoFonteModel,
+  AditivoModel,
+} from '@/modules/contratos/infra/models/aditivo.model';
 import {
   ContratoFonteModel,
   ContratoModel,
@@ -270,7 +273,8 @@ export default class DossieObraRepository implements IDossieObraRepository {
       percentual: Number(row.percentual_direto ?? 0),
       dataPrazo: dia(row.data_fim),
       concluido:
-        typeof row.status === 'string' && row.status.toUpperCase() === 'CONCLUIDO',
+        typeof row.status === 'string' &&
+        row.status.toUpperCase() === 'CONCLUIDO',
     };
   }
 

@@ -2,7 +2,10 @@ import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
 import EstagioModel from '@/modules/cronograma/infra/models/estagio.model';
 import BaseMapper from '@/core/types/base_mapper';
 
-export default abstract class EstagioMapper extends BaseMapper<EstagioEntity, EstagioModel> {
+export default abstract class EstagioMapper extends BaseMapper<
+  EstagioEntity,
+  EstagioModel
+> {
   static toEntity(m: EstagioModel): EstagioEntity {
     return EstagioEntity.fromData({
       id: m.id,
@@ -15,7 +18,8 @@ export default abstract class EstagioMapper extends BaseMapper<EstagioEntity, Es
       modoDuracao: m.modoDuracao,
       dataInicio: m.dataInicio,
       dataFim: m.dataFim,
-      percentualDireto: m.percentualDireto === null ? null : Number(m.percentualDireto),
+      percentualDireto:
+        m.percentualDireto === null ? null : Number(m.percentualDireto),
       responsavelUsuarioId: m.responsavelUsuarioId,
       estagioPaiId: m.estagioPaiId,
       criadoEm: m.createdAt,

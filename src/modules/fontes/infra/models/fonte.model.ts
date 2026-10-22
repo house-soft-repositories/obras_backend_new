@@ -6,7 +6,8 @@ export default class FonteModel extends BaseModelPrimaryColumnUuid {
   @Column({ nullable: true, type: 'varchar' }) descricao: string | null;
   @Column({ nullable: true, type: 'varchar' }) codigo: string | null;
   @Column({ nullable: true, type: 'varchar' }) tipo: string | null;
-  @Column({ name: 'valor_previsto', nullable: true, type: 'varchar' }) valorPrevisto: string | null;
+  @Column({ name: 'valor_previsto', nullable: true, type: 'varchar' })
+  valorPrevisto: string | null;
   @Column({ nullable: true, type: 'varchar' }) vigencia: string | null;
   @Column({ default: true }) ativo: boolean;
 }

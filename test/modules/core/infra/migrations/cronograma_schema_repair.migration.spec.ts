@@ -66,7 +66,9 @@ describe('RepairCronogramaTenantSchema1781840000000', () => {
       [schemaName],
     )) as { table_name: string; column_name: string }[];
     const names = new Set(
-      columns.map(({ table_name, column_name }) => `${table_name}.${column_name}`),
+      columns.map(
+        ({ table_name, column_name }) => `${table_name}.${column_name}`,
+      ),
     );
 
     for (const column of [

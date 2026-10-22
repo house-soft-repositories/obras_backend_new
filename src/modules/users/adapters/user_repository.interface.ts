@@ -24,8 +24,14 @@ export default interface IUserRepository {
     tenantId: string | null,
   ): AsyncResult<AppException, PageEntity<UsuarioWithOrganizationalReadModel>>;
   save(user: UserEntity): AsyncResult<AppException, UserEntity>;
-  existsLocalidade(localidadeId: string, tenantId: string): AsyncResult<AppException, true>;
-  existsOrgao(orgaoId: string, tenantId: string): AsyncResult<AppException, true>;
+  existsLocalidade(
+    localidadeId: string,
+    tenantId: string,
+  ): AsyncResult<AppException, true>;
+  existsOrgao(
+    orgaoId: string,
+    tenantId: string,
+  ): AsyncResult<AppException, true>;
   findSetorById(
     setorId: string,
     tenantId: string,

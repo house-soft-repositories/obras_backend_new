@@ -25,7 +25,9 @@ export default class ContratoRepository implements IContratoRepository {
     private readonly tenantContext: TenantContext,
   ) {}
 
-  async save(entity: ContratoEntity): AsyncResult<AppException, ContratoEntity> {
+  async save(
+    entity: ContratoEntity,
+  ): AsyncResult<AppException, ContratoEntity> {
     try {
       const saved = await withManager(
         this.dataSource,
@@ -232,9 +234,7 @@ export default class ContratoRepository implements IContratoRepository {
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
-          await manager
-            .getRepository(ContratoModel)
-            .delete({ id, tenantId });
+          await manager.getRepository(ContratoModel).delete({ id, tenantId });
         },
       );
 

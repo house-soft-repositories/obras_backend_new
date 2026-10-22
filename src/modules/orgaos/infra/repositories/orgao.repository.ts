@@ -152,7 +152,8 @@ export default class OrgaoRepository implements IOrgaoRepository {
 
   async existsLocalidade(
     localidadeId: string,
-  ): AsyncResult<AppException, true> {    try {
+  ): AsyncResult<AppException, true> {
+    try {
       const schema = this.tenantContext.require().schemaName;
       const [found] = await this.dataSource.query<{ id: string }[]>(
         `SELECT id FROM "${schema}"."localidades" WHERE id = $1`,

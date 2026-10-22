@@ -15,7 +15,9 @@ import {
   PREFIXO_OBRA_PRIVADA,
   proximoCodigo,
 } from '@/modules/obras-privadas/services/codigo_privado.service';
-export default class CreateObraPrivadaService implements ICreateObraPrivadaUseCase {
+export default class CreateObraPrivadaService
+  implements ICreateObraPrivadaUseCase
+{
   constructor(
     private readonly repo: IObraPrivadaRepository,
     private readonly pessoaRepo: IPessoaRepository,

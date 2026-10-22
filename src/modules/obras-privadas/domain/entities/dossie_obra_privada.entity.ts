@@ -77,8 +77,7 @@ export default class DossieObraPrivadaEntity {
       fiscalizacoes: (param.fiscalizacoes ?? []).map((fiscalizacao) => ({
         numero: fiscalizacao.numero,
         tipo: fiscalizacao.tipo,
-        dataFiscalizacao:
-          paraIsoDia(fiscalizacao.dataFiscalizacao) ?? '',
+        dataFiscalizacao: paraIsoDia(fiscalizacao.dataFiscalizacao) ?? '',
         resultado: fiscalizacao.resultado,
         etapaConstatada: fiscalizacao.etapaConstatada,
         constatacoes: fiscalizacao.constatacoes,

@@ -9,7 +9,10 @@ export interface MedicaoFonteProps {
   valor: number;
 }
 
-export default abstract class MedicaoFonteMapper extends BaseMapper<MedicaoFonteProps, MedicaoFonteModel> {
+export default abstract class MedicaoFonteMapper extends BaseMapper<
+  MedicaoFonteProps,
+  MedicaoFonteModel
+> {
   static toEntity(m: MedicaoFonteModel): MedicaoFonteProps {
     return {
       id: m.id,

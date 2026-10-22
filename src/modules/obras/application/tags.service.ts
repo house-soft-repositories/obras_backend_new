@@ -22,14 +22,32 @@ export default class TagsService {
       .filter((s) => s.length >= 2 && s.length <= 40);
   }
 
-  async aplicar(param: { obraId: string; tags: string }): AsyncResult<AppException, TagEntity[]> {
+  async aplicar(param: {
+    obraId: string;
+    tags: string;
+  }): AsyncResult<AppException, TagEntity[]> {
     try {
       const ctx = this.tc.require();
       const schema = ctx.schemaName;
-      const obra = await this.ds.query(`SELECT id FROM "${schema}"."obras" WHERE id=$1 AND deleted_at IS NULL`, [param.obraId]);
-      if (!obra.length) return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBRA_NOT_FOUND, statusCode: 404 }));
+      const obra = await this.ds.query(
+        `SELECT id FROM "${schema}"."obras" WHERE id=$1 AND deleted_at IS NULL`,
+        [param.obraId],
+      );
+      if (!obra.length)
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.OBRA_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
       const names = this.normalize(param.tags);
-      if (!names.length) return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBRA_TAG_INVALID, statusCode: 400 }));
+      if (!names.length)
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.OBRA_TAG_INVALID,
+            statusCode: 400,
+          }),
+        );
       const result: TagEntity[] = [];
       for (const nome of names) {
         const found = await this.tagRepo.findByNome(nome);
@@ -48,7 +66,13 @@ export default class TagsService {
       return right(result);
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBRA_REPOSITORY_FAILED, statusCode: 500, cause }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.OBRA_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
 
@@ -56,15 +80,33 @@ export default class TagsService {
     return this.tagRepo.listByObra(obraId);
   }
 
-  async detach(param: { obraId: string; tagId: string }): AsyncResult<AppException, void> {
+  async detach(param: {
+    obraId: string;
+    tagId: string;
+  }): AsyncResult<AppException, void> {
     try {
       const ctx = this.tc.require();
       const schema = ctx.schemaName;
-      const obra = await this.ds.query(`SELECT id FROM "${schema}"."obras" WHERE id=$1 AND deleted_at IS NULL`, [param.obraId]);
-      if (!obra.length) return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBRA_NOT_FOUND, statusCode: 404 }));
+      const obra = await this.ds.query(
+        `SELECT id FROM "${schema}"."obras" WHERE id=$1 AND deleted_at IS NULL`,
+        [param.obraId],
+      );
+      if (!obra.length)
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.OBRA_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
       return this.tagRepo.detach(param.obraId, param.tagId);
     } catch (cause) {
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBRA_REPOSITORY_FAILED, statusCode: 500, cause }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.OBRA_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
 }

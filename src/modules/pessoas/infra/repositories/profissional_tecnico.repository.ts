@@ -157,7 +157,12 @@ export default class ProfissionalTecnicoRepository
         pageOptions,
         itemCount: Number(countResult?.count ?? 0),
       });
-      return right(new PageEntity(rows.map((row) => this.toView(row)), meta));
+      return right(
+        new PageEntity(
+          rows.map((row) => this.toView(row)),
+          meta,
+        ),
+      );
     } catch (cause) {
       return left(this.repositoryFailure(cause));
     }

@@ -54,15 +54,14 @@ import { APP_FILTER } from '@nestjs/core';
     {
       provide: TenantSchemaResolver,
       inject: [DataSource],
-      useFactory: (dataSource: DataSource) => new TenantSchemaResolver(dataSource),
+      useFactory: (dataSource: DataSource) =>
+        new TenantSchemaResolver(dataSource),
     },
     {
       provide: TenantRequestContextService,
       inject: [TenantSchemaResolver, TenantContext],
-      useFactory: (
-        resolver: TenantSchemaResolver,
-        context: TenantContext,
-      ) => new TenantRequestContextService(resolver, context),
+      useFactory: (resolver: TenantSchemaResolver, context: TenantContext) =>
+        new TenantRequestContextService(resolver, context),
     },
   ],
   exports: [

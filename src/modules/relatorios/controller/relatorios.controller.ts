@@ -55,7 +55,12 @@ export default class RelatoriosController {
     @Inject(GERAR_RELATORIO_OBRA_SERVICE)
     private readonly relatorioObra: IGerarPdfObraRelatorioUseCase,
     @Inject(GERAR_DOSSIE_OBRA_SERVICE)
-    private readonly dossieObra: { gerarDossie(param: { usuarioId: string; obraId: string }): ReturnType<IGerarPdfObraRelatorioUseCase['execute']> },
+    private readonly dossieObra: {
+      gerarDossie(param: {
+        usuarioId: string;
+        obraId: string;
+      }): ReturnType<IGerarPdfObraRelatorioUseCase['execute']>;
+    },
     private readonly tc: TenantRequestContextService,
   ) {}
 

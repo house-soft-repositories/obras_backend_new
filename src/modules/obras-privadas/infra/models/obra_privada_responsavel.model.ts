@@ -14,13 +14,17 @@ export default class ObraPrivadaResponsavelModel extends BaseModelPrimaryColumnU
   @Column({ name: 'data_documento', nullable: true, type: 'date' })
   dataDocumento: string | null;
   @Column({ name: 'arquivo_id', nullable: true, type: 'uuid' }) arquivoId:
-    string | null;
+    | string
+    | null;
   @Column({ name: 'data_inicio', nullable: true, type: 'date' }) dataInicio:
-    string | null;
+    | string
+    | null;
   @Column({ name: 'data_baixa', nullable: true, type: 'date' }) dataBaixa:
-    string | null;
+    | string
+    | null;
   @Column({ name: 'motivo_baixa', nullable: true, type: 'text' }) motivoBaixa:
-    string | null;
+    | string
+    | null;
   @ManyToOne(() => ObraPrivadaModel, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'obra_privada_id' })
   obraPrivada?: ObraPrivadaModel;

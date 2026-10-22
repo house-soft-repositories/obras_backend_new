@@ -8,6 +8,9 @@ export type CreateLocalidadeParam = CreateLocalidadeProps & {
   role: UserRole;
 };
 
-type ICreateLocalidadeUseCase = UseCase<CreateLocalidadeParam, LocalidadeEntity>;
+type ICreateLocalidadeUseCase = UseCase<
+  CreateLocalidadeParam,
+  LocalidadeEntity
+>;
 
 export default ICreateLocalidadeUseCase;

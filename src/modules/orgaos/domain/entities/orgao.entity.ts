@@ -86,10 +86,7 @@ export default class OrgaoEntity {
         code: ErrorCodeConstants.ORGAO_INVALID_TYPE,
       });
     }
-    if (
-      props.email &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(props.email.trim())
-    ) {
+    if (props.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(props.email.trim())) {
       throw new OrgaoDomainException({
         code: ErrorCodeConstants.ORGAO_INVALID_EMAIL,
       });

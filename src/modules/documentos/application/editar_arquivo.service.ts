@@ -39,7 +39,9 @@ export default class EditarArquivoService implements IEditarArquivoUseCase {
       const saved = await this.arquivos.save(editado);
       if (saved.isLeft()) return left(saved.value);
       if (saved.value.attachmentId && param.nome !== undefined) {
-        const mirror = await this.attachments.findById(saved.value.attachmentId);
+        const mirror = await this.attachments.findById(
+          saved.value.attachmentId,
+        );
         if (mirror.isRight()) {
           const atualizado = AttachmentEntity.fromData({
             ...mirror.value.toObject(),

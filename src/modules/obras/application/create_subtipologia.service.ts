@@ -5,9 +5,19 @@ import { SubtipologiaEntity } from '@/modules/obras/domain/entities/cadastro.ent
 import TenantContext from '@/core/multitenancy/tenant_context';
 
 export default class CreateSubtipologiaService {
-  constructor(private readonly repository: ISubtipologiaRepository, private readonly tenantContext: TenantContext) {}
-  execute(param: { nome: string; parentId: string }): AsyncResult<AppException, SubtipologiaEntity> {
-    const entity = SubtipologiaEntity.create({ tenantId: this.tenantContext.require().tenantId, tipologiaId: param.parentId, nome: param.nome });
+  constructor(
+    private readonly repository: ISubtipologiaRepository,
+    private readonly tenantContext: TenantContext,
+  ) {}
+  execute(param: {
+    nome: string;
+    parentId: string;
+  }): AsyncResult<AppException, SubtipologiaEntity> {
+    const entity = SubtipologiaEntity.create({
+      tenantId: this.tenantContext.require().tenantId,
+      tipologiaId: param.parentId,
+      nome: param.nome,
+    });
     return this.repository.save(entity);
   }
 }

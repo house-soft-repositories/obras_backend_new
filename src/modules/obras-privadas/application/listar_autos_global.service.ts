@@ -8,7 +8,9 @@ import IListarAutosGlobalUseCase, {
 } from '@/modules/obras-privadas/domain/usecase/listar_autos_global.usecase';
 import { AutoGlobalReadModel } from '@/modules/obras-privadas/infra/read-models/auto_global_read_model';
 
-export default class ListarAutosGlobalService implements IListarAutosGlobalUseCase {
+export default class ListarAutosGlobalService
+  implements IListarAutosGlobalUseCase
+{
   constructor(private readonly autos: IAutoInfracaoRepository) {}
 
   async execute(

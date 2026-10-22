@@ -6,7 +6,10 @@ type RelatoriosDomainErrorCode =
   | typeof ErrorCodeConstants.RELATORIO_PAGINACAO_INVALIDA;
 
 export default class RelatoriosDomainException extends AppException {
-  constructor({ code, message }: { code: RelatoriosDomainErrorCode; message?: string }) {
+  constructor({
+    code,
+    message,
+  }: { code: RelatoriosDomainErrorCode; message?: string }) {
     super({ code, statusCode: 400, message });
   }
 }

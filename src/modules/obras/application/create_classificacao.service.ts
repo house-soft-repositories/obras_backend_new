@@ -5,9 +5,17 @@ import { ClassificacaoEntity } from '@/modules/obras/domain/entities/cadastro.en
 import TenantContext from '@/core/multitenancy/tenant_context';
 
 export default class CreateClassificacaoService {
-  constructor(private readonly repository: IClassificacaoRepository, private readonly tenantContext: TenantContext) {}
-  execute(param: { nome: string }): AsyncResult<AppException, ClassificacaoEntity> {
-    const entity = ClassificacaoEntity.create({ tenantId: this.tenantContext.require().tenantId, nome: param.nome });
+  constructor(
+    private readonly repository: IClassificacaoRepository,
+    private readonly tenantContext: TenantContext,
+  ) {}
+  execute(param: {
+    nome: string;
+  }): AsyncResult<AppException, ClassificacaoEntity> {
+    const entity = ClassificacaoEntity.create({
+      tenantId: this.tenantContext.require().tenantId,
+      nome: param.nome,
+    });
     return this.repository.save(entity);
   }
 }

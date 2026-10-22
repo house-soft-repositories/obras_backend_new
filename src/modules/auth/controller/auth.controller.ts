@@ -68,7 +68,9 @@ export default class AuthController {
     const result = await this.getMe.execute(payload.sub);
     if (result.isLeft()) {
       const status =
-        result.value.code === ErrorCodeConstants.USER_NOT_FOUND ? 401 : result.value.statusCode;
+        result.value.code === ErrorCodeConstants.USER_NOT_FOUND
+          ? 401
+          : result.value.statusCode;
       throw new HttpException(result.value.message, status, {
         cause: result.value.cause,
       });

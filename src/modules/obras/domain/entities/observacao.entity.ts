@@ -26,9 +26,14 @@ export default class ObservacaoEntity {
       throw new ObraDomainException({
         code: ErrorCodeConstants.OBSERVACAO_INVALID_TEXTO,
       });
-    if (!p.obraId) throw new ObraDomainException({ code: ErrorCodeConstants.OBRA_NOT_FOUND });
+    if (!p.obraId)
+      throw new ObraDomainException({
+        code: ErrorCodeConstants.OBRA_NOT_FOUND,
+      });
     if (!p.autorUsuarioId)
-      throw new ObraDomainException({ code: ErrorCodeConstants.OBSERVACAO_INVALID_TEXTO });
+      throw new ObraDomainException({
+        code: ErrorCodeConstants.OBSERVACAO_INVALID_TEXTO,
+      });
     const now = new Date();
     return new ObservacaoEntity({
       id: randomUUID(),
@@ -59,11 +64,25 @@ export default class ObservacaoEntity {
     return { ...this.props };
   }
 
-  get id() { return this.props.id; }
-  get tenantId() { return this.props.tenantId; }
-  get obraId() { return this.props.obraId; }
-  get texto() { return this.props.texto; }
-  get autorUsuarioId() { return this.props.autorUsuarioId; }
-  get createdAt() { return this.props.createdAt; }
-  get updatedAt() { return this.props.updatedAt; }
+  get id() {
+    return this.props.id;
+  }
+  get tenantId() {
+    return this.props.tenantId;
+  }
+  get obraId() {
+    return this.props.obraId;
+  }
+  get texto() {
+    return this.props.texto;
+  }
+  get autorUsuarioId() {
+    return this.props.autorUsuarioId;
+  }
+  get createdAt() {
+    return this.props.createdAt;
+  }
+  get updatedAt() {
+    return this.props.updatedAt;
+  }
 }

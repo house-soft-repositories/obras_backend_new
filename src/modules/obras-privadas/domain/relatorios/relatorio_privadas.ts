@@ -119,7 +119,9 @@ export function formatarData(iso: string | Date | null | undefined): string {
   // "iso.slice is not a function".
   const texto =
     iso instanceof Date
-      ? (Number.isNaN(iso.getTime()) ? null : iso.toISOString().slice(0, 10))
+      ? Number.isNaN(iso.getTime())
+        ? null
+        : iso.toISOString().slice(0, 10)
       : iso;
   if (!texto) return '—';
   const [ano, mes, dia] = texto.slice(0, 10).split('-');

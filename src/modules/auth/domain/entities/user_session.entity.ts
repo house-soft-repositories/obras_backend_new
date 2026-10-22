@@ -18,7 +18,9 @@ export default class UserSessionEntity {
     userId,
     refreshTokenHash,
     expiresAt,
-  }: Pick<UserSessionProps, 'userId' | 'refreshTokenHash' | 'expiresAt'> & { id?: string }): UserSessionEntity {
+  }: Pick<UserSessionProps, 'userId' | 'refreshTokenHash' | 'expiresAt'> & {
+    id?: string;
+  }): UserSessionEntity {
     const now = new Date();
     return new UserSessionEntity({
       id,
@@ -35,11 +37,25 @@ export default class UserSessionEntity {
     return new UserSessionEntity(props);
   }
 
-  get id() { return this.props.id; }
-  get userId() { return this.props.userId; }
-  get refreshTokenHash() { return this.props.refreshTokenHash; }
-  get expiresAt() { return this.props.expiresAt; }
-  get revokedAt() { return this.props.revokedAt; }
-  get createdAt() { return this.props.createdAt; }
-  get updatedAt() { return this.props.updatedAt; }
+  get id() {
+    return this.props.id;
+  }
+  get userId() {
+    return this.props.userId;
+  }
+  get refreshTokenHash() {
+    return this.props.refreshTokenHash;
+  }
+  get expiresAt() {
+    return this.props.expiresAt;
+  }
+  get revokedAt() {
+    return this.props.revokedAt;
+  }
+  get createdAt() {
+    return this.props.createdAt;
+  }
+  get updatedAt() {
+    return this.props.updatedAt;
+  }
 }

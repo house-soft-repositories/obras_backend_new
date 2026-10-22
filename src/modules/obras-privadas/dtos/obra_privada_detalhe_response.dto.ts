@@ -36,9 +36,9 @@ export default class ObraPrivadaDetalheResponseDto {
       proprietario: detalhe.proprietario
         ? PessoaResponseDto.fromEntity(detalhe.proprietario)
         : null,
-      responsaveis: detalhe.responsaveis.map(
-        (r: ResponsavelDetalhe) => ({ ...r }),
-      ),
+      responsaveis: detalhe.responsaveis.map((r: ResponsavelDetalhe) => ({
+        ...r,
+      })),
       derivados: { ...detalhe.derivados },
     };
   }

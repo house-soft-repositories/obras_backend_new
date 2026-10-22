@@ -39,8 +39,9 @@ export default class GetPrazoFinalContratoService
       const contrato = contratoRes.value;
 
       const aditivosRes = await this.aditivoRepo.listByContrato(param.id);
-      const paralisacoesRes =
-        await this.paralisacaoRepo.listByContrato(param.id);
+      const paralisacoesRes = await this.paralisacaoRepo.listByContrato(
+        param.id,
+      );
       const calendarioRes = await this.contratoRepo.getObraCalendario(
         contrato.obraId,
       );
@@ -62,14 +63,12 @@ export default class GetPrazoFinalContratoService
           diasParados: p.diasParados ?? null,
           dataReinicio: p.dataReinicio ?? null,
         })),
-        aditivos: (aditivosRes.isRight() ? aditivosRes.value : []).map(
-          (a) => ({
-            tipo: a.tipo,
-            tipoPrazoExecucao: a.tipoPrazoExecucao ?? null,
-            prazoExecucaoDias: a.prazoExecucaoDias ?? null,
-            prazoExecucaoData: a.prazoExecucaoData ?? null,
-          }),
-        ),
+        aditivos: (aditivosRes.isRight() ? aditivosRes.value : []).map((a) => ({
+          tipo: a.tipo,
+          tipoPrazoExecucao: a.tipoPrazoExecucao ?? null,
+          prazoExecucaoDias: a.prazoExecucaoDias ?? null,
+          prazoExecucaoData: a.prazoExecucaoData ?? null,
+        })),
         considerarSabado,
         considerarDomingo,
         dataReferencia: new Date().toISOString().slice(0, 10),

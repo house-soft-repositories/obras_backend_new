@@ -5,10 +5,7 @@ import IMonitoryService from '@/core/services/monitory.service';
 export default class LocalMonitoryService implements IMonitoryService {
   private readonly logger = new Logger(LocalMonitoryService.name);
 
-  captureException(
-    exception: Error,
-    context: Record<string, unknown>,
-  ): void {
+  captureException(exception: Error, context: Record<string, unknown>): void {
     this.logger.error(
       exception.message,
       exception.stack,

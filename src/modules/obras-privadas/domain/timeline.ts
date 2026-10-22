@@ -153,11 +153,7 @@ export function montarTimeline(entrada: EntradaTimeline): EventoTimeline[] {
   };
 
   return eventos.sort((a, b) =>
-    a.data === b.data
-      ? PESO[a.tipo] - PESO[b.tipo]
-      : a.data < b.data
-        ? 1
-        : -1,
+    a.data === b.data ? PESO[a.tipo] - PESO[b.tipo] : a.data < b.data ? 1 : -1,
   );
 }
 

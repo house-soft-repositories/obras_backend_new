@@ -8,10 +8,20 @@ import ErrorCodeConstants from '@/core/constants/error_code.constants';
 
 export default class UpdateSubclassificacaoService {
   constructor(private readonly repository: ISubclassificacaoRepository) {}
-  async execute(param: { id: string; nome?: string; ativo?: boolean }): AsyncResult<AppException, SubclassificacaoEntity> {
+  async execute(param: {
+    id: string;
+    nome?: string;
+    ativo?: boolean;
+  }): AsyncResult<AppException, SubclassificacaoEntity> {
     const found = await this.repository.findOne(param.id);
     if (found.isLeft()) return left(found.value);
-    if (!found.value) return left(new CadastroRepositoryException({ code: ErrorCodeConstants.CADASTRO_NOT_FOUND, statusCode: 404 }));
+    if (!found.value)
+      return left(
+        new CadastroRepositoryException({
+          code: ErrorCodeConstants.CADASTRO_NOT_FOUND,
+          statusCode: 404,
+        }),
+      );
     found.value.update({ nome: param.nome, ativo: param.ativo });
     return this.repository.save(found.value);
   }

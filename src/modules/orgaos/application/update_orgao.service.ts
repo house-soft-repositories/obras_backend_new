@@ -14,7 +14,9 @@ import OrgaoServiceException from '@/modules/orgaos/exceptions/orgao_service.exc
 export default class UpdateOrgaoService implements IUpdateOrgaoUseCase {
   constructor(private readonly repository: IOrgaoRepository) {}
 
-  async execute(param: UpdateOrgaoParam): AsyncResult<AppException, OrgaoEntity> {
+  async execute(
+    param: UpdateOrgaoParam,
+  ): AsyncResult<AppException, OrgaoEntity> {
     try {
       const denied = denyUnlessOrgaoWriter(param.role);
       if (denied) return left(denied);

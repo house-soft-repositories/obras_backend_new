@@ -52,7 +52,8 @@ export default class LocalidadeEntity {
       codigoIbge:
         props.codigoIbge === undefined ? this.codigoIbge : props.codigoIbge,
       tipo: props.tipo === undefined ? this.tipo : props.tipo,
-      municipio: props.municipio === undefined ? this.municipio : props.municipio,
+      municipio:
+        props.municipio === undefined ? this.municipio : props.municipio,
       observacoes:
         props.observacoes === undefined ? this.observacoes : props.observacoes,
     });
@@ -85,13 +86,31 @@ export default class LocalidadeEntity {
     return { ...this.props };
   }
 
-  get id() { return this.props.id; }
-  get nome() { return this.props.nome; }
-  get uf() { return this.props.uf; }
-  get codigoIbge() { return this.props.codigoIbge; }
-  get tipo() { return this.props.tipo; }
-  get municipio() { return this.props.municipio; }
-  get observacoes() { return this.props.observacoes; }
-  get createdAt() { return this.props.createdAt; }
-  get updatedAt() { return this.props.updatedAt; }
+  get id() {
+    return this.props.id;
+  }
+  get nome() {
+    return this.props.nome;
+  }
+  get uf() {
+    return this.props.uf;
+  }
+  get codigoIbge() {
+    return this.props.codigoIbge;
+  }
+  get tipo() {
+    return this.props.tipo;
+  }
+  get municipio() {
+    return this.props.municipio;
+  }
+  get observacoes() {
+    return this.props.observacoes;
+  }
+  get createdAt() {
+    return this.props.createdAt;
+  }
+  get updatedAt() {
+    return this.props.updatedAt;
+  }
 }

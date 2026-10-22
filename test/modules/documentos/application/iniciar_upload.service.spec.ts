@@ -73,7 +73,11 @@ describe('IniciarUploadService', () => {
         attachments,
         storage,
         tenantContext,
-      ).execute({ pastaId: 'missing', arquivos: [item], usuarioId: USUARIO_ID });
+      ).execute({
+        pastaId: 'missing',
+        arquivos: [item],
+        usuarioId: USUARIO_ID,
+      });
 
       expect(result.isLeft()).toBe(true);
       if (result.isRight()) throw new Error('expected failure');

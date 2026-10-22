@@ -7,7 +7,7 @@ export default class TenancyServiceException extends AppException {
     message,
     cause,
   }: {
-    code: string
+    code: string;
     statusCode: number;
     message?: string;
     cause?: unknown;

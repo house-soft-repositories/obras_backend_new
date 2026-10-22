@@ -76,7 +76,10 @@ export default class ComentarioRepository implements IComentarioRepository {
       return await withManager(this.ds, this.tc, async (manager) => {
         const repo = manager.getRepository(EstagioComentarioModel);
         const rows = await repo.find({
-          where: { obraId, estagioId } as FindOptionsWhere<EstagioComentarioModel>,
+          where: {
+            obraId,
+            estagioId,
+          } as FindOptionsWhere<EstagioComentarioModel>,
           order: { createdAt: 'ASC' },
         });
         return right(rows.map((row) => EstagioComentarioMapper.toEntity(row)));

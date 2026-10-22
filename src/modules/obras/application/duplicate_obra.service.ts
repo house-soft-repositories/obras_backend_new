@@ -5,7 +5,9 @@ import TenantContext from '@/core/multitenancy/tenant_context';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
-import IDuplicateObraUseCase, { DuplicateObraParam } from '@/modules/obras/domain/usecase/duplicate_obra.usecase';
+import IDuplicateObraUseCase, {
+  DuplicateObraParam,
+} from '@/modules/obras/domain/usecase/duplicate_obra.usecase';
 import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
 import ObraServiceException from '@/modules/obras/exceptions/obra_service.exception';
@@ -21,7 +23,9 @@ export default class DuplicateObraService implements IDuplicateObraUseCase {
     private readonly events: ObraEventsService,
   ) {}
 
-  async execute(param: DuplicateObraParam): AsyncResult<AppException, ObraEntity> {
+  async execute(
+    param: DuplicateObraParam,
+  ): AsyncResult<AppException, ObraEntity> {
     try {
       const ctx = this.tc.require();
       const schema = ctx.schemaName;
@@ -127,18 +131,35 @@ export default class DuplicateObraService implements IDuplicateObraUseCase {
                 v.updatedAt,
               ],
             );
-            const orcamentos = await m.query<Array<{ id: string; fonte_id: string; valor: string }>>(`SELECT id, fonte_id, valor FROM "${schema}"."obra_orcamento_previsto" WHERE obra_id=$1`, [origin.id]);
+            const orcamentos = await m.query<
+              Array<{ id: string; fonte_id: string; valor: string }>
+            >(
+              `SELECT id, fonte_id, valor FROM "${schema}"."obra_orcamento_previsto" WHERE obra_id=$1`,
+              [origin.id],
+            );
             for (const oRow of orcamentos) {
               await m.query(
                 `INSERT INTO "${schema}"."obra_orcamento_previsto" (id, tenant_id, obra_id, fonte_id, valor) VALUES ($1,$2,$3,$4,$5)`,
                 [randomUUID(), o.tenantId, v.id, oRow.fonte_id, oRow.valor],
               );
             }
-            const responsaveis = await m.query<Array<{ usuario_id: string; tipo: string }>>(`SELECT usuario_id, tipo FROM "${schema}"."obra_responsaveis" WHERE obra_id=$1`, [origin.id]);
+            const responsaveis = await m.query<
+              Array<{ usuario_id: string; tipo: string }>
+            >(
+              `SELECT usuario_id, tipo FROM "${schema}"."obra_responsaveis" WHERE obra_id=$1`,
+              [origin.id],
+            );
             for (const rRow of responsaveis) {
               await m.query(
                 `INSERT INTO "${schema}"."obra_responsaveis" (id, tenant_id, obra_id, usuario_id, tipo, created_at) VALUES ($1,$2,$3,$4,$5,$6)`,
-                [randomUUID(), o.tenantId, v.id, rRow.usuario_id, rRow.tipo, new Date()],
+                [
+                  randomUUID(),
+                  o.tenantId,
+                  v.id,
+                  rRow.usuario_id,
+                  rRow.tipo,
+                  new Date(),
+                ],
               );
             }
             return dupEntity;
@@ -152,7 +173,11 @@ export default class DuplicateObraService implements IDuplicateObraUseCase {
           return right(saved);
         } catch (e: unknown) {
           const err = e as { code?: string; constraint?: string };
-          if (err?.code === '23505' && String(err?.constraint || '').includes('codigo')) continue;
+          if (
+            err?.code === '23505' &&
+            String(err?.constraint || '').includes('codigo')
+          )
+            continue;
           throw e;
         }
       }

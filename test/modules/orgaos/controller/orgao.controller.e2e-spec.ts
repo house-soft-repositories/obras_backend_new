@@ -319,16 +319,19 @@ describe('Orgaos API (e2e)', () => {
       .expect(403);
 
     const body = response.body as unknown as MessageResponse;
-    expect(body.message).toBe(
-      ErrorCodeConstants.ORGAO_ACCESS_FORBIDDEN,
-    );
+    expect(body.message).toBe(ErrorCodeConstants.ORGAO_ACCESS_FORBIDDEN);
   });
 
   it('creates, lists and updates sectors under an organization', async () => {
     tokenFor(UserRole.STAFF);
     createSetor.execute.mockResolvedValue(right(setor({ nome: 'Engenharia' })));
     listSetores.execute.mockResolvedValue(
-      right(pageOfSetores([setorRead({ nome: 'Arquitetura' }), setorRead({ nome: 'Zeladoria' })])),
+      right(
+        pageOfSetores([
+          setorRead({ nome: 'Arquitetura' }),
+          setorRead({ nome: 'Zeladoria' }),
+        ]),
+      ),
     );
     updateSetor.execute.mockResolvedValue(
       right(setor({ nome: 'Projetos', ativo: false })),
@@ -350,7 +353,10 @@ describe('Orgaos API (e2e)', () => {
       .expect(200);
 
     const createdBody = created.body as unknown as SetorResponse;
-    const listedBody = listed.body as unknown as { data: SetorResponse[]; meta: unknown };
+    const listedBody = listed.body as unknown as {
+      data: SetorResponse[];
+      meta: unknown;
+    };
     const updatedBody = updated.body as unknown as SetorResponse;
     expect(createdBody).toMatchObject({
       id: orgaoIds.setorId,
@@ -361,7 +367,10 @@ describe('Orgaos API (e2e)', () => {
       'Arquitetura',
       'Zeladoria',
     ]);
-    expect(listedBody.data[0].orgao).toEqual({ id: orgaoIds.orgaoId, nome: 'Secretaria' });
+    expect(listedBody.data[0].orgao).toEqual({
+      id: orgaoIds.orgaoId,
+      nome: 'Secretaria',
+    });
     expect(updatedBody).toMatchObject({
       id: orgaoIds.setorId,
       orgaoId: orgaoIds.orgaoId,
@@ -396,9 +405,7 @@ describe('Orgaos API (e2e)', () => {
       .expect(400);
 
     const body = response.body as unknown as MessageResponse;
-    expect(body.message).toContain(
-      'property totalObras should not exist',
-    );
+    expect(body.message).toContain('property totalObras should not exist');
     expect(createOrgao.execute.mock.calls).toHaveLength(0);
   });
 
@@ -489,9 +496,7 @@ describe('Orgaos API (e2e)', () => {
       .expect(403);
 
     const body = response.body as unknown as MessageResponse;
-    expect(body.message).toBe(
-      ErrorCodeConstants.SETOR_ACCESS_FORBIDDEN,
-    );
+    expect(body.message).toBe(ErrorCodeConstants.SETOR_ACCESS_FORBIDDEN);
   });
 
   it('rejects absent tenant context before use cases run', async () => {
@@ -503,9 +508,7 @@ describe('Orgaos API (e2e)', () => {
       .expect(401);
 
     const body = response.body as unknown as MessageResponse;
-    expect(body.message).toBe(
-      ErrorCodeConstants.TENANT_CONTEXT_REQUIRED,
-    );
+    expect(body.message).toBe(ErrorCodeConstants.TENANT_CONTEXT_REQUIRED);
     expect(listOrgaos.execute.mock.calls).toHaveLength(0);
   });
 });
@@ -549,5 +552,11 @@ function setorRead(props: { nome: string; ativo?: boolean }): SetorReadModel {
 }
 
 function pageOfSetores(items: SetorReadModel[]): PageEntity<SetorReadModel> {
-  return new PageEntity(items, new PageMetaEntity({ pageOptions: new PageOptionsEntity('ASC', 1, 10), itemCount: items.length }));
+  return new PageEntity(
+    items,
+    new PageMetaEntity({
+      pageOptions: new PageOptionsEntity('ASC', 1, 10),
+      itemCount: items.length,
+    }),
+  );
 }

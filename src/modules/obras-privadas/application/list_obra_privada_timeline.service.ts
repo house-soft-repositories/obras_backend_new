@@ -11,7 +11,9 @@ import IListObraPrivadaTimelineUseCase, {
   ObraPrivadaTimelineItem,
 } from '@/modules/obras-privadas/domain/usecase/list_obra_privada_timeline.usecase';
 
-export default class ListObraPrivadaTimelineService implements IListObraPrivadaTimelineUseCase {
+export default class ListObraPrivadaTimelineService
+  implements IListObraPrivadaTimelineUseCase
+{
   constructor(
     private readonly alvaraRepository: IAlvaraRepository,
     private readonly fiscalizacaoRepository: IFiscalizacaoRepository,

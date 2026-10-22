@@ -8,7 +8,9 @@ import IUpdateAutoInfracaoUseCase, {
   UpdateAutoInfracaoParam,
 } from '@/modules/obras-privadas/domain/usecase/update_auto_infracao.usecase';
 import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obra_privada_service.exception';
-export default class UpdateAutoInfracaoService implements IUpdateAutoInfracaoUseCase {
+export default class UpdateAutoInfracaoService
+  implements IUpdateAutoInfracaoUseCase
+{
   constructor(private readonly autoRepository: IAutoInfracaoRepository) {}
   async execute(
     param: UpdateAutoInfracaoParam,

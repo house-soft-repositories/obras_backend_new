@@ -6,9 +6,16 @@ import type { EmpenhoComFonte } from '@/modules/obras/domain/usecase/empenhos.us
 export default interface IEmpenhoRepository {
   save(entity: EmpenhoEntity): AsyncResult<AppException, EmpenhoEntity>;
   findById(id: string): AsyncResult<AppException, EmpenhoEntity | null>;
-  findByIdWithFonte(id: string): AsyncResult<AppException, EmpenhoComFonte | null>;
+  findByIdWithFonte(
+    id: string,
+  ): AsyncResult<AppException, EmpenhoComFonte | null>;
   listByObra(obraId: string): AsyncResult<AppException, EmpenhoEntity[]>;
-  listByObraWithFonte(obraId: string): AsyncResult<AppException, EmpenhoComFonte[]>;
-  sumLiquidado(empenhoId: string, ignoreId?: string): AsyncResult<AppException, number>;
+  listByObraWithFonte(
+    obraId: string,
+  ): AsyncResult<AppException, EmpenhoComFonte[]>;
+  sumLiquidado(
+    empenhoId: string,
+    ignoreId?: string,
+  ): AsyncResult<AppException, number>;
   delete(id: string): AsyncResult<AppException, void>;
 }

@@ -4,7 +4,9 @@ import AsyncResult from '@/core/types/async_result';
 import { left } from '@/core/types/either';
 import { type Unit } from '@/core/types/unit';
 import IEstagioRepository from '@/modules/cronograma/adapters/estagio_repository.interface';
-import IRemoveEstagioUseCase, { RemoveEstagioParam } from '@/modules/cronograma/domain/usecase/remove_estagio.usecase';
+import IRemoveEstagioUseCase, {
+  RemoveEstagioParam,
+} from '@/modules/cronograma/domain/usecase/remove_estagio.usecase';
 import CronogramaServiceException from '@/modules/cronograma/exceptions/cronograma_service.exception';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 

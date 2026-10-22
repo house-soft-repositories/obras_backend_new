@@ -20,7 +20,10 @@ describe('VerifiedTenantContextService', () => {
       role: UserRole.ADMIN,
       tenantId,
     });
-    resolver.resolve.mockResolvedValue({ tenantId, schemaName: 'tenant_9f8b416e2b4c4e4ab1c76beeb3d4d7dc' });
+    resolver.resolve.mockResolvedValue({
+      tenantId,
+      schemaName: 'tenant_9f8b416e2b4c4e4ab1c76beeb3d4d7dc',
+    });
     const service = new VerifiedTenantContextService(tokens, resolver, context);
 
     const resolved = await service.run(token, async () => {
@@ -30,7 +33,10 @@ describe('VerifiedTenantContextService', () => {
 
     expect(tokens.verifyAccess.mock.calls).toContainEqual([token]);
     expect(resolver.resolve.mock.calls).toContainEqual([tenantId]);
-    expect(resolved).toEqual({ tenantId, schemaName: 'tenant_9f8b416e2b4c4e4ab1c76beeb3d4d7dc' });
+    expect(resolved).toEqual({
+      tenantId,
+      schemaName: 'tenant_9f8b416e2b4c4e4ab1c76beeb3d4d7dc',
+    });
   });
 
   it('does not establish a tenant context for a verified superadmin', async () => {
@@ -45,7 +51,9 @@ describe('VerifiedTenantContextService', () => {
     });
     const service = new VerifiedTenantContextService(tokens, resolver, context);
 
-    const resolved = await service.run(token, () => Promise.resolve(context.get()));
+    const resolved = await service.run(token, () =>
+      Promise.resolve(context.get()),
+    );
 
     expect(resolver.resolve.mock.calls).toHaveLength(0);
     expect(resolved).toBeUndefined();
@@ -69,7 +77,8 @@ describe('VerifiedTenantContextService', () => {
         sub: '4c67eb4d-b04d-435d-9435-5f1a8d026cf8',
         type: 'access',
         role: UserRole.ADMIN,
-        tenantId: scenario === 'tenantless non-superadmin token' ? null : tenantId,
+        tenantId:
+          scenario === 'tenantless non-superadmin token' ? null : tenantId,
       });
       if (scenario === 'tenantless non-superadmin token') {
         resolver.resolve.mockResolvedValue({
@@ -77,7 +86,8 @@ describe('VerifiedTenantContextService', () => {
           schemaName: 'tenant_9f8b416e2b4c4e4ab1c76beeb3d4d7dc',
         });
       }
-      if (scenario === 'unknown tenant') resolver.resolve.mockResolvedValue(null);
+      if (scenario === 'unknown tenant')
+        resolver.resolve.mockResolvedValue(null);
     }
 
     await expect(service.run(token, callback)).rejects.toMatchObject({

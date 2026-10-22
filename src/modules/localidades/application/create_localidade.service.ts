@@ -10,7 +10,9 @@ import ICreateLocalidadeUseCase, {
 import LocalidadeDomainException from '@/modules/localidades/exceptions/localidade_domain.exception';
 import LocalidadeServiceException from '@/modules/localidades/exceptions/localidade_service.exception';
 
-export default class CreateLocalidadeService implements ICreateLocalidadeUseCase {
+export default class CreateLocalidadeService
+  implements ICreateLocalidadeUseCase
+{
   constructor(private readonly repository: ILocalidadeRepository) {}
 
   async execute(

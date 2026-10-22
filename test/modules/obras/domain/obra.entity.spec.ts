@@ -31,7 +31,10 @@ describe('ObraEntity', () => {
     [{ ...base, nome: 'A' }, ErrorCodeConstants.OBRA_INVALID_NOME],
     [{ ...base, tipo: '' }, ErrorCodeConstants.OBRA_INVALID_TIPO],
     [{ ...base, orgaoId: '' }, ErrorCodeConstants.OBRA_INVALID_ORGAO],
-    [{ ...base, tipo: 'REFORMA', subclassificacaoId: 'sub-1' }, ErrorCodeConstants.OBRA_INVALID_SUBCLASSIFICACAO],
+    [
+      { ...base, tipo: 'REFORMA', subclassificacaoId: 'sub-1' },
+      ErrorCodeConstants.OBRA_INVALID_SUBCLASSIFICACAO,
+    ],
   ])('rejects invalid payload with code %#', (props, code) => {
     expect.assertions(2);
     try {

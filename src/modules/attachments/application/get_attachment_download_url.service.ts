@@ -10,7 +10,9 @@ import IGetAttachmentDownloadUrlUseCase, {
 } from '@/modules/attachments/domain/usecase/get_attachment_download_url.usecase';
 import AttachmentServiceException from '@/modules/attachments/exceptions/attachment_service.exception';
 
-export default class GetAttachmentDownloadUrlService implements IGetAttachmentDownloadUrlUseCase {
+export default class GetAttachmentDownloadUrlService
+  implements IGetAttachmentDownloadUrlUseCase
+{
   constructor(
     private readonly repository: IAttachmentRepository,
     private readonly storage: IStorageService,

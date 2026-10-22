@@ -10,7 +10,9 @@ import ICreateObraPrivadaObservacaoUseCase, {
 } from '@/modules/obras-privadas/domain/usecase/create_obra_privada_observacao.usecase';
 import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obra_privada_service.exception';
 
-export default class CreateObraPrivadaObservacaoService implements ICreateObraPrivadaObservacaoUseCase {
+export default class CreateObraPrivadaObservacaoService
+  implements ICreateObraPrivadaObservacaoUseCase
+{
   constructor(
     private readonly observacaoRepository: IObraPrivadaObservacaoRepository,
     private readonly obraPrivadaRepository: IObraPrivadaRepository,

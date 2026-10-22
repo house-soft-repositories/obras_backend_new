@@ -10,5 +10,8 @@ export type EditarArquivoParam = {
   categoria?: CategoriaArquivoPrivado;
 };
 
-type IEditarArquivoUseCase = UseCase<EditarArquivoParam, ObraPrivadaArquivoEntity>;
+type IEditarArquivoUseCase = UseCase<
+  EditarArquivoParam,
+  ObraPrivadaArquivoEntity
+>;
 export default IEditarArquivoUseCase;

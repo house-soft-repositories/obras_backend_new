@@ -1,4 +1,13 @@
-import { IsEnum, IsOptional, IsString, IsUUID, IsBoolean, IsNumberString, IsDateString, MinLength } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsBoolean,
+  IsNumberString,
+  IsDateString,
+  MinLength,
+} from 'class-validator';
 import { TipoFinanciamento } from '@/modules/obras/domain/enums/tipo_financiamento.enum';
 import { ModoDuracao } from '@/modules/obras/domain/enums/modo_duracao.enum';
 import { AcaoConveniada } from '@/modules/obras/domain/enums/acao_conveniada.enum';
@@ -17,7 +26,9 @@ export default class UpdateObraDto {
   @IsOptional() @IsUUID() subtipologiaId?: string | null;
   @IsOptional() @IsString() descricao?: string | null;
   @IsOptional() @IsBoolean() seguirAutomatico?: boolean;
-  @IsOptional() @IsEnum(TipoFinanciamento) tipoFinanciamento?: TipoFinanciamento;
+  @IsOptional()
+  @IsEnum(TipoFinanciamento)
+  tipoFinanciamento?: TipoFinanciamento;
   @IsOptional() @IsEnum(ModoDuracao) modoDuracao?: ModoDuracao;
   @IsOptional() @IsDateString() dataInicio?: string | null;
   @IsOptional() @IsDateString() dataPrazo?: string | null;

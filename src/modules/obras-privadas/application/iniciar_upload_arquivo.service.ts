@@ -15,7 +15,9 @@ import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obr
 import { buildObraPrivadaArquivoStorageKey } from '@/modules/obras-privadas/infra/storage/obra_privada_arquivo_storage_key';
 import IStorageService from '@/modules/storage/adapters/storage_service.interface';
 
-export default class IniciarUploadArquivoService implements IIniciarUploadArquivoUseCase {
+export default class IniciarUploadArquivoService
+  implements IIniciarUploadArquivoUseCase
+{
   constructor(
     private readonly arquivos: IObraPrivadaArquivoRepository,
     private readonly obras: IObraPrivadaRepository,
@@ -65,7 +67,9 @@ export default class IniciarUploadArquivoService implements IIniciarUploadArquiv
           ordem: item.ordem,
           latitude: item.latitude,
           longitude: item.longitude,
-          capturadoEm: item.capturadoEm ? new Date(item.capturadoEm) : undefined,
+          capturadoEm: item.capturadoEm
+            ? new Date(item.capturadoEm)
+            : undefined,
           storageKey: key,
           enviadoPorUsuarioId: param.usuarioId,
         });

@@ -119,7 +119,9 @@ export default class AditivosController {
         numero: body.numero,
         tipo: body.tipo as TipoAditivo | undefined,
         dataAssinatura: body.dataAssinatura ?? undefined,
-        tipoPrazoExecucao: body.tipoPrazoExecucao as TipoPrazoExecucao | undefined,
+        tipoPrazoExecucao: body.tipoPrazoExecucao as
+          | TipoPrazoExecucao
+          | undefined,
         prazoExecucaoDias: body.prazoExecucaoDias ?? undefined,
         prazoExecucaoData: body.prazoExecucaoData ?? undefined,
         vigenciaAditivada: body.vigenciaAditivada ?? undefined,

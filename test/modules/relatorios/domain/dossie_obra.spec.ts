@@ -91,7 +91,12 @@ function dossieBase(): DadosDossieObra {
       },
     ],
     medicoes: [
-      { numero: 1, dataMedicao: '2024-07-05', tipo: 'PARCIAL', valor: '50000.00' },
+      {
+        numero: 1,
+        dataMedicao: '2024-07-05',
+        tipo: 'PARCIAL',
+        valor: '50000.00',
+      },
     ],
     fluxo: fluxoBase(),
   };
@@ -135,7 +140,9 @@ describe('dossie_obra (domínio puro)', () => {
   it('monta identificação com prioridade e sem convênio NAO', () => {
     const secao = secaoIdentificacao(dossieBase().obra);
     expect(secao.titulo).toBe('Identificação');
-    expect(secao.linhas).toContain('Status: Em desenvolvimento — OBRA PRIORITÁRIA');
+    expect(secao.linhas).toContain(
+      'Status: Em desenvolvimento — OBRA PRIORITÁRIA',
+    );
     expect(
       secao.linhas.find((linha) => linha.startsWith('Financiamento:')),
     ).toBe('Financiamento: Sem ogu');

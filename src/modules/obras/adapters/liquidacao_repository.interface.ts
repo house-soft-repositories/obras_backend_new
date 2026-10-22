@@ -6,9 +6,16 @@ import type { LiquidacaoComFonte } from '@/modules/obras/domain/usecase/liquidac
 export default interface ILiquidacaoRepository {
   save(entity: LiquidacaoEntity): AsyncResult<AppException, LiquidacaoEntity>;
   findById(id: string): AsyncResult<AppException, LiquidacaoEntity | null>;
-  findByIdWithFonte(id: string): AsyncResult<AppException, LiquidacaoComFonte | null>;
+  findByIdWithFonte(
+    id: string,
+  ): AsyncResult<AppException, LiquidacaoComFonte | null>;
   listByObra(obraId: string): AsyncResult<AppException, LiquidacaoEntity[]>;
-  listByObraWithFonte(obraId: string): AsyncResult<AppException, LiquidacaoComFonte[]>;
-  sumPago(liquidacaoId: string, ignoreId?: string): AsyncResult<AppException, number>;
+  listByObraWithFonte(
+    obraId: string,
+  ): AsyncResult<AppException, LiquidacaoComFonte[]>;
+  sumPago(
+    liquidacaoId: string,
+    ignoreId?: string,
+  ): AsyncResult<AppException, number>;
   delete(id: string): AsyncResult<AppException, void>;
 }

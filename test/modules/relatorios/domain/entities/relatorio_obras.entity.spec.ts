@@ -99,7 +99,12 @@ describe('RelatorioObrasEntity', () => {
         linhaBase({
           obraId: 'com-coord',
           localizacoes: [
-            { localidade: 'Centro', uf: 'UF', latitude: -23.5, longitude: -46.6 },
+            {
+              localidade: 'Centro',
+              uf: 'UF',
+              latitude: -23.5,
+              longitude: -46.6,
+            },
           ],
         }),
         linhaBase({ obraId: 'sem-coord', localizacoes: [] }),

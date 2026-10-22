@@ -1,7 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import TenantIdentitySchema from '@/core/multitenancy/tenant_identity_schema';
 
-export default class BackfillObrasGuiasCadastros1781610000000 implements MigrationInterface {
+export default class BackfillObrasGuiasCadastros1781610000000
+  implements MigrationInterface
+{
   name = 'BackfillObrasGuiasCadastros1781610000000';
 
   async up(queryRunner: QueryRunner): Promise<void> {

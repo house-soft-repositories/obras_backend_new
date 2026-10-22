@@ -6,7 +6,10 @@ import EmpenhoModel from '@/modules/obras/infra/models/empenho.model';
 export default abstract class EmpenhoMapper {
   static toEntity(m: Record<string, unknown>): EmpenhoEntity {
     const rawDate: unknown = m['dataEmpenho'];
-    const data = rawDate instanceof Date ? rawDate.toISOString().slice(0, 10) : String(rawDate).slice(0, 10);
+    const data =
+      rawDate instanceof Date
+        ? rawDate.toISOString().slice(0, 10)
+        : String(rawDate).slice(0, 10);
     const rawValor: unknown = m['valor'];
     return EmpenhoEntity.fromData({
       id: m['id'] as string,

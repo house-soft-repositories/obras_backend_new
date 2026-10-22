@@ -4,7 +4,9 @@ import AsyncResult from '@/core/types/async_result';
 import { left } from '@/core/types/either';
 import IEstagioRepository from '@/modules/cronograma/adapters/estagio_repository.interface';
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
-import IAssumirEstagioUseCase, { AssumirEstagioParam } from '@/modules/cronograma/domain/usecase/assumir_estagio.usecase';
+import IAssumirEstagioUseCase, {
+  AssumirEstagioParam,
+} from '@/modules/cronograma/domain/usecase/assumir_estagio.usecase';
 import CronogramaServiceException from '@/modules/cronograma/exceptions/cronograma_service.exception';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 
@@ -14,7 +16,9 @@ export default class AssumirEstagioService implements IAssumirEstagioUseCase {
     private readonly obras: IObraRepository,
   ) {}
 
-  async execute(param: AssumirEstagioParam): AsyncResult<AppException, EstagioEntity> {
+  async execute(
+    param: AssumirEstagioParam,
+  ): AsyncResult<AppException, EstagioEntity> {
     const obra = await this.obras.findById(param.obraId);
     if (obra.isLeft()) return left(obra.value);
     if (!obra.value)
@@ -27,7 +31,9 @@ export default class AssumirEstagioService implements IAssumirEstagioUseCase {
     const found = await this.repository.findById(param.id, param.obraId);
     if (found.isLeft()) return left(found.value);
     try {
-      return this.repository.update(found.value.assumir(param.responsavelUsuarioId));
+      return this.repository.update(
+        found.value.assumir(param.responsavelUsuarioId),
+      );
     } catch (error) {
       if (error instanceof AppException) return left(error);
       return left(

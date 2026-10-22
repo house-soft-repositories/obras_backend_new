@@ -26,8 +26,12 @@ export default class MedicaoModel extends BaseModelPrimaryColumnUuid {
   @Column({ type: 'text', nullable: true })
   observacao!: string | null;
 
-  @OneToMany(() => MedicaoFonteModel, (fonte) => fonte.medicao, {
-    cascade: true,
-  })
+  @OneToMany(
+    () => MedicaoFonteModel,
+    (fonte) => fonte.medicao,
+    {
+      cascade: true,
+    },
+  )
   fontes!: MedicaoFonteModel[];
 }

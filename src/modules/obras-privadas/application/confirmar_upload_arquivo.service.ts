@@ -9,7 +9,9 @@ import IConfirmarUploadArquivoUseCase, {
 } from '@/modules/obras-privadas/domain/usecase/confirmar_upload_arquivo.usecase';
 import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obra_privada_service.exception';
 
-export default class ConfirmarUploadArquivoService implements IConfirmarUploadArquivoUseCase {
+export default class ConfirmarUploadArquivoService
+  implements IConfirmarUploadArquivoUseCase
+{
   constructor(private readonly arquivos: IObraPrivadaArquivoRepository) {}
 
   async execute(

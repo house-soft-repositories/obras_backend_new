@@ -29,7 +29,9 @@ const UPDATE_COLUMNS: Record<keyof ObraPrivadaResponsavelUpdate, string> = {
   createdAt: 'created_at',
   updatedAt: 'updated_at',
 };
-export default class ObraPrivadaResponsavelRepository implements IObraPrivadaResponsavelRepository {
+export default class ObraPrivadaResponsavelRepository
+  implements IObraPrivadaResponsavelRepository
+{
   constructor(
     private readonly dataSource: DataSource,
     private readonly tenantContext: TenantContext,

@@ -11,9 +11,18 @@ import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 export default class ListTenanciesService implements IListTenanciesUseCase {
   constructor(private readonly repository: ITenancyRepository) {}
 
-  async execute({ role }: { role: UserRole }): AsyncResult<AppException, TenancyReadModel[]> {
+  async execute({
+    role,
+  }: {
+    role: UserRole;
+  }): AsyncResult<AppException, TenancyReadModel[]> {
     if (role !== UserRole.SUPERADMIN) {
-      return left(new TenancyServiceException({ code: ErrorCodeConstants.TENANCY_LIST_FORBIDDEN, statusCode: 403 }));
+      return left(
+        new TenancyServiceException({
+          code: ErrorCodeConstants.TENANCY_LIST_FORBIDDEN,
+          statusCode: 403,
+        }),
+      );
     }
     return this.repository.findAll();
   }

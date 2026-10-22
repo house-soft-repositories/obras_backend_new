@@ -23,9 +23,7 @@ export default class CreateEmpresaContratadaService
   ): AsyncResult<AppException, EmpresaContratadaEntity> {
     try {
       const ctx = this.tc.require();
-      const exists = await this.repo.existsCnpj(
-        param.cnpj.replace(/\D/g, ''),
-      );
+      const exists = await this.repo.existsCnpj(param.cnpj.replace(/\D/g, ''));
       if (exists.isLeft()) return left(exists.value);
       if (exists.value) {
         return left(

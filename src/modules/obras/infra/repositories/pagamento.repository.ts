@@ -30,7 +30,9 @@ export default class PagamentoRepository implements IPagamentoRepository {
     );
   }
 
-  async save(entity: PagamentoEntity): AsyncResult<AppException, PagamentoEntity> {
+  async save(
+    entity: PagamentoEntity,
+  ): AsyncResult<AppException, PagamentoEntity> {
     try {
       const s = this.tc.require().schemaName;
       const o = entity.toObject();
@@ -39,7 +41,19 @@ export default class PagamentoRepository implements IPagamentoRepository {
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
          ON CONFLICT (id) DO UPDATE SET fonte_id=EXCLUDED.fonte_id, numero_ordem_bancaria=EXCLUDED.numero_ordem_bancaria, data_ordem_bancaria=EXCLUDED.data_ordem_bancaria, valor=EXCLUDED.valor, observacoes=EXCLUDED.observacoes, updated_at=EXCLUDED.updated_at
          RETURNING ${SELECT.replaceAll('p.', '')}`,
-        [o.id, o.tenantId, o.empenhoId, o.liquidacaoId, o.fonteId, o.numeroOrdemBancaria, o.dataOrdemBancaria, o.valor.toFixed(2), o.observacoes, o.createdAt, o.updatedAt],
+        [
+          o.id,
+          o.tenantId,
+          o.empenhoId,
+          o.liquidacaoId,
+          o.fonteId,
+          o.numeroOrdemBancaria,
+          o.dataOrdemBancaria,
+          o.valor.toFixed(2),
+          o.observacoes,
+          o.createdAt,
+          o.updatedAt,
+        ],
       );
       return right(PagamentoMapper.toEntity(saved));
     } catch (cause) {
@@ -47,7 +61,9 @@ export default class PagamentoRepository implements IPagamentoRepository {
     }
   }
 
-  async findById(id: string): AsyncResult<AppException, PagamentoEntity | null> {
+  async findById(
+    id: string,
+  ): AsyncResult<AppException, PagamentoEntity | null> {
     try {
       const s = this.tc.require().schemaName;
       const [row] = await this.ds.query<Record<string, unknown>[]>(
@@ -60,7 +76,9 @@ export default class PagamentoRepository implements IPagamentoRepository {
     }
   }
 
-  async findByIdWithFonte(id: string): AsyncResult<AppException, PagamentoComFonte | null> {
+  async findByIdWithFonte(
+    id: string,
+  ): AsyncResult<AppException, PagamentoComFonte | null> {
     try {
       const s = this.tc.require().schemaName;
       const [row] = await this.ds.query<Record<string, unknown>[]>(
@@ -75,7 +93,9 @@ export default class PagamentoRepository implements IPagamentoRepository {
     }
   }
 
-  async listByObra(obraId: string): AsyncResult<AppException, PagamentoEntity[]> {
+  async listByObra(
+    obraId: string,
+  ): AsyncResult<AppException, PagamentoEntity[]> {
     try {
       const s = this.tc.require().schemaName;
       const rows = await this.ds.query<Record<string, unknown>[]>(
@@ -90,7 +110,9 @@ export default class PagamentoRepository implements IPagamentoRepository {
     }
   }
 
-  async listByObraWithFonte(obraId: string): AsyncResult<AppException, PagamentoComFonte[]> {
+  async listByObraWithFonte(
+    obraId: string,
+  ): AsyncResult<AppException, PagamentoComFonte[]> {
     try {
       const s = this.tc.require().schemaName;
       const rows = await this.ds.query<Record<string, unknown>[]>(

@@ -136,7 +136,9 @@ export default class EstagiosController {
         }),
       );
       return {
-        data: page.pageData.map((estagio) => EstagioResponseDto.fromEntity(estagio)),
+        data: page.pageData.map((estagio) =>
+          EstagioResponseDto.fromEntity(estagio),
+        ),
         meta: page.pageMeta,
       };
     });
@@ -436,9 +438,7 @@ export default class EstagiosController {
   ): Promise<EstagioResponseDto> {
     return this.tc.run(user, async () =>
       EstagioResponseDto.fromEntity(
-        this.unwrap(
-          await this.concluirEstagio.execute({ obraId, id }),
-        ),
+        this.unwrap(await this.concluirEstagio.execute({ obraId, id })),
       ),
     );
   }
@@ -451,9 +451,7 @@ export default class EstagiosController {
   ): Promise<EstagioResponseDto> {
     return this.tc.run(user, async () =>
       EstagioResponseDto.fromEntity(
-        this.unwrap(
-          await this.duplicarEstagio.execute({ obraId, id }),
-        ),
+        this.unwrap(await this.duplicarEstagio.execute({ obraId, id })),
       ),
     );
   }
@@ -487,9 +485,7 @@ export default class EstagiosController {
   ): Promise<EstagioResponseDto> {
     return this.tc.run(user, async () =>
       EstagioResponseDto.fromEntity(
-        this.unwrap(
-          await this.updateEstagio.execute({ obraId, id, ...body }),
-        ),
+        this.unwrap(await this.updateEstagio.execute({ obraId, id, ...body })),
       ),
     );
   }

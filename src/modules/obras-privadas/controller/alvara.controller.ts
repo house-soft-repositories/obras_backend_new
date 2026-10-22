@@ -55,7 +55,8 @@ export default class AlvaraController {
     return this.withTenant(user, async () => {
       const tenantId = user?.tenantId;
       if (!tenantId) throw new HttpException('Tenant required', 400);
-      if (body.arquivo && !user?.sub) throw new HttpException('Unauthorized', 401);
+      if (body.arquivo && !user?.sub)
+        throw new HttpException('Unauthorized', 401);
       const result = await this.createAlvara.execute({
         ...body,
         tenantId,

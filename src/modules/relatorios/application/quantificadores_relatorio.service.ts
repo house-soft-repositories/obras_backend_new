@@ -36,7 +36,9 @@ export function agregarQuantificadoresRelatorio(
   return { ...agregados, orgaoId, dataReferencia: new Date().toISOString() };
 }
 
-export default class QuantificadoresRelatorioService implements IQuantificadoresRelatorioUseCase {
+export default class QuantificadoresRelatorioService
+  implements IQuantificadoresRelatorioUseCase
+{
   constructor(private readonly query: RelatoriosQuery) {}
 
   async execute(

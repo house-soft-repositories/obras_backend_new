@@ -54,7 +54,9 @@ export default async function prepareArquivoPrivadoUpload({
     ordem: arquivo.ordem,
     latitude: arquivo.latitude,
     longitude: arquivo.longitude,
-    capturadoEm: arquivo.capturadoEm ? new Date(arquivo.capturadoEm) : undefined,
+    capturadoEm: arquivo.capturadoEm
+      ? new Date(arquivo.capturadoEm)
+      : undefined,
     storageKey,
     enviadoPorUsuarioId: usuarioId,
   });

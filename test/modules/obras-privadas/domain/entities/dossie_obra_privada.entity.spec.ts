@@ -183,7 +183,10 @@ function paramBase(
     autos: [auto],
     habiteSe: [habiteSe],
     observacoes: [
-      { texto: 'Visita realizada', criadoEm: new Date('2026-02-03T10:00:00.000Z') },
+      {
+        texto: 'Visita realizada',
+        criadoEm: new Date('2026-02-03T10:00:00.000Z'),
+      },
     ],
     ...overrides,
   };
@@ -221,9 +224,7 @@ describe('DossieObraPrivadaEntity', () => {
       responsaveis: [
         {
           ...param.responsaveis[0],
-          dataBaixa: new Date(
-            '2026-04-01T00:00:00.000Z',
-          ) as unknown as string,
+          dataBaixa: new Date('2026-04-01T00:00:00.000Z') as unknown as string,
         },
       ],
     }).toObject();

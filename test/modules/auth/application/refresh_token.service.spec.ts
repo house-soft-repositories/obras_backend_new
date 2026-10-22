@@ -35,17 +35,23 @@ describe('RefreshTokenService', () => {
     sessions.revoke.mockResolvedValue(right(undefined));
     tokens.signRefresh.mockResolvedValue('rotated-refresh-token');
     passwords.hash.mockResolvedValue('rotated-refresh-hash');
-    sessions.save.mockImplementation((nextSession) => Promise.resolve(right(nextSession)));
+    sessions.save.mockImplementation((nextSession) =>
+      Promise.resolve(right(nextSession)),
+    );
     tokens.signAccess.mockResolvedValue('rotated-access-token');
     const service = new RefreshTokenService(users, passwords, tokens, sessions);
 
-    const result = await service.execute({ refreshToken: 'current-refresh-token' });
+    const result = await service.execute({
+      refreshToken: 'current-refresh-token',
+    });
 
     expect(result.isRight()).toBe(true);
     expect(sessions.revoke.mock.invocationCallOrder[0]).toBeLessThan(
       sessions.save.mock.invocationCallOrder[0],
     );
-    expect(sessions.save.mock.calls[0][0].refreshTokenHash).toBe('rotated-refresh-hash');
+    expect(sessions.save.mock.calls[0][0].refreshTokenHash).toBe(
+      'rotated-refresh-hash',
+    );
     if (result.isLeft()) throw result.value;
     expect(result.value).toEqual({
       accessToken: 'rotated-access-token',
@@ -113,14 +119,18 @@ describe('RefreshTokenService', () => {
       );
     }
 
-    const result = await service.execute({ refreshToken: 'invalid-refresh-token' });
+    const result = await service.execute({
+      refreshToken: 'invalid-refresh-token',
+    });
 
     expect(result.isLeft()).toBe(true);
     expect(tokens.signAccess.mock.calls).toHaveLength(0);
     expect(tokens.signRefresh.mock.calls).toHaveLength(0);
     expect(sessions.save.mock.calls).toHaveLength(0);
     if (result.isRight()) throw new Error('Expected invalid refresh token');
-    expect(result.value.code).toBe(ErrorCodeConstants.AUTH_INVALID_REFRESH_TOKEN);
+    expect(result.value.code).toBe(
+      ErrorCodeConstants.AUTH_INVALID_REFRESH_TOKEN,
+    );
     expect(result.value.statusCode).toBe(401);
   });
 });

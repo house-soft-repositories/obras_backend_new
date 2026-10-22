@@ -40,9 +40,7 @@ describe('FiltroObrasEntity.create', () => {
 
   it('rejeita percentual não numérico', () => {
     expect(
-      codigoDe(() =>
-        FiltroObrasEntity.create({ percentualMin: 'abc' }),
-      ),
+      codigoDe(() => FiltroObrasEntity.create({ percentualMin: 'abc' })),
     ).toBe(ErrorCodeConstants.RELATORIO_FILTRO_INVALIDO);
   });
 

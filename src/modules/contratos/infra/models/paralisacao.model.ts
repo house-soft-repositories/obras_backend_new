@@ -24,5 +24,6 @@ export class ParalisacaoModel extends BaseModelPrimaryColumnUuid {
   @JoinColumn({ name: 'termo_retomada_arquivo_id' })
   termoRetomadaArquivo?: AttachmentModel | null;
   @Column({ name: 'dias_parados', nullable: true, type: 'int' }) diasParados!:
-    number | null;
+    | number
+    | null;
 }

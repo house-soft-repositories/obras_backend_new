@@ -4,8 +4,20 @@ import AuthModule from '@/modules/auth/auth.module';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import IFonteRepository from '@/modules/fontes/adapters/fonte_repository.interface';
 import FontesModule from '@/modules/fontes/fontes.module';
-import { ClassificacaoModel, EixoModel, SubclassificacaoModel, SubtipologiaModel, TipologiaModel } from '@/modules/obras/infra/models/cadastro.model';
-import { LicencaModel, ObraLocalizacaoModel, ObraOrcamentoPrevistoModel, RecebimentoModel, TitularidadeModel } from '@/modules/obras/infra/models/guias.model';
+import {
+  ClassificacaoModel,
+  EixoModel,
+  SubclassificacaoModel,
+  SubtipologiaModel,
+  TipologiaModel,
+} from '@/modules/obras/infra/models/cadastro.model';
+import {
+  LicencaModel,
+  ObraLocalizacaoModel,
+  ObraOrcamentoPrevistoModel,
+  RecebimentoModel,
+  TitularidadeModel,
+} from '@/modules/obras/infra/models/guias.model';
 import { FONTE_REPOSITORY } from '@/modules/fontes/symbols';
 import {
   IClassificacaoRepository,
@@ -127,7 +139,7 @@ import {
   SUBTIPOLOGIA_REPOSITORY,
   TIPOLOGIA_REPOSITORY,
   UPDATE_OBRA_SERVICE,
-DELETE_OBRA_SERVICE,
+  DELETE_OBRA_SERVICE,
 } from '@/modules/obras/symbols';
 import PessoasModule from '@/modules/pessoas/pessoas.module';
 import { Module } from '@nestjs/common';
@@ -162,7 +174,18 @@ import { DataSource } from 'typeorm';
       PagamentoModel,
     ]),
   ],
-  controllers: [ObraController, CadastrosController, GuiasController, EquipeController, TagsController, ObservacoesController, EmpenhosController, LiquidacoesController, PagamentosController, VisaoFisicoFinanceiraController],
+  controllers: [
+    ObraController,
+    CadastrosController,
+    GuiasController,
+    EquipeController,
+    TagsController,
+    ObservacoesController,
+    EmpenhosController,
+    LiquidacoesController,
+    PagamentosController,
+    VisaoFisicoFinanceiraController,
+  ],
   providers: [
     AccessTokenGuard,
     {
@@ -207,21 +230,63 @@ import { DataSource } from 'typeorm';
     },
     {
       provide: EMPENHOS_SERVICE,
-      inject: [EMPENHO_REPOSITORY, OBRA_REPOSITORY, FONTE_REPOSITORY, TenantContext],
-      useFactory: (repo: IEmpenhoRepository, obras: IObraRepository, fontes: IFonteRepository, tc: TenantContext) =>
-        new EmpenhosService(repo, obras, fontes, tc),
+      inject: [
+        EMPENHO_REPOSITORY,
+        OBRA_REPOSITORY,
+        FONTE_REPOSITORY,
+        TenantContext,
+      ],
+      useFactory: (
+        repo: IEmpenhoRepository,
+        obras: IObraRepository,
+        fontes: IFonteRepository,
+        tc: TenantContext,
+      ) => new EmpenhosService(repo, obras, fontes, tc),
     },
     {
       provide: LIQUIDACOES_SERVICE,
-      inject: [LIQUIDACAO_REPOSITORY, EMPENHO_REPOSITORY, FONTE_REPOSITORY, TenantContext],
-      useFactory: (repo: ILiquidacaoRepository, empenhos: IEmpenhoRepository, fontes: IFonteRepository, tc: TenantContext) =>
-        new LiquidacoesService(repo, empenhos, fontes, tc),
+      inject: [
+        LIQUIDACAO_REPOSITORY,
+        EMPENHO_REPOSITORY,
+        FONTE_REPOSITORY,
+        TenantContext,
+      ],
+      useFactory: (
+        repo: ILiquidacaoRepository,
+        empenhos: IEmpenhoRepository,
+        fontes: IFonteRepository,
+        tc: TenantContext,
+      ) => new LiquidacoesService(repo, empenhos, fontes, tc),
     },
     {
       provide: PAGAMENTOS_SERVICE,
-      inject: [PAGAMENTO_REPOSITORY, EMPENHO_REPOSITORY, LIQUIDACAO_REPOSITORY, OBRA_REPOSITORY, FONTE_REPOSITORY, DataSource, TenantContext],
-      useFactory: (repo: IPagamentoRepository, empenhos: IEmpenhoRepository, liquidacoes: ILiquidacaoRepository, obras: IObraRepository, fontes: IFonteRepository, ds: DataSource, tc: TenantContext) =>
-        new PagamentosService(repo, empenhos, liquidacoes, obras, fontes, ds, tc),
+      inject: [
+        PAGAMENTO_REPOSITORY,
+        EMPENHO_REPOSITORY,
+        LIQUIDACAO_REPOSITORY,
+        OBRA_REPOSITORY,
+        FONTE_REPOSITORY,
+        DataSource,
+        TenantContext,
+      ],
+      useFactory: (
+        repo: IPagamentoRepository,
+        empenhos: IEmpenhoRepository,
+        liquidacoes: ILiquidacaoRepository,
+        obras: IObraRepository,
+        fontes: IFonteRepository,
+        ds: DataSource,
+        tc: TenantContext,
+      ) =>
+        new PagamentosService(
+          repo,
+          empenhos,
+          liquidacoes,
+          obras,
+          fontes,
+          ds,
+          tc,
+        ),
     },
     {
       provide: VISAO_FISICO_FINANCEIRA_SERVICE,
@@ -231,14 +296,21 @@ import { DataSource } from 'typeorm';
     },
     {
       provide: CREATE_OBRA_SERVICE,
-      inject: [OBRA_REPOSITORY, FONTE_REPOSITORY, DataSource, TenantContext, OBRA_EVENTS],
+      inject: [
+        OBRA_REPOSITORY,
+        FONTE_REPOSITORY,
+        DataSource,
+        TenantContext,
+        OBRA_EVENTS,
+      ],
       useFactory: (
         obra: IObraRepository,
         fonte: IFonteRepository,
         ds: DataSource,
         tc: TenantContext,
         events: ObraEventsService,
-      ): ICreateObraUseCase => new CreateObraService(obra, fonte, ds, tc, events),
+      ): ICreateObraUseCase =>
+        new CreateObraService(obra, fonte, ds, tc, events),
     },
     {
       provide: LIST_OBRAS_SERVICE,
@@ -255,31 +327,41 @@ import { DataSource } from 'typeorm';
     {
       provide: DUPLICATE_OBRA_SERVICE,
       inject: [OBRA_REPOSITORY, DataSource, TenantContext, OBRA_EVENTS],
-      useFactory: (repo: IObraRepository, ds: DataSource, tc: TenantContext, events: ObraEventsService) =>
-        new DuplicateObraService(repo, ds, tc, events),
+      useFactory: (
+        repo: IObraRepository,
+        ds: DataSource,
+        tc: TenantContext,
+        events: ObraEventsService,
+      ) => new DuplicateObraService(repo, ds, tc, events),
     },
     {
       provide: DELETE_OBRA_SERVICE,
       inject: [OBRA_REPOSITORY],
-      useFactory: (repo: IObraRepository) =>
-        new DeleteObraService(repo),
+      useFactory: (repo: IObraRepository) => new DeleteObraService(repo),
     },
     {
       provide: EQUIPE_SERVICE,
       inject: [DataSource, TenantContext],
-      useFactory: (ds: DataSource, tc: TenantContext) => new EquipeService(ds, tc),
+      useFactory: (ds: DataSource, tc: TenantContext) =>
+        new EquipeService(ds, tc),
     },
     {
       provide: OBSERVACOES_SERVICE,
       inject: [OBSERVACAO_REPOSITORY, DataSource, TenantContext],
-      useFactory: (repo: IObservacaoRepository, ds: DataSource, tc: TenantContext) =>
-        new ObservacoesService(repo, ds, tc),
+      useFactory: (
+        repo: IObservacaoRepository,
+        ds: DataSource,
+        tc: TenantContext,
+      ) => new ObservacoesService(repo, ds, tc),
     },
     {
       provide: TAGS_SERVICE,
       inject: [TAG_REPOSITORY, DataSource, TenantContext],
-      useFactory: (tagRepo: ITagRepository, ds: DataSource, tc: TenantContext) =>
-        new TagsService(tagRepo, ds, tc),
+      useFactory: (
+        tagRepo: ITagRepository,
+        ds: DataSource,
+        tc: TenantContext,
+      ) => new TagsService(tagRepo, ds, tc),
     },
     {
       provide: EIXO_REPOSITORY,
@@ -320,7 +402,8 @@ import { DataSource } from 'typeorm';
     {
       provide: GUIAS_REPOSITORY,
       inject: [DataSource, TenantContext],
-      useFactory: (ds: DataSource, tc: TenantContext): IGuiasRepository => new GuiasRepository(ds, tc),
+      useFactory: (ds: DataSource, tc: TenantContext): IGuiasRepository =>
+        new GuiasRepository(ds, tc),
     },
     {
       provide: LIST_EIXOS_SERVICE,
@@ -330,7 +413,8 @@ import { DataSource } from 'typeorm';
     {
       provide: CREATE_EIXO_SERVICE,
       inject: [EIXO_REPOSITORY, TenantContext],
-      useFactory: (repo: IEixoRepository, tc: TenantContext) => new CreateEixoService(repo, tc),
+      useFactory: (repo: IEixoRepository, tc: TenantContext) =>
+        new CreateEixoService(repo, tc),
     },
     {
       provide: UPDATE_EIXO_SERVICE,
@@ -340,67 +424,80 @@ import { DataSource } from 'typeorm';
     {
       provide: LIST_CLASSIFICACOES_SERVICE,
       inject: [CLASSIFICACAO_REPOSITORY],
-      useFactory: (repo: IClassificacaoRepository) => new ListClassificacoesService(repo),
+      useFactory: (repo: IClassificacaoRepository) =>
+        new ListClassificacoesService(repo),
     },
     {
       provide: CREATE_CLASSIFICACAO_SERVICE,
       inject: [CLASSIFICACAO_REPOSITORY, TenantContext],
-      useFactory: (repo: IClassificacaoRepository, tc: TenantContext) => new CreateClassificacaoService(repo, tc),
+      useFactory: (repo: IClassificacaoRepository, tc: TenantContext) =>
+        new CreateClassificacaoService(repo, tc),
     },
     {
       provide: UPDATE_CLASSIFICACAO_SERVICE,
       inject: [CLASSIFICACAO_REPOSITORY],
-      useFactory: (repo: IClassificacaoRepository) => new UpdateClassificacaoService(repo),
+      useFactory: (repo: IClassificacaoRepository) =>
+        new UpdateClassificacaoService(repo),
     },
     {
       provide: LIST_SUBCLASSIFICACOES_SERVICE,
       inject: [SUBCLASSIFICACAO_REPOSITORY],
-      useFactory: (repo: ISubclassificacaoRepository) => new ListSubclassificacoesService(repo),
+      useFactory: (repo: ISubclassificacaoRepository) =>
+        new ListSubclassificacoesService(repo),
     },
     {
       provide: CREATE_SUBCLASSIFICACAO_SERVICE,
       inject: [SUBCLASSIFICACAO_REPOSITORY, TenantContext],
-      useFactory: (repo: ISubclassificacaoRepository, tc: TenantContext) => new CreateSubclassificacaoService(repo, tc),
+      useFactory: (repo: ISubclassificacaoRepository, tc: TenantContext) =>
+        new CreateSubclassificacaoService(repo, tc),
     },
     {
       provide: UPDATE_SUBCLASSIFICACAO_SERVICE,
       inject: [SUBCLASSIFICACAO_REPOSITORY],
-      useFactory: (repo: ISubclassificacaoRepository) => new UpdateSubclassificacaoService(repo),
+      useFactory: (repo: ISubclassificacaoRepository) =>
+        new UpdateSubclassificacaoService(repo),
     },
     {
       provide: LIST_TIPOLOGIAS_SERVICE,
       inject: [TIPOLOGIA_REPOSITORY],
-      useFactory: (repo: ITipologiaRepository) => new ListTipologiasService(repo),
+      useFactory: (repo: ITipologiaRepository) =>
+        new ListTipologiasService(repo),
     },
     {
       provide: CREATE_TIPOLOGIA_SERVICE,
       inject: [TIPOLOGIA_REPOSITORY, TenantContext],
-      useFactory: (repo: ITipologiaRepository, tc: TenantContext) => new CreateTipologiaService(repo, tc),
+      useFactory: (repo: ITipologiaRepository, tc: TenantContext) =>
+        new CreateTipologiaService(repo, tc),
     },
     {
       provide: UPDATE_TIPOLOGIA_SERVICE,
       inject: [TIPOLOGIA_REPOSITORY],
-      useFactory: (repo: ITipologiaRepository) => new UpdateTipologiaService(repo),
+      useFactory: (repo: ITipologiaRepository) =>
+        new UpdateTipologiaService(repo),
     },
     {
       provide: LIST_SUBTIPOLOGIAS_SERVICE,
       inject: [SUBTIPOLOGIA_REPOSITORY],
-      useFactory: (repo: ISubtipologiaRepository) => new ListSubtipologiasService(repo),
+      useFactory: (repo: ISubtipologiaRepository) =>
+        new ListSubtipologiasService(repo),
     },
     {
       provide: CREATE_SUBTIPOLOGIA_SERVICE,
       inject: [SUBTIPOLOGIA_REPOSITORY, TenantContext],
-      useFactory: (repo: ISubtipologiaRepository, tc: TenantContext) => new CreateSubtipologiaService(repo, tc),
+      useFactory: (repo: ISubtipologiaRepository, tc: TenantContext) =>
+        new CreateSubtipologiaService(repo, tc),
     },
     {
       provide: UPDATE_SUBTIPOLOGIA_SERVICE,
       inject: [SUBTIPOLOGIA_REPOSITORY],
-      useFactory: (repo: ISubtipologiaRepository) => new UpdateSubtipologiaService(repo),
+      useFactory: (repo: ISubtipologiaRepository) =>
+        new UpdateSubtipologiaService(repo),
     },
     {
       provide: GUIAS_SERVICE,
       inject: [GUIAS_REPOSITORY, DataSource, TenantContext],
-      useFactory: (repo: IGuiasRepository, ds: DataSource, tc: TenantContext) => new GuiasService(repo, ds, tc),
+      useFactory: (repo: IGuiasRepository, ds: DataSource, tc: TenantContext) =>
+        new GuiasService(repo, ds, tc),
     },
     {
       provide: UPDATE_OBRA_SERVICE,
@@ -409,6 +506,23 @@ import { DataSource } from 'typeorm';
         new UpdateObraService(repo, tc),
     },
   ],
-  exports: [OBRA_REPOSITORY, OBRA_EVENTS, TAG_REPOSITORY, OBSERVACAO_REPOSITORY, EIXO_REPOSITORY, CLASSIFICACAO_REPOSITORY, SUBCLASSIFICACAO_REPOSITORY, TIPOLOGIA_REPOSITORY, SUBTIPOLOGIA_REPOSITORY, GUIAS_REPOSITORY, CREATE_OBRA_SERVICE, LIST_OBRAS_SERVICE, GET_OBRA_SERVICE, UPDATE_OBRA_SERVICE, DELETE_OBRA_SERVICE, DUPLICATE_OBRA_SERVICE],
+  exports: [
+    OBRA_REPOSITORY,
+    OBRA_EVENTS,
+    TAG_REPOSITORY,
+    OBSERVACAO_REPOSITORY,
+    EIXO_REPOSITORY,
+    CLASSIFICACAO_REPOSITORY,
+    SUBCLASSIFICACAO_REPOSITORY,
+    TIPOLOGIA_REPOSITORY,
+    SUBTIPOLOGIA_REPOSITORY,
+    GUIAS_REPOSITORY,
+    CREATE_OBRA_SERVICE,
+    LIST_OBRAS_SERVICE,
+    GET_OBRA_SERVICE,
+    UPDATE_OBRA_SERVICE,
+    DELETE_OBRA_SERVICE,
+    DUPLICATE_OBRA_SERVICE,
+  ],
 })
 export default class ObrasModule {}

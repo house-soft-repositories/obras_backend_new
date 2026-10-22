@@ -8,7 +8,9 @@ import IObraRepository from '@/modules/obras/adapters/obra_repository.interface'
 import IMedicaoRepository from '@/modules/cronograma/adapters/medicao_repository.interface';
 import MedicaoEntity from '@/modules/cronograma/domain/entities/medicao.entity';
 import { TipoMedicao } from '@/modules/cronograma/domain/enums/cronograma.enums';
-import IUpdateMedicaoUseCase, { UpdateMedicaoParam } from '@/modules/cronograma/domain/usecase/update_medicao.usecase';
+import IUpdateMedicaoUseCase, {
+  UpdateMedicaoParam,
+} from '@/modules/cronograma/domain/usecase/update_medicao.usecase';
 import CronogramaServiceException from '@/modules/cronograma/exceptions/cronograma_service.exception';
 
 export default class UpdateMedicaoService implements IUpdateMedicaoUseCase {
@@ -18,7 +20,9 @@ export default class UpdateMedicaoService implements IUpdateMedicaoUseCase {
     private readonly fontes: IFonteRepository,
   ) {}
 
-  async execute(param: UpdateMedicaoParam): AsyncResult<AppException, MedicaoEntity> {
+  async execute(
+    param: UpdateMedicaoParam,
+  ): AsyncResult<AppException, MedicaoEntity> {
     const found = await this.get(param.obraId, param.id);
     if (found.isLeft()) return left(found.value);
     if (param.fontes) {
@@ -56,7 +60,10 @@ export default class UpdateMedicaoService implements IUpdateMedicaoUseCase {
     }
   }
 
-  private async get(obraId: string, id: string): AsyncResult<AppException, MedicaoEntity> {
+  private async get(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, MedicaoEntity> {
     const obra = await this.ensureObra(obraId);
     if (obra.isLeft()) return left(obra.value);
     return this.repo.findById(obraId, id);

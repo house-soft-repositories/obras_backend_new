@@ -16,15 +16,23 @@ export interface TenancyProps {
 export default class TenancyEntity {
   private constructor(private readonly props: TenancyProps) {}
 
-  static create(params: Pick<TenancyProps, 'name' | 'slug' | 'cnpj'>): TenancyEntity {
+  static create(
+    params: Pick<TenancyProps, 'name' | 'slug' | 'cnpj'>,
+  ): TenancyEntity {
     if (params.name.trim().length < 2) {
-      throw new TenancyDomainException({ code: ErrorCodeConstants.TENANCY_INVALID_NAME });
+      throw new TenancyDomainException({
+        code: ErrorCodeConstants.TENANCY_INVALID_NAME,
+      });
     }
     if (!/^[a-z0-9-]+$/.test(params.slug)) {
-      throw new TenancyDomainException({ code: ErrorCodeConstants.TENANCY_INVALID_SLUG });
+      throw new TenancyDomainException({
+        code: ErrorCodeConstants.TENANCY_INVALID_SLUG,
+      });
     }
     if (params.cnpj && !/^\d{14}$/.test(params.cnpj)) {
-      throw new TenancyDomainException({ code: ErrorCodeConstants.TENANCY_INVALID_CNPJ });
+      throw new TenancyDomainException({
+        code: ErrorCodeConstants.TENANCY_INVALID_CNPJ,
+      });
     }
 
     const id = randomUUID();
@@ -45,12 +53,28 @@ export default class TenancyEntity {
     return new TenancyEntity(props);
   }
 
-  get id() { return this.props.id; }
-  get name() { return this.props.name; }
-  get slug() { return this.props.slug; }
-  get cnpj() { return this.props.cnpj; }
-  get active() { return this.props.active; }
-  get schemaName() { return this.props.schemaName; }
-  get createdAt() { return this.props.createdAt; }
-  get updatedAt() { return this.props.updatedAt; }
+  get id() {
+    return this.props.id;
+  }
+  get name() {
+    return this.props.name;
+  }
+  get slug() {
+    return this.props.slug;
+  }
+  get cnpj() {
+    return this.props.cnpj;
+  }
+  get active() {
+    return this.props.active;
+  }
+  get schemaName() {
+    return this.props.schemaName;
+  }
+  get createdAt() {
+    return this.props.createdAt;
+  }
+  get updatedAt() {
+    return this.props.updatedAt;
+  }
 }

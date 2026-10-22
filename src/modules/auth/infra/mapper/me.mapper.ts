@@ -8,7 +8,9 @@ export default abstract class MeMapper {
       name: model.name,
       email: model.email,
       role: model.role,
-      tenant: model.tenant ? { id: model.tenant.id, name: model.tenant.name } : null,
+      tenant: model.tenant
+        ? { id: model.tenant.id, name: model.tenant.name }
+        : null,
       createdAt: model.createdAt.toISOString(),
       updatedAt: model.updatedAt.toISOString(),
     };

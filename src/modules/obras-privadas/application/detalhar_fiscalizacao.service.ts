@@ -9,7 +9,9 @@ import IDetalharFiscalizacaoUseCase, {
 } from '@/modules/obras-privadas/domain/usecase/detalhar_fiscalizacao.usecase';
 import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obra_privada_service.exception';
 
-export default class DetalharFiscalizacaoService implements IDetalharFiscalizacaoUseCase {
+export default class DetalharFiscalizacaoService
+  implements IDetalharFiscalizacaoUseCase
+{
   constructor(private readonly fiscalizacoes: IFiscalizacaoRepository) {}
 
   async execute(

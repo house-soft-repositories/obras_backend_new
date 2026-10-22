@@ -14,7 +14,9 @@ import { DataSource } from 'typeorm';
 
 const SELECT_COLUMNS = `id, tenant_id AS "tenantId", obra_privada_id AS "obraPrivadaId", vinculo, vinculo_id AS "vinculoId", categoria, nome, descricao, nome_original AS "nomeOriginal", mime_type AS "mimeType", tamanho_bytes AS "tamanhoBytes", storage_key AS "storageKey", ordem, latitude, longitude, capturado_em AS "capturadoEm", enviado_por_usuario_id AS "enviadoPorUsuarioId", created_at AS "createdAt", updated_at AS "updatedAt"`;
 
-export default class ObraPrivadaArquivoRepository implements IObraPrivadaArquivoRepository {
+export default class ObraPrivadaArquivoRepository
+  implements IObraPrivadaArquivoRepository
+{
   constructor(
     private readonly dataSource: DataSource,
     private readonly tenantContext: TenantContext,

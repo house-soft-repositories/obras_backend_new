@@ -16,7 +16,8 @@ export default class MedicaoResponseDto {
   @ApiProperty({ enum: TipoMedicao }) tipo: TipoMedicao;
   @ApiProperty() dataMedicao: string;
   @ApiPropertyOptional() observacoes: string | null;
-  @ApiProperty({ type: [MedicaoFonteResponseDto] }) fontes: MedicaoFonteResponseDto[];
+  @ApiProperty({ type: [MedicaoFonteResponseDto] })
+  fontes: MedicaoFonteResponseDto[];
   @ApiProperty() createdAt: string;
   @ApiProperty() updatedAt: string;
 

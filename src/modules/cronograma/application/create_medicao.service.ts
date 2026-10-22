@@ -9,7 +9,9 @@ import IObraRepository from '@/modules/obras/adapters/obra_repository.interface'
 import IMedicaoRepository from '@/modules/cronograma/adapters/medicao_repository.interface';
 import MedicaoEntity from '@/modules/cronograma/domain/entities/medicao.entity';
 import { TipoMedicao } from '@/modules/cronograma/domain/enums/cronograma.enums';
-import ICreateMedicaoUseCase, { CreateMedicaoParam } from '@/modules/cronograma/domain/usecase/create_medicao.usecase';
+import ICreateMedicaoUseCase, {
+  CreateMedicaoParam,
+} from '@/modules/cronograma/domain/usecase/create_medicao.usecase';
 import CronogramaServiceException from '@/modules/cronograma/exceptions/cronograma_service.exception';
 
 export default class CreateMedicaoService implements ICreateMedicaoUseCase {
@@ -20,7 +22,9 @@ export default class CreateMedicaoService implements ICreateMedicaoUseCase {
     private readonly fontes: IFonteRepository,
   ) {}
 
-  async execute(param: CreateMedicaoParam): AsyncResult<AppException, MedicaoEntity> {
+  async execute(
+    param: CreateMedicaoParam,
+  ): AsyncResult<AppException, MedicaoEntity> {
     const obra = await this.ensureObra(param.obraId);
     if (obra.isLeft()) return left(obra.value);
     const fontes = await this.ensureFontes(param.fontes);

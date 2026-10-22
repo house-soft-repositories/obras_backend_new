@@ -12,7 +12,8 @@ export default class AlvaraModel extends BaseModelPrimaryColumnUuid {
   @Column({ default: 'ORIGINAL' }) motivo: string;
   @Column({ default: 'VIGENTE' }) situacao: string;
   @Column({ name: 'data_emissao', nullable: true, type: 'date' }) dataEmissao:
-    string | null;
+    | string
+    | null;
   @Column({ name: 'data_validade', nullable: true, type: 'date' })
   dataValidade: string | null;
   @Column({ name: 'alvara_anterior_id', nullable: true, type: 'uuid' })
@@ -31,7 +32,8 @@ export default class AlvaraModel extends BaseModelPrimaryColumnUuid {
   @Column({ name: 'processo_administrativo', nullable: true, type: 'varchar' })
   processoAdministrativo: string | null;
   @Column({ name: 'arquivo_id', nullable: true, type: 'uuid' }) arquivoId:
-    string | null;
+    | string
+    | null;
   @Column({ nullable: true, type: 'text' }) observacoes: string | null;
   @ManyToOne(() => ObraPrivadaModel, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'obra_privada_id' })

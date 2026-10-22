@@ -17,5 +17,8 @@ export interface ListEquipeParam {
 
 type IEquipeUseCase = UseCase<AddEquipeParam, void>;
 export default IEquipeUseCase;
-export type IEquipeListUseCase = UseCase<ListEquipeParam, Array<{ usuarioId: string; tipo: string }>>;
+export type IEquipeListUseCase = UseCase<
+  ListEquipeParam,
+  Array<{ usuarioId: string; tipo: string }>
+>;
 export type IEquipeRemoveUseCase = UseCase<RemoveEquipeParam, void>;

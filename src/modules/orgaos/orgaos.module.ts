@@ -53,7 +53,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Module({
-  imports: [CoreModule, AuthModule, TypeOrmModule.forFeature([OrgaoModel, SetorModel])],
+  imports: [
+    CoreModule,
+    AuthModule,
+    TypeOrmModule.forFeature([OrgaoModel, SetorModel]),
+  ],
   controllers: [OrgaoController],
   providers: [
     {
@@ -113,9 +117,7 @@ import { DataSource } from 'typeorm';
     {
       provide: LIST_SETORES_BY_ORGAO_SERVICE,
       inject: [SETOR_REPOSITORY],
-      useFactory: (
-        repository: ISetorRepository,
-      ): IListSetoresByOrgaoUseCase =>
+      useFactory: (repository: ISetorRepository): IListSetoresByOrgaoUseCase =>
         new ListSetoresByOrgaoService(repository),
     },
     {

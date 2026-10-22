@@ -16,7 +16,10 @@ import SetorRepository from '@/modules/orgaos/infra/repositories/setor.repositor
 import UserEntity from '@/modules/users/domain/entities/user.entity';
 import UserModel from '@/modules/users/infra/models/user.model';
 import UserRepository from '@/modules/users/infra/repositories/user.repository';
-import { validOrgao, validSetor } from '@test/constants/orgaos/domain/entities/orgao_setor.constants';
+import {
+  validOrgao,
+  validSetor,
+} from '@test/constants/orgaos/domain/entities/orgao_setor.constants';
 import { validUser } from '@test/constants/users/domain/entities/user.constants';
 import { right } from '@/core/types/either';
 
@@ -50,9 +53,10 @@ describe('UserRepository', () => {
 
     const tenantsToDelete = tenantIds.splice(0);
     if (tenantsToDelete.length > 0) {
-      await dataSource.query('DELETE FROM public.tenancies WHERE id = ANY($1::uuid[])', [
-        tenantsToDelete,
-      ]);
+      await dataSource.query(
+        'DELETE FROM public.tenancies WHERE id = ANY($1::uuid[])',
+        [tenantsToDelete],
+      );
     }
   });
 
@@ -70,23 +74,41 @@ describe('UserRepository', () => {
     );
     const email = 'shared@example.com';
 
-    const firstUser = UserEntity.createUser({ ...validUser, email }, firstTenantId);
-    const secondUser = UserEntity.createUser({ ...validUser, email }, secondTenantId);
+    const firstUser = UserEntity.createUser(
+      { ...validUser, email },
+      firstTenantId,
+    );
+    const secondUser = UserEntity.createUser(
+      { ...validUser, email },
+      secondTenantId,
+    );
     userIds.push(firstUser.id, secondUser.id);
 
     expect((await repository.save(firstUser)).isRight()).toBe(true);
     expect((await repository.save(secondUser)).isRight()).toBe(true);
-    expect((await repository.findOne({ email, tenantId: firstTenantId })).getOrThrow().id).toBe(
-      firstUser.id,
-    );
-    expect((await repository.findOne({ email, tenantId: secondTenantId })).getOrThrow().id).toBe(
-      secondUser.id,
-    );
+    expect(
+      (
+        await repository.findOne({ email, tenantId: firstTenantId })
+      ).getOrThrow().id,
+    ).toBe(firstUser.id);
+    expect(
+      (
+        await repository.findOne({ email, tenantId: secondTenantId })
+      ).getOrThrow().id,
+    ).toBe(secondUser.id);
   });
 
   it('lists only users from the requested tenant ordered by name', async () => {
-    const firstTenantId = await createTenant(dataSource, tenantIds, 'list-first');
-    const secondTenantId = await createTenant(dataSource, tenantIds, 'list-second');
+    const firstTenantId = await createTenant(
+      dataSource,
+      tenantIds,
+      'list-first',
+    );
+    const secondTenantId = await createTenant(
+      dataSource,
+      tenantIds,
+      'list-second',
+    );
     const repository = new UserRepository(
       dataSource.getRepository(UserModel),
       dataSource,
@@ -142,7 +164,12 @@ describe('UserRepository', () => {
   });
 
   it('resolves verified locality, organization and sector references by tenant', async () => {
-    const tenancy = await createTenantSchema(dataSource, tenantIds, schemas, 'verified');
+    const tenancy = await createTenantSchema(
+      dataSource,
+      tenantIds,
+      schemas,
+      'verified',
+    );
     const context = new TenantContext();
     const repositories = repositoriesFor(dataSource, context);
 
@@ -158,7 +185,9 @@ describe('UserRepository', () => {
           ),
         );
         const setor = await repositories.setores.save(
-          SetorEntity.create(setorProps(orgao.getOrThrow().id, validSetor.nome)),
+          SetorEntity.create(
+            setorProps(orgao.getOrThrow().id, validSetor.nome),
+          ),
         );
 
         const localidadeResult = await repositories.user.existsLocalidade(
@@ -261,7 +290,12 @@ async function createTenant(
   await dataSource.query(
     `INSERT INTO public.tenancies (id, name, slug, cnpj, active, schema_name)
      VALUES ($1, $2, $3, NULL, TRUE, $4)`,
-    [id, `Tenant ${suffix}`, `tenant-${suffix}-${id.slice(0, 8)}`, `tenant_${id.replaceAll('-', '')}`],
+    [
+      id,
+      `Tenant ${suffix}`,
+      `tenant-${suffix}-${id.slice(0, 8)}`,
+      `tenant_${id.replaceAll('-', '')}`,
+    ],
   );
   return id;
 }

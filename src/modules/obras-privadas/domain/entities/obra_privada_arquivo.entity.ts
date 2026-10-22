@@ -141,14 +141,18 @@ export default class ObraPrivadaArquivoEntity {
       throw new ObraPrivadaDomainException({
         code: ErrorCodeConstants.OBRA_PRIVADA_ARQUIVO_INVALID_INPUT,
       });
-    if (data.ordem !== undefined && (!Number.isInteger(data.ordem) || data.ordem < 0))
+    if (
+      data.ordem !== undefined &&
+      (!Number.isInteger(data.ordem) || data.ordem < 0)
+    )
       throw new ObraPrivadaDomainException({
         code: ErrorCodeConstants.OBRA_PRIVADA_ARQUIVO_INVALID_INPUT,
       });
     return new ObraPrivadaArquivoEntity({
       ...this.props,
       nome: data.nome !== undefined ? data.nome.trim() : this.props.nome,
-      descricao: data.descricao !== undefined ? data.descricao : this.props.descricao,
+      descricao:
+        data.descricao !== undefined ? data.descricao : this.props.descricao,
       ordem: data.ordem !== undefined ? data.ordem : this.props.ordem,
       categoria:
         data.categoria !== undefined ? data.categoria : this.props.categoria,

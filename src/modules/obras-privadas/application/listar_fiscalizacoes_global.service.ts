@@ -8,7 +8,9 @@ import IListarFiscalizacoesGlobalUseCase, {
 } from '@/modules/obras-privadas/domain/usecase/listar_fiscalizacoes_global.usecase';
 import { FiscalizacaoGlobalReadModel } from '@/modules/obras-privadas/infra/read-models/fiscalizacao_global_read_model';
 
-export default class ListarFiscalizacoesGlobalService implements IListarFiscalizacoesGlobalUseCase {
+export default class ListarFiscalizacoesGlobalService
+  implements IListarFiscalizacoesGlobalUseCase
+{
   constructor(private readonly fiscalizacoes: IFiscalizacaoRepository) {}
 
   async execute(

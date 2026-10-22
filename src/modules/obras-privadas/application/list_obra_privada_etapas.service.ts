@@ -7,7 +7,9 @@ import IListObraPrivadaEtapasUseCase, {
   ObraPrivadaEtapaResumo,
 } from '@/modules/obras-privadas/domain/usecase/list_obra_privada_etapas.usecase';
 
-export default class ListObraPrivadaEtapasService implements IListObraPrivadaEtapasUseCase {
+export default class ListObraPrivadaEtapasService
+  implements IListObraPrivadaEtapasUseCase
+{
   constructor(
     private readonly fiscalizacaoRepository: IFiscalizacaoRepository,
   ) {}

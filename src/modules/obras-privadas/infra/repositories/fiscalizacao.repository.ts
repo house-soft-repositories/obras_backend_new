@@ -210,7 +210,9 @@ export default class FiscalizacaoRepository implements IFiscalizacaoRepository {
         );
       }
       if (filter.fiscalUsuarioId)
-        conditions.push(`f.fiscal_usuario_id = ${push(filter.fiscalUsuarioId)}`);
+        conditions.push(
+          `f.fiscal_usuario_id = ${push(filter.fiscalUsuarioId)}`,
+        );
       if (filter.tipo) conditions.push(`f.tipo = ${push(filter.tipo)}`);
       if (filter.resultado)
         conditions.push(`f.resultado = ${push(filter.resultado)}`);

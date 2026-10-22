@@ -15,12 +15,25 @@ export default class ObservacoesService {
     private readonly tc: TenantContext,
   ) {}
 
-  async create(param: { obraId: string; texto: string; autorUsuarioId: string }): AsyncResult<AppException, ObservacaoEntity> {
+  async create(param: {
+    obraId: string;
+    texto: string;
+    autorUsuarioId: string;
+  }): AsyncResult<AppException, ObservacaoEntity> {
     try {
       const ctx = this.tc.require();
       const schema = ctx.schemaName;
-      const obra = await this.ds.query(`SELECT id FROM "${schema}"."obras" WHERE id=$1 AND deleted_at IS NULL`, [param.obraId]);
-      if (!obra.length) return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBRA_NOT_FOUND, statusCode: 404 }));
+      const obra = await this.ds.query(
+        `SELECT id FROM "${schema}"."obras" WHERE id=$1 AND deleted_at IS NULL`,
+        [param.obraId],
+      );
+      if (!obra.length)
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.OBRA_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
       const entity = ObservacaoEntity.create({
         tenantId: ctx.tenantId,
         obraId: param.obraId,
@@ -30,7 +43,13 @@ export default class ObservacoesService {
       return this.repo.save(entity);
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBSERVACAO_REPOSITORY_FAILED, statusCode: 500, cause }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.OBSERVACAO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
 
@@ -38,23 +57,44 @@ export default class ObservacoesService {
     return this.repo.listByObra(obraId);
   }
 
-  async update(param: { id: string; texto: string }): AsyncResult<AppException, ObservacaoEntity> {
+  async update(param: {
+    id: string;
+    texto: string;
+  }): AsyncResult<AppException, ObservacaoEntity> {
     try {
       const found = await this.repo.findById(param.id);
       if (found.isLeft()) return left(found.value);
-      if (!found.value) return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBSERVACAO_NOT_FOUND, statusCode: 404 }));
+      if (!found.value)
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.OBSERVACAO_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
       found.value.updateTexto(param.texto);
       return this.repo.save(found.value);
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBSERVACAO_REPOSITORY_FAILED, statusCode: 500, cause }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.OBSERVACAO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
 
   async remove(id: string): AsyncResult<AppException, void> {
     const found = await this.repo.findById(id);
     if (found.isLeft()) return left(found.value);
-    if (!found.value) return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBSERVACAO_NOT_FOUND, statusCode: 404 }));
+    if (!found.value)
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.OBSERVACAO_NOT_FOUND,
+          statusCode: 404,
+        }),
+      );
     return this.repo.delete(id);
   }
 }

@@ -45,7 +45,9 @@ export default abstract class UserMapper {
     });
   }
 
-  static toReadModelWithOrganizational(row: UsuarioRow): UsuarioWithOrganizationalReadModel {
+  static toReadModelWithOrganizational(
+    row: UsuarioRow,
+  ): UsuarioWithOrganizationalReadModel {
     return {
       id: row.id,
       name: row.name,
@@ -54,11 +56,19 @@ export default abstract class UserMapper {
       tenantId: row.tenantId,
       localidade:
         row.localidadeId && row.localidadeNome && row.localidadeUf
-          ? { id: row.localidadeId, nome: row.localidadeNome, uf: row.localidadeUf }
+          ? {
+              id: row.localidadeId,
+              nome: row.localidadeNome,
+              uf: row.localidadeUf,
+            }
           : null,
       orgao:
         row.orgaoId && row.orgaoNome
-          ? { id: row.orgaoId, nome: row.orgaoNome, sigla: row.orgaoSigla ?? null }
+          ? {
+              id: row.orgaoId,
+              nome: row.orgaoNome,
+              sigla: row.orgaoSigla ?? null,
+            }
           : null,
       setor:
         row.setorId && row.setorNome && row.setorOrgaoId

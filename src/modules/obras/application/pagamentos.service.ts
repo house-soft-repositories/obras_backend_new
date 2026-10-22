@@ -9,7 +9,12 @@ import ILiquidacaoRepository from '@/modules/obras/adapters/liquidacao_repositor
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 import IPagamentoRepository from '@/modules/obras/adapters/pagamento_repository.interface';
 import PagamentoEntity from '@/modules/obras/domain/entities/pagamento.entity';
-import type { CreatePagamentoParam, PagamentoComFonte, PagamentoComFonteResult, UpdatePagamentoParam } from '@/modules/obras/domain/usecase/pagamentos.usecase';
+import type {
+  CreatePagamentoParam,
+  PagamentoComFonte,
+  PagamentoComFonteResult,
+  UpdatePagamentoParam,
+} from '@/modules/obras/domain/usecase/pagamentos.usecase';
 import { toFonteResumo } from '@/modules/obras/domain/usecase/fonte_resumo';
 import type FonteEntity from '@/modules/fontes/domain/entities/fonte.entity';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
@@ -26,35 +31,70 @@ export default class PagamentosService {
     private readonly tc: TenantContext,
   ) {}
 
-  private async ensureFonteAtiva(fonteId: string): AsyncResult<AppException, FonteEntity> {
+  private async ensureFonteAtiva(
+    fonteId: string,
+  ): AsyncResult<AppException, FonteEntity> {
     const fonte = await this.fontes.findById(fonteId);
     if (fonte.isLeft()) return left(fonte.value);
     if (!fonte.value)
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.FONTE_NOT_FOUND, statusCode: 404 }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.FONTE_NOT_FOUND,
+          statusCode: 404,
+        }),
+      );
     if (!fonte.value.ativo)
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.FONTE_INATIVA, statusCode: 422 }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.FONTE_INATIVA,
+          statusCode: 422,
+        }),
+      );
     return right(fonte.value);
   }
 
-  private async checkMedicao(obraId: string): AsyncResult<AppException, string | undefined> {
+  private async checkMedicao(
+    obraId: string,
+  ): AsyncResult<AppException, string | undefined> {
     try {
       const obra = await this.obras.findById(obraId);
       if (obra.isLeft()) return left(obra.value);
       if (!obra.value)
-        return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBRA_NOT_FOUND, statusCode: 404 }));
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.OBRA_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
       const s = this.tc.require().schemaName;
-      const rows = await this.ds.query<Record<string, unknown>[]>(`SELECT 1 FROM "${s}"."medicao" WHERE obra_id=$1 LIMIT 1`, [obraId]);
+      const rows = await this.ds.query<Record<string, unknown>[]>(
+        `SELECT 1 FROM "${s}"."medicao" WHERE obra_id=$1 LIMIT 1`,
+        [obraId],
+      );
       if (rows.length > 0) return right(undefined);
       if (obra.value.vincularPagamentoPercentual)
-        return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_SEM_MEDICAO, statusCode: 422 }));
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.PAGAMENTO_SEM_MEDICAO,
+            statusCode: 422,
+          }),
+        );
       return right('Atencao: nenhuma medicao cadastrada para a obra.');
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_REPOSITORY_FAILED, statusCode: 500, cause }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.PAGAMENTO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
 
-  async create(param: CreatePagamentoParam): AsyncResult<AppException, PagamentoComFonteResult> {
+  async create(
+    param: CreatePagamentoParam,
+  ): AsyncResult<AppException, PagamentoComFonteResult> {
     try {
       const ctx = this.tc.require();
       const okFonte = await this.ensureFonteAtiva(param.fonteId);
@@ -64,28 +104,53 @@ export default class PagamentosService {
       const empenho = await this.empenhos.findById(param.empenhoId);
       if (empenho.isLeft()) return left(empenho.value);
       if (!empenho.value || empenho.value.obraId !== param.obraId)
-        return left(new ObraRepositoryException({ code: ErrorCodeConstants.EMPENHO_NOT_FOUND, statusCode: 422 }));
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.EMPENHO_NOT_FOUND,
+            statusCode: 422,
+          }),
+        );
       const liquidacao = await this.liquidacoes.findById(param.liquidacaoId);
       if (liquidacao.isLeft()) return left(liquidacao.value);
       if (!liquidacao.value || liquidacao.value.empenhoId !== param.empenhoId)
-        return left(new ObraRepositoryException({ code: ErrorCodeConstants.LIQUIDACAO_NOT_FOUND, statusCode: 422 }));
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.LIQUIDACAO_NOT_FOUND,
+            statusCode: 422,
+          }),
+        );
       const jaPago = await this.liquidacoes.sumPago(param.liquidacaoId);
       if (jaPago.isLeft()) return left(jaPago.value);
       if (jaPago.value + param.valor > liquidacao.value.valor + 1e-9)
         return left(
-          new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_EXCEDE_LIQUIDACAO, statusCode: 422 }),
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.PAGAMENTO_EXCEDE_LIQUIDACAO,
+            statusCode: 422,
+          }),
         );
-      const entity = PagamentoEntity.create({ ...param, tenantId: ctx.tenantId });
+      const entity = PagamentoEntity.create({
+        ...param,
+        tenantId: ctx.tenantId,
+      });
       const saved = await this.repo.save(entity);
       if (saved.isLeft()) return left(saved.value);
       // Fonte já validada acima: monta o resumo sem query extra.
       return right({
-        pagamento: { ...saved.value.toObject(), fonte: toFonteResumo(okFonte.value) },
+        pagamento: {
+          ...saved.value.toObject(),
+          fonte: toFonteResumo(okFonte.value),
+        },
         alerta: medicao.value,
       });
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_REPOSITORY_FAILED, statusCode: 500, cause }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.PAGAMENTO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
 
@@ -94,37 +159,71 @@ export default class PagamentosService {
     return this.repo.listByObraWithFonte(obraId);
   }
 
-  async get(obraId: string, id: string): AsyncResult<AppException, PagamentoComFonte> {
+  async get(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, PagamentoComFonte> {
     try {
       // Query única com LEFT JOIN em fontes.
       const found = await this.repo.findByIdWithFonte(id);
       if (found.isLeft()) return left(found.value);
       if (!found.value)
-        return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND, statusCode: 404 }));
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
       const empenho = await this.empenhos.findById(found.value.empenhoId);
       if (empenho.isLeft()) return left(empenho.value);
       if (!empenho.value || empenho.value.obraId !== obraId)
-        return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND, statusCode: 404 }));
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
       return right(found.value);
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_REPOSITORY_FAILED, statusCode: 500, cause }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.PAGAMENTO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
 
-  private async findEntity(obraId: string, id: string): AsyncResult<AppException, PagamentoEntity> {
+  private async findEntity(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, PagamentoEntity> {
     const found = await this.repo.findById(id);
     if (found.isLeft()) return left(found.value);
     if (!found.value)
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND, statusCode: 404 }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND,
+          statusCode: 404,
+        }),
+      );
     const empenho = await this.empenhos.findById(found.value.empenhoId);
     if (empenho.isLeft()) return left(empenho.value);
     if (!empenho.value || empenho.value.obraId !== obraId)
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND, statusCode: 404 }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND,
+          statusCode: 404,
+        }),
+      );
     return right(found.value);
   }
 
-  async update(param: UpdatePagamentoParam): AsyncResult<AppException, PagamentoComFonte> {
+  async update(
+    param: UpdatePagamentoParam,
+  ): AsyncResult<AppException, PagamentoComFonte> {
     try {
       const current = await this.findEntity(param.obraId, param.id);
       if (current.isLeft()) return left(current.value);
@@ -133,15 +232,28 @@ export default class PagamentosService {
         if (okFonte.isLeft()) return left(okFonte.value);
       }
       if (param.patch.valor !== undefined) {
-        const liquidacao = await this.liquidacoes.findById(current.value.liquidacaoId);
+        const liquidacao = await this.liquidacoes.findById(
+          current.value.liquidacaoId,
+        );
         if (liquidacao.isLeft()) return left(liquidacao.value);
         if (!liquidacao.value)
-          return left(new ObraRepositoryException({ code: ErrorCodeConstants.LIQUIDACAO_NOT_FOUND, statusCode: 422 }));
-        const jaPago = await this.liquidacoes.sumPago(current.value.liquidacaoId, param.id);
+          return left(
+            new ObraRepositoryException({
+              code: ErrorCodeConstants.LIQUIDACAO_NOT_FOUND,
+              statusCode: 422,
+            }),
+          );
+        const jaPago = await this.liquidacoes.sumPago(
+          current.value.liquidacaoId,
+          param.id,
+        );
         if (jaPago.isLeft()) return left(jaPago.value);
         if (jaPago.value + param.patch.valor > liquidacao.value.valor + 1e-9)
           return left(
-            new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_EXCEDE_LIQUIDACAO, statusCode: 422 }),
+            new ObraRepositoryException({
+              code: ErrorCodeConstants.PAGAMENTO_EXCEDE_LIQUIDACAO,
+              statusCode: 422,
+            }),
           );
       }
       current.value.update(param.patch);
@@ -151,11 +263,22 @@ export default class PagamentosService {
       const enriched = await this.repo.findByIdWithFonte(saved.value.id);
       if (enriched.isLeft()) return left(enriched.value);
       if (!enriched.value)
-        return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND, statusCode: 404 }));
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.PAGAMENTO_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
       return right(enriched.value);
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.PAGAMENTO_REPOSITORY_FAILED, statusCode: 500, cause }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.PAGAMENTO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
 

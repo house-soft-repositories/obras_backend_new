@@ -55,7 +55,12 @@ describe('LinhaObraRelatorioEntity', () => {
         LinhaObraRelatorioEntity.fromData(
           linhaBase({
             localizacoes: [
-              { localidade: 'Centro', uf: 'UF', latitude: -23.5, longitude: -46.6 },
+              {
+                localidade: 'Centro',
+                uf: 'UF',
+                latitude: -23.5,
+                longitude: -46.6,
+              },
             ],
           }),
         ).temCoordenadas(),
@@ -64,7 +69,12 @@ describe('LinhaObraRelatorioEntity', () => {
         LinhaObraRelatorioEntity.fromData(
           linhaBase({
             localizacoes: [
-              { localidade: 'Bairro', uf: 'UF', latitude: null, longitude: null },
+              {
+                localidade: 'Bairro',
+                uf: 'UF',
+                latitude: null,
+                longitude: null,
+              },
             ],
           }),
         ).temCoordenadas(),
@@ -72,9 +82,9 @@ describe('LinhaObraRelatorioEntity', () => {
     });
 
     it('temPrazo reflete o prazo do estágio atual', () => {
-      expect(
-        LinhaObraRelatorioEntity.fromData(linhaBase()).temPrazo(),
-      ).toBe(true);
+      expect(LinhaObraRelatorioEntity.fromData(linhaBase()).temPrazo()).toBe(
+        true,
+      );
       expect(
         LinhaObraRelatorioEntity.fromData(
           linhaBase({ prazoConclusaoEstagio: null }),
@@ -93,7 +103,9 @@ describe('LinhaObraRelatorioEntity', () => {
 
   describe('paraItemLista', () => {
     it('projeta os campos de exibição sem os internos', () => {
-      const item = LinhaObraRelatorioEntity.fromData(linhaBase()).paraItemLista();
+      const item = LinhaObraRelatorioEntity.fromData(
+        linhaBase(),
+      ).paraItemLista();
       expect(item.obraId).toBe('obra-1');
       expect(item.codigo).toBe('OB-001');
       expect(item.estagioAtualNome).toBe('Fundação');
@@ -148,9 +160,9 @@ describe('FiltroObrasEntity.matches', () => {
     const entity = LinhaObraRelatorioEntity.fromData(linhaBase());
     expect(FiltroObrasEntity.fromData({}).matches(entity)).toBe(true);
     expect(
-      FiltroObrasEntity.fromData({ statusObra: [StatusObra.CONCLUIDO] }).matches(
-        entity,
-      ),
+      FiltroObrasEntity.fromData({
+        statusObra: [StatusObra.CONCLUIDO],
+      }).matches(entity),
     ).toBe(false);
   });
 

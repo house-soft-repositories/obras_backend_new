@@ -11,7 +11,9 @@ import IUpdateLocalidadeUseCase, {
 import LocalidadeDomainException from '@/modules/localidades/exceptions/localidade_domain.exception';
 import LocalidadeServiceException from '@/modules/localidades/exceptions/localidade_service.exception';
 
-export default class UpdateLocalidadeService implements IUpdateLocalidadeUseCase {
+export default class UpdateLocalidadeService
+  implements IUpdateLocalidadeUseCase
+{
   constructor(private readonly repository: ILocalidadeRepository) {}
 
   async execute(

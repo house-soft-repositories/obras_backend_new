@@ -4,7 +4,9 @@ import TenantContext from '@/core/multitenancy/tenant_context';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
-import IUpdateObraUseCase, { UpdateObraParam } from '@/modules/obras/domain/usecase/update_obra.usecase';
+import IUpdateObraUseCase, {
+  UpdateObraParam,
+} from '@/modules/obras/domain/usecase/update_obra.usecase';
 import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
 import ObraDomainException from '@/modules/obras/exceptions/obra_domain.exception';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
@@ -18,9 +20,14 @@ export default class UpdateObraService implements IUpdateObraUseCase {
   async execute(param: UpdateObraParam): AsyncResult<AppException, ObraEntity> {
     try {
       this.tc.require();
-      if ('codigo' in param.data && (param.data as Record<string, unknown>)['codigo'] !== undefined) {
+      if (
+        'codigo' in param.data &&
+        (param.data as Record<string, unknown>)['codigo'] !== undefined
+      ) {
         return left(
-          new ObraDomainException({ code: ErrorCodeConstants.OBRA_INVALID_TIPO }),
+          new ObraDomainException({
+            code: ErrorCodeConstants.OBRA_INVALID_TIPO,
+          }),
         );
       }
       const found = await this.repo.findById(param.id);

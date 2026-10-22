@@ -1,10 +1,25 @@
-import { Body, Controller, Delete, Get, HttpException, Inject, Param, ParseUUIDPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  Inject,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
 import TenantRequestContextService from '@/core/multitenancy/tenant_request_context.service';
 import EmpenhosService from '@/modules/obras/application/empenhos.service';
-import { AtualizarEmpenhoDto, CriarEmpenhoDto } from '@/modules/obras/dtos/empenho.dto';
+import {
+  AtualizarEmpenhoDto,
+  CriarEmpenhoDto,
+} from '@/modules/obras/dtos/empenho.dto';
 import { EMPENHOS_SERVICE } from '@/modules/obras/symbols';
 
 @Controller('api/obras/:id/empenhos')
@@ -23,16 +38,25 @@ export default class EmpenhosController {
   ) {
     return this.tc.run(u, async () => {
       const r = await this.svc.create({ ...b, obraId: id });
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return r.value;
     });
   }
 
   @Get()
-  async list(@Param('id', ParseUUIDPipe) id: string, @AuthenticatedUser() u: AccessTokenPayload | undefined) {
+  async list(
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
     return this.tc.run(u, async () => {
       const r = await this.svc.list(id);
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return r.value;
     });
   }
@@ -45,7 +69,10 @@ export default class EmpenhosController {
   ) {
     return this.tc.run(u, async () => {
       const r = await this.svc.get(id, empenhoId);
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return r.value;
     });
   }
@@ -59,7 +86,10 @@ export default class EmpenhosController {
   ) {
     return this.tc.run(u, async () => {
       const r = await this.svc.update({ id: empenhoId, obraId: id, patch: b });
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return r.value;
     });
   }
@@ -72,7 +102,10 @@ export default class EmpenhosController {
   ) {
     return this.tc.run(u, async () => {
       const r = await this.svc.remove(id, empenhoId);
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return { ok: true };
     });
   }

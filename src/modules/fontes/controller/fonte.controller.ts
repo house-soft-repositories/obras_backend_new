@@ -84,7 +84,13 @@ export default class FonteController {
 
   @Get(':id')
   async getFonte(
-    @Param('id', new ParseUUIDPipe({ exceptionFactory: () => new HttpException(ErrorCodeConstants.FONTE_NOT_FOUND, 404) }))
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        exceptionFactory: () =>
+          new HttpException(ErrorCodeConstants.FONTE_NOT_FOUND, 404),
+      }),
+    )
     id: string,
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
   ): Promise<FonteResponseDto> {
@@ -96,7 +102,13 @@ export default class FonteController {
 
   @Patch(':id')
   async updateFonte(
-    @Param('id', new ParseUUIDPipe({ exceptionFactory: () => new HttpException(ErrorCodeConstants.FONTE_NOT_FOUND, 404) }))
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        exceptionFactory: () =>
+          new HttpException(ErrorCodeConstants.FONTE_NOT_FOUND, 404),
+      }),
+    )
     id: string,
     @Body() body: UpdateFonteDto,
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
@@ -110,7 +122,13 @@ export default class FonteController {
   @Delete(':id')
   @HttpCode(204)
   async removeFonte(
-    @Param('id', new ParseUUIDPipe({ exceptionFactory: () => new HttpException(ErrorCodeConstants.FONTE_NOT_FOUND, 404) }))
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        exceptionFactory: () =>
+          new HttpException(ErrorCodeConstants.FONTE_NOT_FOUND, 404),
+      }),
+    )
     id: string,
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
   ): Promise<void> {

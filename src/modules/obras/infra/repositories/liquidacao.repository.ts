@@ -30,7 +30,9 @@ export default class LiquidacaoRepository implements ILiquidacaoRepository {
     );
   }
 
-  async save(entity: LiquidacaoEntity): AsyncResult<AppException, LiquidacaoEntity> {
+  async save(
+    entity: LiquidacaoEntity,
+  ): AsyncResult<AppException, LiquidacaoEntity> {
     try {
       const s = this.tc.require().schemaName;
       const o = entity.toObject();
@@ -39,7 +41,18 @@ export default class LiquidacaoRepository implements ILiquidacaoRepository {
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
          ON CONFLICT (id) DO UPDATE SET fonte_id=EXCLUDED.fonte_id, numero=EXCLUDED.numero, data_liquidacao=EXCLUDED.data_liquidacao, valor=EXCLUDED.valor, observacoes=EXCLUDED.observacoes, updated_at=EXCLUDED.updated_at
          RETURNING ${SELECT.replaceAll('l.', '')}`,
-        [o.id, o.tenantId, o.empenhoId, o.fonteId, o.numero, o.dataLiquidacao, o.valor.toFixed(2), o.observacoes, o.createdAt, o.updatedAt],
+        [
+          o.id,
+          o.tenantId,
+          o.empenhoId,
+          o.fonteId,
+          o.numero,
+          o.dataLiquidacao,
+          o.valor.toFixed(2),
+          o.observacoes,
+          o.createdAt,
+          o.updatedAt,
+        ],
       );
       return right(LiquidacaoMapper.toEntity(saved));
     } catch (cause) {
@@ -47,7 +60,9 @@ export default class LiquidacaoRepository implements ILiquidacaoRepository {
     }
   }
 
-  async findById(id: string): AsyncResult<AppException, LiquidacaoEntity | null> {
+  async findById(
+    id: string,
+  ): AsyncResult<AppException, LiquidacaoEntity | null> {
     try {
       const s = this.tc.require().schemaName;
       const [row] = await this.ds.query<Record<string, unknown>[]>(
@@ -60,7 +75,9 @@ export default class LiquidacaoRepository implements ILiquidacaoRepository {
     }
   }
 
-  async findByIdWithFonte(id: string): AsyncResult<AppException, LiquidacaoComFonte | null> {
+  async findByIdWithFonte(
+    id: string,
+  ): AsyncResult<AppException, LiquidacaoComFonte | null> {
     try {
       const s = this.tc.require().schemaName;
       const [row] = await this.ds.query<Record<string, unknown>[]>(
@@ -75,7 +92,9 @@ export default class LiquidacaoRepository implements ILiquidacaoRepository {
     }
   }
 
-  async listByObra(obraId: string): AsyncResult<AppException, LiquidacaoEntity[]> {
+  async listByObra(
+    obraId: string,
+  ): AsyncResult<AppException, LiquidacaoEntity[]> {
     try {
       const s = this.tc.require().schemaName;
       const rows = await this.ds.query<Record<string, unknown>[]>(
@@ -90,7 +109,9 @@ export default class LiquidacaoRepository implements ILiquidacaoRepository {
     }
   }
 
-  async listByObraWithFonte(obraId: string): AsyncResult<AppException, LiquidacaoComFonte[]> {
+  async listByObraWithFonte(
+    obraId: string,
+  ): AsyncResult<AppException, LiquidacaoComFonte[]> {
     try {
       const s = this.tc.require().schemaName;
       const rows = await this.ds.query<Record<string, unknown>[]>(
@@ -106,7 +127,10 @@ export default class LiquidacaoRepository implements ILiquidacaoRepository {
     }
   }
 
-  async sumPago(liquidacaoId: string, ignoreId?: string): AsyncResult<AppException, number> {
+  async sumPago(
+    liquidacaoId: string,
+    ignoreId?: string,
+  ): AsyncResult<AppException, number> {
     try {
       const s = this.tc.require().schemaName;
       const params: unknown[] = [liquidacaoId];

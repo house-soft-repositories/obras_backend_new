@@ -11,9 +11,7 @@ export default abstract class ObraPrivadaArquivoMapper {
   ): Partial<ObraPrivadaArquivoModel> {
     return entity.toObject();
   }
-  static toEntity(
-    model: ObraPrivadaArquivoModel,
-  ): ObraPrivadaArquivoEntity {
+  static toEntity(model: ObraPrivadaArquivoModel): ObraPrivadaArquivoEntity {
     return ObraPrivadaArquivoEntity.fromData({
       id: model.id,
       tenantId: model.tenantId,

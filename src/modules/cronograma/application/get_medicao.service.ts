@@ -7,7 +7,9 @@ import IObraRepository from '@/modules/obras/adapters/obra_repository.interface'
 import IMedicaoRepository from '@/modules/cronograma/adapters/medicao_repository.interface';
 import MedicaoEntity from '@/modules/cronograma/domain/entities/medicao.entity';
 import CronogramaServiceException from '@/modules/cronograma/exceptions/cronograma_service.exception';
-import IGetMedicaoUseCase, { GetMedicaoParam } from '@/modules/cronograma/domain/usecase/get_medicao.usecase';
+import IGetMedicaoUseCase, {
+  GetMedicaoParam,
+} from '@/modules/cronograma/domain/usecase/get_medicao.usecase';
 
 export default class GetMedicaoService implements IGetMedicaoUseCase {
   constructor(
@@ -15,7 +17,9 @@ export default class GetMedicaoService implements IGetMedicaoUseCase {
     private readonly obras: IObraRepository,
   ) {}
 
-  async execute(param: GetMedicaoParam): AsyncResult<AppException, MedicaoEntity> {
+  async execute(
+    param: GetMedicaoParam,
+  ): AsyncResult<AppException, MedicaoEntity> {
     const obra = await this.ensureObra(param.obraId);
     if (obra.isLeft()) return left(obra.value);
     return this.repo.findById(param.obraId, param.id);

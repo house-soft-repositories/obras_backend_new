@@ -73,9 +73,9 @@ describe('aplicarFiltroObras', () => {
       expect(
         aplicarFiltroObras(linhas, { empresaExecutora: 'acucena' }),
       ).toHaveLength(1);
-      expect(
-        aplicarFiltroObras(linhas, { responsavel: 'joao' }),
-      ).toHaveLength(1);
+      expect(aplicarFiltroObras(linhas, { responsavel: 'joao' })).toHaveLength(
+        1,
+      );
       expect(
         aplicarFiltroObras(linhas, { estagioAtual: 'fundacao' }),
       ).toHaveLength(1);
@@ -124,10 +124,7 @@ describe('aplicarFiltroObras', () => {
       const filtradas = aplicarFiltroObras(linhas, {
         tagIds: ['tag-1', 'tag-2'],
       });
-      expect(filtradas.map((linha) => linha.obraId).sort()).toEqual([
-        'a',
-        'b',
-      ]);
+      expect(filtradas.map((linha) => linha.obraId).sort()).toEqual(['a', 'b']);
     });
 
     it('statusObra casa quando qualquer status coincide (OR)', () => {
@@ -142,10 +139,7 @@ describe('aplicarFiltroObras', () => {
       const filtradas = aplicarFiltroObras(linhas, {
         statusObra: [StatusObra.CONCLUIDO, StatusObra.PARALISADO],
       });
-      expect(filtradas.map((linha) => linha.obraId).sort()).toEqual([
-        'b',
-        'c',
-      ]);
+      expect(filtradas.map((linha) => linha.obraId).sort()).toEqual(['b', 'c']);
     });
   });
 

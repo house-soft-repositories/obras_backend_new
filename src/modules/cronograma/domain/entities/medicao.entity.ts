@@ -87,7 +87,11 @@ export default class MedicaoEntity {
           medicaoId: this.id,
         }))
       : this.itens;
-    if (numero < 1 || itens.length === 0 || itens.some((item) => item.valor < 0))
+    if (
+      numero < 1 ||
+      itens.length === 0 ||
+      itens.some((item) => item.valor < 0)
+    )
       throw new CronogramaDomainException({
         code: ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT,
       });

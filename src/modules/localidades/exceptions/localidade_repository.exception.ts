@@ -6,7 +6,15 @@ type LocalidadeRepositoryErrorCode =
   | typeof ErrorCodeConstants.LOCALIDADE_REPOSITORY_FAILED;
 
 export default class LocalidadeRepositoryException extends AppException {
-  constructor({ code, statusCode, cause }: { code: LocalidadeRepositoryErrorCode; statusCode: number; cause?: unknown }) {
+  constructor({
+    code,
+    statusCode,
+    cause,
+  }: {
+    code: LocalidadeRepositoryErrorCode;
+    statusCode: number;
+    cause?: unknown;
+  }) {
     super({ code, statusCode, cause });
   }
 }

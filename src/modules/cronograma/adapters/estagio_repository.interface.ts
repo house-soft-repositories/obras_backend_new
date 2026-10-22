@@ -17,9 +17,7 @@ export default interface IEstagioRepository {
     obraId: string,
     options: PageOptionsEntity,
   ): AsyncResult<AppException, PageEntity<EstagioEntity>>;
-  listRootEstagios(
-    obraId: string,
-  ): AsyncResult<AppException, EstagioEntity[]>;
+  listRootEstagios(obraId: string): AsyncResult<AppException, EstagioEntity[]>;
   update(e: EstagioEntity): AsyncResult<AppException, EstagioEntity>;
   remove(id: string, obraId: string): AsyncResult<AppException, Unit>;
   reorder(

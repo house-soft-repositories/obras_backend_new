@@ -70,7 +70,10 @@ export function computarDesempenhoObra(
 }
 
 export type BucketQuantificador =
-  'acimaMeta' | 'prazoVencido' | 'abaixoMeta' | 'semStatus';
+  | 'acimaMeta'
+  | 'prazoVencido'
+  | 'abaixoMeta'
+  | 'semStatus';
 
 export function classificarQuantificador(
   status: StatusObra | string,

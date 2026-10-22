@@ -17,8 +17,12 @@ export default interface IObraRepository {
   save(e: ObraEntity): AsyncResult<AppException, ObraEntity>;
   findLastCodigo(year: number): AsyncResult<AppException, string | null>;
   findById(id: string): AsyncResult<AppException, ObraEntity | null>;
-  findPage(params: ObraFindPageParams): AsyncResult<AppException, PageEntity<ObraEntity>>;
-  findOneWithRelations(id: string): AsyncResult<AppException, ObraEntity | null>;
+  findPage(
+    params: ObraFindPageParams,
+  ): AsyncResult<AppException, PageEntity<ObraEntity>>;
+  findOneWithRelations(
+    id: string,
+  ): AsyncResult<AppException, ObraEntity | null>;
   updatePartial(entity: ObraEntity): AsyncResult<AppException, ObraEntity>;
   softDelete(id: string): AsyncResult<AppException, Unit>;
 }

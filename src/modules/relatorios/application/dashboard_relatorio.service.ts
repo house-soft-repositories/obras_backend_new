@@ -12,7 +12,9 @@ import RelatoriosQuery from '@/modules/relatorios/infra/query/relatorios_query';
 import { agregarQuantificadoresRelatorio } from '@/modules/relatorios/application/quantificadores_relatorio.service';
 import FluxoFisicoFinanceiroRelatorioService from '@/modules/relatorios/application/fluxo_fisico_financeiro_relatorio.service';
 
-export default class DashboardRelatorioService implements IDashboardRelatorioUseCase {
+export default class DashboardRelatorioService
+  implements IDashboardRelatorioUseCase
+{
   constructor(
     private readonly query: RelatoriosQuery,
     private readonly fluxo: FluxoFisicoFinanceiroRelatorioService,
@@ -26,7 +28,8 @@ export default class DashboardRelatorioService implements IDashboardRelatorioUse
         await this.query.carregarLinhas(param.usuarioId),
         param,
       );
-      if (param.orgaoId) linhas = linhas.filter((linha) => linha.orgaoId === param.orgaoId);
+      if (param.orgaoId)
+        linhas = linhas.filter((linha) => linha.orgaoId === param.orgaoId);
       const porOrgao = new Map<string | null, typeof linhas>();
       for (const linha of linhas) {
         const key = linha.orgaoId ?? null;
@@ -37,8 +40,8 @@ export default class DashboardRelatorioService implements IDashboardRelatorioUse
       if (fluxoAgregado.isLeft()) return left(fluxoAgregado.value);
       const contagens = await this.query.contagens();
       return right({
-        quantificadoresPorOrgao: [...porOrgao.entries()].map(([orgaoId, items]) =>
-          agregarQuantificadoresRelatorio(items, orgaoId),
+        quantificadoresPorOrgao: [...porOrgao.entries()].map(
+          ([orgaoId, items]) => agregarQuantificadoresRelatorio(items, orgaoId),
         ),
         fluxoAgregado: fluxoAgregado.value,
         contagemPorStatus: contagens.contagemPorStatus,

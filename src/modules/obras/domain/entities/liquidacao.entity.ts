@@ -16,7 +16,10 @@ export interface LiquidacaoProps {
   updatedAt: Date;
 }
 
-export type CreateLiquidacaoProps = Omit<LiquidacaoProps, 'id' | 'observacoes' | 'createdAt' | 'updatedAt'> & {
+export type CreateLiquidacaoProps = Omit<
+  LiquidacaoProps,
+  'id' | 'observacoes' | 'createdAt' | 'updatedAt'
+> & {
   observacoes?: string | null;
 };
 
@@ -25,7 +28,9 @@ export default class LiquidacaoEntity {
 
   static create(p: CreateLiquidacaoProps): LiquidacaoEntity {
     if (!p.empenhoId || !p.fonteId || !p.numero?.trim() || !p.dataLiquidacao)
-      throw new ObraDomainException({ code: ErrorCodeConstants.LIQUIDACAO_INVALID_INPUT });
+      throw new ObraDomainException({
+        code: ErrorCodeConstants.LIQUIDACAO_INVALID_INPUT,
+      });
     assertValorPositivo(p.valor, ErrorCodeConstants.LIQUIDACAO_INVALID_VALOR);
     const now = new Date();
     return new LiquidacaoEntity({
@@ -42,25 +47,42 @@ export default class LiquidacaoEntity {
     return new LiquidacaoEntity(p);
   }
 
-  update(p: Partial<Pick<LiquidacaoProps, 'fonteId' | 'numero' | 'dataLiquidacao' | 'valor' | 'observacoes'>>): void {
+  update(
+    p: Partial<
+      Pick<
+        LiquidacaoProps,
+        'fonteId' | 'numero' | 'dataLiquidacao' | 'valor' | 'observacoes'
+      >
+    >,
+  ): void {
     const props = this.props as unknown as Record<string, unknown>;
     if (p.fonteId !== undefined) {
-      if (!p.fonteId) throw new ObraDomainException({ code: ErrorCodeConstants.LIQUIDACAO_INVALID_INPUT });
+      if (!p.fonteId)
+        throw new ObraDomainException({
+          code: ErrorCodeConstants.LIQUIDACAO_INVALID_INPUT,
+        });
       props['fonteId'] = p.fonteId;
     }
     if (p.numero !== undefined) {
-      if (!p.numero?.trim()) throw new ObraDomainException({ code: ErrorCodeConstants.LIQUIDACAO_INVALID_INPUT });
+      if (!p.numero?.trim())
+        throw new ObraDomainException({
+          code: ErrorCodeConstants.LIQUIDACAO_INVALID_INPUT,
+        });
       props['numero'] = p.numero.trim();
     }
     if (p.dataLiquidacao !== undefined) {
-      if (!p.dataLiquidacao) throw new ObraDomainException({ code: ErrorCodeConstants.LIQUIDACAO_INVALID_INPUT });
+      if (!p.dataLiquidacao)
+        throw new ObraDomainException({
+          code: ErrorCodeConstants.LIQUIDACAO_INVALID_INPUT,
+        });
       props['dataLiquidacao'] = p.dataLiquidacao;
     }
     if (p.valor !== undefined) {
       assertValorPositivo(p.valor, ErrorCodeConstants.LIQUIDACAO_INVALID_VALOR);
       props['valor'] = p.valor;
     }
-    if (p.observacoes !== undefined) props['observacoes'] = p.observacoes?.trim() || null;
+    if (p.observacoes !== undefined)
+      props['observacoes'] = p.observacoes?.trim() || null;
     props['updatedAt'] = new Date();
   }
 
@@ -68,14 +90,34 @@ export default class LiquidacaoEntity {
     return { ...this.props };
   }
 
-  get id() { return this.props.id; }
-  get tenantId() { return this.props.tenantId; }
-  get empenhoId() { return this.props.empenhoId; }
-  get fonteId() { return this.props.fonteId; }
-  get numero() { return this.props.numero; }
-  get dataLiquidacao() { return this.props.dataLiquidacao; }
-  get valor() { return this.props.valor; }
-  get observacoes() { return this.props.observacoes; }
-  get createdAt() { return this.props.createdAt; }
-  get updatedAt() { return this.props.updatedAt; }
+  get id() {
+    return this.props.id;
+  }
+  get tenantId() {
+    return this.props.tenantId;
+  }
+  get empenhoId() {
+    return this.props.empenhoId;
+  }
+  get fonteId() {
+    return this.props.fonteId;
+  }
+  get numero() {
+    return this.props.numero;
+  }
+  get dataLiquidacao() {
+    return this.props.dataLiquidacao;
+  }
+  get valor() {
+    return this.props.valor;
+  }
+  get observacoes() {
+    return this.props.observacoes;
+  }
+  get createdAt() {
+    return this.props.createdAt;
+  }
+  get updatedAt() {
+    return this.props.updatedAt;
+  }
 }

@@ -6,7 +6,9 @@ import IListObraPrivadaObservacoesUseCase, {
   ListObraPrivadaObservacoesParam,
 } from '@/modules/obras-privadas/domain/usecase/list_obra_privada_observacoes.usecase';
 
-export default class ListObraPrivadaObservacoesService implements IListObraPrivadaObservacoesUseCase {
+export default class ListObraPrivadaObservacoesService
+  implements IListObraPrivadaObservacoesUseCase
+{
   constructor(
     private readonly observacaoRepository: IObraPrivadaObservacaoRepository,
   ) {}

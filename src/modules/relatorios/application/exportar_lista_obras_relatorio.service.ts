@@ -37,7 +37,11 @@ export default class ExportarListaObrasRelatorioService
       });
       if (lista.isLeft()) return left(lista.value);
       return right(
-        renderizarListaObras(param.formato, lista.value.itens, lista.value.total),
+        renderizarListaObras(
+          param.formato,
+          lista.value.itens,
+          lista.value.total,
+        ),
       );
     } catch (error) {
       if (error instanceof AppException) return left(error);

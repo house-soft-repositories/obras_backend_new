@@ -8,19 +8,24 @@ import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
 import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import type IFonteRepository from '@/modules/fontes/adapters/fonte_repository.interface';
 
-const makeRepo = (): jest.Mocked<IFonteRepository> =>
-  ({
-    save: jest.fn(),
-    findByCodigo: jest.fn(),
-    findById: jest.fn(),
-    findAll: jest.fn(),
-  });
+const makeRepo = (): jest.Mocked<IFonteRepository> => ({
+  save: jest.fn(),
+  findByCodigo: jest.fn(),
+  findById: jest.fn(),
+  findAll: jest.fn(),
+});
 
 describe('ListFontesService', () => {
   it('delegates to repository with pagination options and returns ordered page', async () => {
     const repo = makeRepo();
     const entidade = FonteEntity.create({ nome: 'A Fonte' });
-    const page = new PageEntity([entidade], new PageMetaEntity({ pageOptions: new PageOptionsEntity('ASC', 1, 10), itemCount: 1 }));
+    const page = new PageEntity(
+      [entidade],
+      new PageMetaEntity({
+        pageOptions: new PageOptionsEntity('ASC', 1, 10),
+        itemCount: 1,
+      }),
+    );
     repo.findAll.mockResolvedValue(right(page));
 
     const service = new ListFontesService(repo);
@@ -36,7 +41,14 @@ describe('ListFontesService', () => {
 
   it('propagates repository failure', async () => {
     const repo = makeRepo();
-    repo.findAll.mockResolvedValue(left(new FonteRepositoryException({ code: ErrorCodeConstants.FONTE_REPOSITORY_FAILED, statusCode: 500 })));
+    repo.findAll.mockResolvedValue(
+      left(
+        new FonteRepositoryException({
+          code: ErrorCodeConstants.FONTE_REPOSITORY_FAILED,
+          statusCode: 500,
+        }),
+      ),
+    );
     const service = new ListFontesService(repo);
     const result = await service.execute({ page: 1, take: 10, order: 'ASC' });
     expect(result.isLeft()).toBe(true);

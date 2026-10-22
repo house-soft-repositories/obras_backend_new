@@ -38,7 +38,9 @@ export interface ProfissionalTecnicoComPessoaProps
 export default class ProfissionalTecnicoEntity {
   private constructor(private readonly props: ProfissionalTecnicoProps) {}
 
-  static create(props: CreateProfissionalTecnicoProps): ProfissionalTecnicoEntity {
+  static create(
+    props: CreateProfissionalTecnicoProps,
+  ): ProfissionalTecnicoEntity {
     this.validate(props);
     const now = new Date();
     return new ProfissionalTecnicoEntity({
@@ -46,7 +48,9 @@ export default class ProfissionalTecnicoEntity {
       pessoaId: props.pessoaId,
       conselho: props.conselho,
       numeroRegistro: props.numeroRegistro.trim(),
-      ufRegistro: props.ufRegistro ? props.ufRegistro.trim().toUpperCase() : null,
+      ufRegistro: props.ufRegistro
+        ? props.ufRegistro.trim().toUpperCase()
+        : null,
       titulo: props.titulo?.trim() || null,
       ativo: props.ativo ?? true,
       createdAt: now,

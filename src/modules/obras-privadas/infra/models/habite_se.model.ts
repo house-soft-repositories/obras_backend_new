@@ -8,7 +8,8 @@ export default class HabiteSeModel extends BaseModelPrimaryColumnUuid {
   @Column({ name: 'obra_privada_id', type: 'uuid' }) obraPrivadaId: string;
   @Column() numero: string;
   @Column({ name: 'data_emissao', nullable: true, type: 'date' }) dataEmissao:
-    string | null;
+    | string
+    | null;
   @Column({ default: false }) parcial: boolean;
   @Column({ name: 'descricao_parcial', nullable: true, type: 'varchar' })
   descricaoParcial: string | null;
@@ -31,7 +32,8 @@ export default class HabiteSeModel extends BaseModelPrimaryColumnUuid {
   divergenciaDescricao: string | null;
   @Column({ nullable: true, type: 'text' }) parecer: string | null;
   @Column({ name: 'arquivo_id', nullable: true, type: 'uuid' }) arquivoId:
-    string | null;
+    | string
+    | null;
   @ManyToOne(() => ObraPrivadaModel, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'obra_privada_id' })
   obraPrivada?: ObraPrivadaModel;

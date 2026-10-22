@@ -49,9 +49,7 @@ function linhaBase(
   };
 }
 
-function valoresBase(
-  overrides: Partial<ValoresFluxo> = {},
-): ValoresFluxo {
+function valoresBase(overrides: Partial<ValoresFluxo> = {}): ValoresFluxo {
   return {
     contratadoInicial: 1000,
     aditivadoTotal: 200,
@@ -151,7 +149,10 @@ describe('FluxoFisicoFinanceiroRelatorioService', () => {
     it('obra fora do filtro/visibilidade retorna 404', async () => {
       query.carregarLinhas.mockResolvedValue([linhaBase({ obraId: 'a' })]);
 
-      const result = await service.execute({ usuarioId, obraId: 'inexistente' });
+      const result = await service.execute({
+        usuarioId,
+        obraId: 'inexistente',
+      });
 
       expect(result.isLeft()).toBe(true);
       expect(query.valoresFluxoAgregados).not.toHaveBeenCalled();

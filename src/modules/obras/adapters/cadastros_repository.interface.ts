@@ -35,8 +35,7 @@ export interface ICadastroRepository<TEntity> {
 }
 
 export type IEixoRepository = ICadastroRepository<EixoEntity>;
-export type IClassificacaoRepository =
-  ICadastroRepository<ClassificacaoEntity>;
+export type IClassificacaoRepository = ICadastroRepository<ClassificacaoEntity>;
 export type ISubclassificacaoRepository =
   ICadastroRepository<SubclassificacaoEntity>;
 export type ITipologiaRepository = ICadastroRepository<TipologiaEntity>;

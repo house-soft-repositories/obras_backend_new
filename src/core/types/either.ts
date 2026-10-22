@@ -107,5 +107,7 @@ export class Right<L extends Error, R> {
   }
 }
 
-export const left = <L extends Error, R>(value: L): Either<L, R> => new Left<L, R>(value);
-export const right = <L extends Error, R>(value: R): Either<L, R> => new Right<L, R>(value);
+export const left = <L extends Error, R>(value: L): Either<L, R> =>
+  new Left<L, R>(value);
+export const right = <L extends Error, R>(value: R): Either<L, R> =>
+  new Right<L, R>(value);

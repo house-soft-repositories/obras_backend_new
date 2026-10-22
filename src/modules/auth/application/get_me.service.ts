@@ -23,10 +23,12 @@ export default class GetMeService implements IGetMeUseCase {
       let tenant: MeReadModel['tenant'] = null;
 
       if (user.tenantId) {
-        const tenancy = await this.dataSource.getRepository(TenancyModel).findOne({
-          where: { id: user.tenantId },
-          select: { id: true, name: true },
-        });
+        const tenancy = await this.dataSource
+          .getRepository(TenancyModel)
+          .findOne({
+            where: { id: user.tenantId },
+            select: { id: true, name: true },
+          });
         if (tenancy) {
           tenant = { id: tenancy.id, name: tenancy.name };
         }

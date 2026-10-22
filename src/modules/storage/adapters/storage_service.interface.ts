@@ -17,7 +17,10 @@ export default interface IStorageService {
     key: string,
     originalName?: string,
   ): AsyncResult<AppException, string>;
-  getUploadUrl(key: string, mimetype: string): AsyncResult<AppException, string>;
+  getUploadUrl(
+    key: string,
+    mimetype: string,
+  ): AsyncResult<AppException, string>;
   /**
    * Lê o conteúdo integral de um objeto pelo storageKey.
    * Único ponto em que o binário passa pela API (ex.: anexo fotográfico

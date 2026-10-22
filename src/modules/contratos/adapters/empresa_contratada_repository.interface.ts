@@ -13,6 +13,9 @@ export default interface IEmpresaContratadaRepository {
   findPage(
     pageOptions: PageOptionsEntity,
   ): AsyncResult<AppException, PageEntity<EmpresaContratadaEntity>>;
-  existsCnpj(cnpj: string, excludeId?: string): AsyncResult<AppException, boolean>;
+  existsCnpj(
+    cnpj: string,
+    excludeId?: string,
+  ): AsyncResult<AppException, boolean>;
   delete(id: string): AsyncResult<AppException, void>;
 }

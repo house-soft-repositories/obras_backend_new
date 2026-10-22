@@ -9,7 +9,9 @@ import IDeleteAutoInfracaoUseCase, {
 } from '@/modules/obras-privadas/domain/usecase/delete_auto_infracao.usecase';
 import AutoInfracaoRepositoryException from '@/modules/obras-privadas/exceptions/auto_infracao_repository.exception';
 
-export default class DeleteAutoInfracaoService implements IDeleteAutoInfracaoUseCase {
+export default class DeleteAutoInfracaoService
+  implements IDeleteAutoInfracaoUseCase
+{
   constructor(private readonly repo: IAutoInfracaoRepository) {}
 
   async execute(

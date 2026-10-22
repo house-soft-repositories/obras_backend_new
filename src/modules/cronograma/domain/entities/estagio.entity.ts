@@ -53,7 +53,11 @@ export default class EstagioEntity {
       >,
   ): EstagioEntity {
     const nome = createParams.nome.trim();
-    if (!nome || (createParams.posicao !== undefined && createParams.posicao < 0) || !this.isDateRangeValid(createParams.dataInicio, createParams.dataFim))
+    if (
+      !nome ||
+      (createParams.posicao !== undefined && createParams.posicao < 0) ||
+      !this.isDateRangeValid(createParams.dataInicio, createParams.dataFim)
+    )
       throw new CronogramaDomainException({
         code: ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT,
       });
@@ -87,15 +91,27 @@ export default class EstagioEntity {
     responsavelUsuarioId?: string | null;
     estagioPaiId?: string | null;
   }): EstagioEntity {
-    const nome = updateParams.nome === undefined ? this.nome : updateParams.nome.trim();
+    const nome =
+      updateParams.nome === undefined ? this.nome : updateParams.nome.trim();
     const posicao = updateParams.posicao ?? this.posicao;
-    const dataInicio = updateParams.dataInicio === undefined ? this.dataInicio : updateParams.dataInicio;
-    const dataFim = updateParams.dataFim === undefined ? this.dataFim : updateParams.dataFim;
-    if (!nome || posicao < 0 || !EstagioEntity.isDateRangeValid(dataInicio, dataFim))
+    const dataInicio =
+      updateParams.dataInicio === undefined
+        ? this.dataInicio
+        : updateParams.dataInicio;
+    const dataFim =
+      updateParams.dataFim === undefined ? this.dataFim : updateParams.dataFim;
+    if (
+      !nome ||
+      posicao < 0 ||
+      !EstagioEntity.isDateRangeValid(dataInicio, dataFim)
+    )
       throw new CronogramaDomainException({
         code: ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT,
       });
-    if (updateParams.estagioPaiId !== undefined && updateParams.estagioPaiId === this.id)
+    if (
+      updateParams.estagioPaiId !== undefined &&
+      updateParams.estagioPaiId === this.id
+    )
       throw new CronogramaDomainException({
         code: ErrorCodeConstants.CRONOGRAMA_ESTAGIO_PAI_INVALID,
       });

@@ -6,7 +6,11 @@ import { left, right } from '@/core/types/either';
 import IEmpenhoRepository from '@/modules/obras/adapters/empenho_repository.interface';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 import EmpenhoEntity from '@/modules/obras/domain/entities/empenho.entity';
-import type { CreateEmpenhoParam, EmpenhoComFonte, UpdateEmpenhoParam } from '@/modules/obras/domain/usecase/empenhos.usecase';
+import type {
+  CreateEmpenhoParam,
+  EmpenhoComFonte,
+  UpdateEmpenhoParam,
+} from '@/modules/obras/domain/usecase/empenhos.usecase';
 import { toFonteResumo } from '@/modules/obras/domain/usecase/fonte_resumo';
 import type FonteEntity from '@/modules/fontes/domain/entities/fonte.entity';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
@@ -24,21 +28,40 @@ export default class EmpenhosService {
     const obra = await this.obras.findById(obraId);
     if (obra.isLeft()) return left(obra.value);
     if (!obra.value)
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.OBRA_NOT_FOUND, statusCode: 404 }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.OBRA_NOT_FOUND,
+          statusCode: 404,
+        }),
+      );
     return right(undefined);
   }
 
-  private async ensureFonteAtiva(fonteId: string): AsyncResult<AppException, FonteEntity> {
+  private async ensureFonteAtiva(
+    fonteId: string,
+  ): AsyncResult<AppException, FonteEntity> {
     const fonte = await this.fontes.findById(fonteId);
     if (fonte.isLeft()) return left(fonte.value);
     if (!fonte.value)
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.FONTE_NOT_FOUND, statusCode: 404 }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.FONTE_NOT_FOUND,
+          statusCode: 404,
+        }),
+      );
     if (!fonte.value.ativo)
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.FONTE_INATIVA, statusCode: 422 }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.FONTE_INATIVA,
+          statusCode: 422,
+        }),
+      );
     return right(fonte.value);
   }
 
-  async create(param: CreateEmpenhoParam): AsyncResult<AppException, EmpenhoComFonte> {
+  async create(
+    param: CreateEmpenhoParam,
+  ): AsyncResult<AppException, EmpenhoComFonte> {
     try {
       const ctx = this.tc.require();
       const okObra = await this.ensureObra(param.obraId);
@@ -49,10 +72,19 @@ export default class EmpenhosService {
       const saved = await this.repo.save(entity);
       if (saved.isLeft()) return left(saved.value);
       // Fonte já validada acima: monta o resumo sem query extra.
-      return right({ ...saved.value.toObject(), fonte: toFonteResumo(okFonte.value) });
+      return right({
+        ...saved.value.toObject(),
+        fonte: toFonteResumo(okFonte.value),
+      });
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.EMPENHO_REPOSITORY_FAILED, statusCode: 500, cause }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.EMPENHO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
 
@@ -63,29 +95,53 @@ export default class EmpenhosService {
     return this.repo.listByObraWithFonte(obraId);
   }
 
-  async get(obraId: string, id: string): AsyncResult<AppException, EmpenhoComFonte> {
+  async get(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, EmpenhoComFonte> {
     try {
       // Query única com LEFT JOIN em fontes.
       const found = await this.repo.findByIdWithFonte(id);
       if (found.isLeft()) return left(found.value);
       if (!found.value || found.value.obraId !== obraId)
-        return left(new ObraRepositoryException({ code: ErrorCodeConstants.EMPENHO_NOT_FOUND, statusCode: 404 }));
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.EMPENHO_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
       return right(found.value);
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.EMPENHO_REPOSITORY_FAILED, statusCode: 500, cause }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.EMPENHO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
 
-  private async findEntity(obraId: string, id: string): AsyncResult<AppException, EmpenhoEntity> {
+  private async findEntity(
+    obraId: string,
+    id: string,
+  ): AsyncResult<AppException, EmpenhoEntity> {
     const found = await this.repo.findById(id);
     if (found.isLeft()) return left(found.value);
     if (!found.value || found.value.obraId !== obraId)
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.EMPENHO_NOT_FOUND, statusCode: 404 }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.EMPENHO_NOT_FOUND,
+          statusCode: 404,
+        }),
+      );
     return right(found.value);
   }
 
-  async update(param: UpdateEmpenhoParam): AsyncResult<AppException, EmpenhoComFonte> {
+  async update(
+    param: UpdateEmpenhoParam,
+  ): AsyncResult<AppException, EmpenhoComFonte> {
     try {
       const current = await this.findEntity(param.obraId, param.id);
       if (current.isLeft()) return left(current.value);
@@ -100,11 +156,22 @@ export default class EmpenhosService {
       const enriched = await this.repo.findByIdWithFonte(saved.value.id);
       if (enriched.isLeft()) return left(enriched.value);
       if (!enriched.value)
-        return left(new ObraRepositoryException({ code: ErrorCodeConstants.EMPENHO_NOT_FOUND, statusCode: 404 }));
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.EMPENHO_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
       return right(enriched.value);
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
-      return left(new ObraRepositoryException({ code: ErrorCodeConstants.EMPENHO_REPOSITORY_FAILED, statusCode: 500, cause }));
+      return left(
+        new ObraRepositoryException({
+          code: ErrorCodeConstants.EMPENHO_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
 

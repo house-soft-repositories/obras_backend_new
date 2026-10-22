@@ -40,7 +40,19 @@ export default class EmpenhoRepository implements IEmpenhoRepository {
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
          ON CONFLICT (id) DO UPDATE SET fonte_id=EXCLUDED.fonte_id, tipo=EXCLUDED.tipo, numero=EXCLUDED.numero, data_empenho=EXCLUDED.data_empenho, valor=EXCLUDED.valor, observacoes=EXCLUDED.observacoes, updated_at=EXCLUDED.updated_at
          RETURNING ${SELECT}`,
-        [o.id, o.tenantId, o.obraId, o.fonteId, o.tipo, o.numero, o.dataEmpenho, o.valor.toFixed(2), o.observacoes, o.createdAt, o.updatedAt],
+        [
+          o.id,
+          o.tenantId,
+          o.obraId,
+          o.fonteId,
+          o.tipo,
+          o.numero,
+          o.dataEmpenho,
+          o.valor.toFixed(2),
+          o.observacoes,
+          o.createdAt,
+          o.updatedAt,
+        ],
       );
       return right(EmpenhoMapper.toEntity(saved));
     } catch (cause) {
@@ -61,7 +73,9 @@ export default class EmpenhoRepository implements IEmpenhoRepository {
     }
   }
 
-  async findByIdWithFonte(id: string): AsyncResult<AppException, EmpenhoComFonte | null> {
+  async findByIdWithFonte(
+    id: string,
+  ): AsyncResult<AppException, EmpenhoComFonte | null> {
     try {
       const s = this.tc.require().schemaName;
       const [row] = await this.ds.query<Record<string, unknown>[]>(
@@ -89,7 +103,9 @@ export default class EmpenhoRepository implements IEmpenhoRepository {
     }
   }
 
-  async listByObraWithFonte(obraId: string): AsyncResult<AppException, EmpenhoComFonte[]> {
+  async listByObraWithFonte(
+    obraId: string,
+  ): AsyncResult<AppException, EmpenhoComFonte[]> {
     try {
       const s = this.tc.require().schemaName;
       const rows = await this.ds.query<Record<string, unknown>[]>(
@@ -104,7 +120,10 @@ export default class EmpenhoRepository implements IEmpenhoRepository {
     }
   }
 
-  async sumLiquidado(empenhoId: string, ignoreId?: string): AsyncResult<AppException, number> {
+  async sumLiquidado(
+    empenhoId: string,
+    ignoreId?: string,
+  ): AsyncResult<AppException, number> {
     try {
       const s = this.tc.require().schemaName;
       const params: unknown[] = [empenhoId];

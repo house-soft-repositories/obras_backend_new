@@ -8,7 +8,10 @@ type UserDomainErrorCode =
   | typeof ErrorCodeConstants.USER_INVALID_TENANT;
 
 export default class UserDomainException extends AppException {
-  constructor({ code, message }: { code: UserDomainErrorCode; message?: string }) {
+  constructor({
+    code,
+    message,
+  }: { code: UserDomainErrorCode; message?: string }) {
     super({ code, statusCode: 400, message });
   }
 }

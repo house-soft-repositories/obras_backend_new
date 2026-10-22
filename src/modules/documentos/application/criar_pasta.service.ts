@@ -14,7 +14,9 @@ import PastaServiceException from '@/modules/documentos/exceptions/pasta_service
 export default class CriarPastaService implements ICriarPastaUseCase {
   constructor(private readonly repo: IPastaRepository) {}
 
-  async execute(param: CriarPastaParam): AsyncResult<AppException, PastaEntity> {
+  async execute(
+    param: CriarPastaParam,
+  ): AsyncResult<AppException, PastaEntity> {
     try {
       const pai = await this.repo.findById(param.pastaPaiId);
       if (pai.isLeft()) return left(pai.value);

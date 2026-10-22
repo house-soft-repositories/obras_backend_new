@@ -17,10 +17,7 @@ export interface UserProps {
   updatedAt: Date;
 }
 
-type CreateUserProps = Pick<
-  UserProps,
-  'name' | 'email' | 'password'
-> &
+type CreateUserProps = Pick<UserProps, 'name' | 'email' | 'password'> &
   Partial<Pick<UserProps, 'localidadeId' | 'orgaoId' | 'setorId'>>;
 
 export type UpdateUserProps = Partial<
@@ -54,7 +51,7 @@ export default class UserEntity {
     role: UserRole,
     tenantId: string | null,
   ): UserEntity {
-  if (props.name.trim().length < 2) {
+    if (props.name.trim().length < 2) {
       throw new UserDomainException({
         code: ErrorCodeConstants.USER_INVALID_NAME,
       });
@@ -116,7 +113,9 @@ export default class UserEntity {
         email: props.email ?? this.email,
         password: props.password ?? this.password,
         localidadeId:
-          props.localidadeId === undefined ? this.localidadeId : props.localidadeId,
+          props.localidadeId === undefined
+            ? this.localidadeId
+            : props.localidadeId,
         orgaoId: props.orgaoId === undefined ? this.orgaoId : props.orgaoId,
         setorId: props.setorId === undefined ? this.setorId : props.setorId,
       },

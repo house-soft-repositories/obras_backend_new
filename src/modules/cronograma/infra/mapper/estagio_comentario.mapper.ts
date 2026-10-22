@@ -2,7 +2,10 @@ import EstagioComentarioEntity from '@/modules/cronograma/domain/entities/estagi
 import EstagioComentarioModel from '@/modules/cronograma/infra/models/estagio_comentario.model';
 import BaseMapper from '@/core/types/base_mapper';
 
-export default abstract class EstagioComentarioMapper extends BaseMapper<EstagioComentarioEntity, EstagioComentarioModel> {
+export default abstract class EstagioComentarioMapper extends BaseMapper<
+  EstagioComentarioEntity,
+  EstagioComentarioModel
+> {
   static toEntity(m: EstagioComentarioModel): EstagioComentarioEntity {
     return EstagioComentarioEntity.fromData({
       id: m.id,

@@ -117,7 +117,10 @@ export default class TagRepository implements ITagRepository {
   async detach(obraId: string, tagId: string): AsyncResult<AppException, void> {
     try {
       const s = this.tc.require().schemaName;
-      await this.ds.query(`DELETE FROM "${s}"."obra_tag" WHERE obra_id=$1 AND tag_id=$2`, [obraId, tagId]);
+      await this.ds.query(
+        `DELETE FROM "${s}"."obra_tag" WHERE obra_id=$1 AND tag_id=$2`,
+        [obraId, tagId],
+      );
       return right(undefined);
     } catch (cause) {
       return left(

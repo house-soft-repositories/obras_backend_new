@@ -1,6 +1,9 @@
 import { DataSource, EntityManager, QueryRunner } from 'typeorm';
 import TenantContext from '@/core/multitenancy/tenant_context';
-import { withManager, withTenantManager } from '@/core/multitenancy/tenant_manager';
+import {
+  withManager,
+  withTenantManager,
+} from '@/core/multitenancy/tenant_manager';
 
 function makeQueryRunner(overrides: Partial<QueryRunner> = {}): QueryRunner {
   return {
@@ -39,7 +42,9 @@ describe('withManager', () => {
     const tenantContext = makeTenantContext();
     const callback = jest.fn().mockResolvedValue('ok');
 
-    await expect(withManager(dataSource, tenantContext, callback)).resolves.toBe('ok');
+    await expect(
+      withManager(dataSource, tenantContext, callback),
+    ).resolves.toBe('ok');
 
     expect(dataSource.createQueryRunner).toHaveBeenCalledTimes(1);
     expect(queryRunner.connect).toHaveBeenCalledTimes(1);
@@ -58,7 +63,9 @@ describe('withManager', () => {
     const dataSource = makeDataSource(queryRunner);
     const tenantContext = makeTenantContext('tenant_"abc');
 
-    await withManager(dataSource, tenantContext, () => Promise.resolve(undefined));
+    await withManager(dataSource, tenantContext, () =>
+      Promise.resolve(undefined),
+    );
 
     expect(queryRunner.query).toHaveBeenCalledWith(
       'SET LOCAL search_path TO "tenant_""abc", public',
@@ -86,7 +93,9 @@ describe('withManager', () => {
     const tenantContext = makeTenantContext();
     const callback = jest.fn().mockResolvedValue('ok');
 
-    await expect(withTenantManager(dataSource, tenantContext, callback)).resolves.toBe('ok');
+    await expect(
+      withTenantManager(dataSource, tenantContext, callback),
+    ).resolves.toBe('ok');
 
     expect(callback).toHaveBeenCalledWith(queryRunner.manager);
     expect(queryRunner.query).toHaveBeenCalledWith(

@@ -186,9 +186,9 @@ describe('stepper de etapas (decisao 10)', () => {
   it('sem visitas, nenhuma etapa e atual ou concluida', () => {
     const etapas = montarEtapas([]);
     expect(etapas).toHaveLength(ORDEM_ETAPAS.length);
-    expect(etapas.every((e) => !e.atual && !e.concluida && e.data === null)).toBe(
-      true,
-    );
+    expect(
+      etapas.every((e) => !e.atual && !e.concluida && e.data === null),
+    ).toBe(true);
   });
 
   it('marca como atual a etapa da visita mais recente', () => {

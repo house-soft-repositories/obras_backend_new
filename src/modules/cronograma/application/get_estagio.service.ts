@@ -4,7 +4,9 @@ import AsyncResult from '@/core/types/async_result';
 import { left } from '@/core/types/either';
 import IEstagioRepository from '@/modules/cronograma/adapters/estagio_repository.interface';
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
-import IGetEstagioUseCase, { GetEstagioParam } from '@/modules/cronograma/domain/usecase/get_estagio.usecase';
+import IGetEstagioUseCase, {
+  GetEstagioParam,
+} from '@/modules/cronograma/domain/usecase/get_estagio.usecase';
 import CronogramaServiceException from '@/modules/cronograma/exceptions/cronograma_service.exception';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 
@@ -14,7 +16,9 @@ export default class GetEstagioService implements IGetEstagioUseCase {
     private readonly obras: IObraRepository,
   ) {}
 
-  async execute(param: GetEstagioParam): AsyncResult<AppException, EstagioEntity> {
+  async execute(
+    param: GetEstagioParam,
+  ): AsyncResult<AppException, EstagioEntity> {
     const obra = await this.obras.findById(param.obraId);
     if (obra.isLeft()) return left(obra.value);
     if (!obra.value)

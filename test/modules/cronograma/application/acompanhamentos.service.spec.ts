@@ -44,7 +44,12 @@ describe('AcompanhamentosService', () => {
     estagioRepo.findById.mockResolvedValue(right(stage));
     repo.save.mockImplementation(async (item) => right(item));
     const tenantContext = new TenantContext();
-    const service = new AcompanhamentosService(repo, tenantContext, obras, estagioRepo);
+    const service = new AcompanhamentosService(
+      repo,
+      tenantContext,
+      obras,
+      estagioRepo,
+    );
 
     const result = await tenantContext.run(
       {
@@ -64,7 +69,9 @@ describe('AcompanhamentosService', () => {
 
     expect(result.isRight()).toBe(true);
     expect(estagioRepo.findById).toHaveBeenCalledWith(stage.id, 'obra');
-    expect(repo.save.mock.calls[0][0]).toBeInstanceOf(EstagioAcompanhamentoEntity);
+    expect(repo.save.mock.calls[0][0]).toBeInstanceOf(
+      EstagioAcompanhamentoEntity,
+    );
   });
 
   it('gets acompanhamento scoped by obra and stage', async () => {
@@ -86,13 +93,22 @@ describe('AcompanhamentosService', () => {
     const { repo, estagioRepo, obras } = createMocks();
     estagioRepo.findById.mockResolvedValue(right(stage));
     repo.findById.mockResolvedValue(right(acompanhamento));
-    const service = new AcompanhamentosService(repo, new TenantContext(), obras, estagioRepo);
+    const service = new AcompanhamentosService(
+      repo,
+      new TenantContext(),
+      obras,
+      estagioRepo,
+    );
 
     const result = await service.get('obra', stage.id, acompanhamento.id);
 
     expect(result.isRight()).toBe(true);
     expect(estagioRepo.findById).toHaveBeenCalledWith(stage.id, 'obra');
-    expect(repo.findById).toHaveBeenCalledWith('obra', stage.id, acompanhamento.id);
+    expect(repo.findById).toHaveBeenCalledWith(
+      'obra',
+      stage.id,
+      acompanhamento.id,
+    );
   });
 
   it('lists acompanhamentos scoped by obra and stage', async () => {
@@ -114,7 +130,12 @@ describe('AcompanhamentosService', () => {
     const { repo, estagioRepo, obras } = createMocks();
     estagioRepo.findById.mockResolvedValue(right(stage));
     repo.list.mockResolvedValue(right([acompanhamento]));
-    const service = new AcompanhamentosService(repo, new TenantContext(), obras, estagioRepo);
+    const service = new AcompanhamentosService(
+      repo,
+      new TenantContext(),
+      obras,
+      estagioRepo,
+    );
 
     const result = await service.list({ obraId: 'obra', estagioId: stage.id });
 
@@ -143,7 +164,12 @@ describe('AcompanhamentosService', () => {
     estagioRepo.findById.mockResolvedValue(right(stage));
     repo.findById.mockResolvedValue(right(acompanhamento));
     repo.update.mockImplementation(async (item) => right(item));
-    const service = new AcompanhamentosService(repo, new TenantContext(), obras, estagioRepo);
+    const service = new AcompanhamentosService(
+      repo,
+      new TenantContext(),
+      obras,
+      estagioRepo,
+    );
 
     const result = await service.update({
       obraId: 'obra',
@@ -155,7 +181,11 @@ describe('AcompanhamentosService', () => {
 
     expect(result.isRight()).toBe(true);
     expect(estagioRepo.findById).toHaveBeenCalledWith(stage.id, 'obra');
-    expect(repo.findById).toHaveBeenCalledWith('obra', stage.id, acompanhamento.id);
+    expect(repo.findById).toHaveBeenCalledWith(
+      'obra',
+      stage.id,
+      acompanhamento.id,
+    );
     expect(result.value.percentual).toBe(75);
     expect(result.value.observacao).toBe('Atualizado');
   });
@@ -170,7 +200,12 @@ describe('AcompanhamentosService', () => {
     const { repo, estagioRepo, obras } = createMocks();
     estagioRepo.findById.mockResolvedValue(right(stage));
     repo.remove.mockResolvedValue(right(unit));
-    const service = new AcompanhamentosService(repo, new TenantContext(), obras, estagioRepo);
+    const service = new AcompanhamentosService(
+      repo,
+      new TenantContext(),
+      obras,
+      estagioRepo,
+    );
 
     const result = await service.remove('obra', stage.id, 'acomp-id');
 
@@ -187,7 +222,12 @@ describe('AcompanhamentosService', () => {
         statusCode: 404,
       } as never),
     );
-    const service = new AcompanhamentosService(repo, new TenantContext(), obras, estagioRepo);
+    const service = new AcompanhamentosService(
+      repo,
+      new TenantContext(),
+      obras,
+      estagioRepo,
+    );
 
     const result = await service.create({
       obraId: 'obra',
@@ -210,7 +250,12 @@ describe('AcompanhamentosService', () => {
     });
     obras.findById.mockResolvedValue(left(failure));
     estagioRepo.findById.mockResolvedValue(right(null as never));
-    const service = new AcompanhamentosService(repo, new TenantContext(), obras, estagioRepo);
+    const service = new AcompanhamentosService(
+      repo,
+      new TenantContext(),
+      obras,
+      estagioRepo,
+    );
 
     const result = await service.list({ obraId: 'obra', estagioId: 'stage' });
 

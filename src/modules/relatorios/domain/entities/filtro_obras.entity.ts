@@ -68,11 +68,7 @@ export default class FiltroObrasEntity {
         message: 'Faixa de percentual inválida',
       });
     }
-    if (
-      minimo !== undefined &&
-      maximo !== undefined &&
-      minimo > maximo
-    ) {
+    if (minimo !== undefined && maximo !== undefined && minimo > maximo) {
       throw new RelatoriosDomainException({
         code: ErrorCodeConstants.RELATORIO_FILTRO_INVALIDO,
         message: 'percentualMin deve ser menor ou igual a percentualMax',
@@ -115,9 +111,7 @@ export default class FiltroObrasEntity {
    * Regra de casamento: AND entre grupos de filtro, OR dentro de
    * tagIds/statusObra, contains sem acento nos campos textuais.
    */
-  matches(
-    linha: LinhaObraRelatorio | LinhaObraRelatorioEntity,
-  ): boolean {
+  matches(linha: LinhaObraRelatorio | LinhaObraRelatorioEntity): boolean {
     const obra =
       linha instanceof LinhaObraRelatorioEntity ? linha.toObject() : linha;
     const filtro = this.props;
@@ -232,13 +226,10 @@ export default class FiltroObrasEntity {
     if (filtro.orgaoId) partes.push(`orgao=${filtro.orgaoId}`);
     if (filtro.setorId) partes.push(`setor=${filtro.setorId}`);
     if (filtro.localidadeId) partes.push(`localidade=${filtro.localidadeId}`);
-    if (filtro.tagIds?.length)
-      partes.push(`tags=${filtro.tagIds.join('|')}`);
-    if (filtro.responsavel)
-      partes.push(`responsavel='${filtro.responsavel}'`);
+    if (filtro.tagIds?.length) partes.push(`tags=${filtro.tagIds.join('|')}`);
+    if (filtro.responsavel) partes.push(`responsavel='${filtro.responsavel}'`);
     if (filtro.buscaTextual) partes.push(`busca='${filtro.buscaTextual}'`);
-    if (filtro.estagioAtual)
-      partes.push(`estagio='${filtro.estagioAtual}'`);
+    if (filtro.estagioAtual) partes.push(`estagio='${filtro.estagioAtual}'`);
     if (filtro.empresaExecutora)
       partes.push(`empresa='${filtro.empresaExecutora}'`);
     if (filtro.numeroContrato)
@@ -272,9 +263,7 @@ export default class FiltroObrasEntity {
       );
     if (filtro.modo) partes.push(`modo=${filtro.modo}`);
     if (filtro.pagina !== undefined || filtro.tamanho !== undefined)
-      partes.push(
-        `paginacao=${filtro.pagina ?? '*'}/${filtro.tamanho ?? '*'}`,
-      );
+      partes.push(`paginacao=${filtro.pagina ?? '*'}/${filtro.tamanho ?? '*'}`);
     return partes.length ? partes.join(', ') : 'sem filtros';
   }
 

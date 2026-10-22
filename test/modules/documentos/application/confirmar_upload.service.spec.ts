@@ -28,7 +28,10 @@ describe('ConfirmarUploadService', () => {
       attachments.save.mockImplementation((e) => Promise.resolve(right(e)));
       arquivos.save.mockImplementation((e) => Promise.resolve(right(e)));
 
-      const result = await new ConfirmarUploadService(arquivos, attachments).execute({
+      const result = await new ConfirmarUploadService(
+        arquivos,
+        attachments,
+      ).execute({
         arquivoId: 'arquivo-id',
         tamanhoBytes: 2048,
       });
@@ -48,7 +51,10 @@ describe('ConfirmarUploadService', () => {
       const attachments = mockAttachmentRepository();
       arquivos.findById.mockResolvedValue(right(null));
 
-      const result = await new ConfirmarUploadService(arquivos, attachments).execute({
+      const result = await new ConfirmarUploadService(
+        arquivos,
+        attachments,
+      ).execute({
         arquivoId: 'missing',
         tamanhoBytes: 10,
       });
@@ -63,7 +69,10 @@ describe('ConfirmarUploadService', () => {
       const arquivos = mockArquivoRepository();
       const attachments = mockAttachmentRepository();
 
-      const result = await new ConfirmarUploadService(arquivos, attachments).execute({
+      const result = await new ConfirmarUploadService(
+        arquivos,
+        attachments,
+      ).execute({
         arquivoId: 'x',
         tamanhoBytes: -1,
       });

@@ -95,9 +95,9 @@ describe('situacao de alvara (RN-PRV-03/04/05)', () => {
     });
 
     it('DISPENSADA e marcacao manual e nunca e sobrescrita', () => {
-      expect(
-        derivarSituacaoAlvara([], SituacaoAlvara.DISPENSADA, HOJE),
-      ).toBe(SituacaoAlvara.DISPENSADA);
+      expect(derivarSituacaoAlvara([], SituacaoAlvara.DISPENSADA, HOJE)).toBe(
+        SituacaoAlvara.DISPENSADA,
+      );
       expect(
         derivarSituacaoAlvara(
           [alvara({ dataValidade: '2026-09-14' })],

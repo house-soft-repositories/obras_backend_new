@@ -5,11 +5,15 @@ import { left } from '@/core/types/either';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import IEstagioRepository from '@/modules/cronograma/adapters/estagio_repository.interface';
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
-import ICreateEstagiosLoteUseCase, { CreateEstagiosLoteParam } from '@/modules/cronograma/domain/usecase/create_estagios_lote.usecase';
+import ICreateEstagiosLoteUseCase, {
+  CreateEstagiosLoteParam,
+} from '@/modules/cronograma/domain/usecase/create_estagios_lote.usecase';
 import CronogramaServiceException from '@/modules/cronograma/exceptions/cronograma_service.exception';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 
-export default class CreateEstagiosLoteService implements ICreateEstagiosLoteUseCase {
+export default class CreateEstagiosLoteService
+  implements ICreateEstagiosLoteUseCase
+{
   constructor(
     private readonly repository: IEstagioRepository,
     private readonly tenantContext: TenantContext,
@@ -30,7 +34,10 @@ export default class CreateEstagiosLoteService implements ICreateEstagiosLoteUse
       );
     for (const item of param.itens) {
       if (!item.estagioPaiId) continue;
-      const parent = await this.repository.findById(item.estagioPaiId, param.obraId);
+      const parent = await this.repository.findById(
+        item.estagioPaiId,
+        param.obraId,
+      );
       if (parent.isLeft()) return left(parent.value);
       if (parent.value.estagioPaiId !== null)
         return left(

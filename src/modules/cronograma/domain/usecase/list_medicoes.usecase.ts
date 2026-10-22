@@ -8,5 +8,8 @@ export interface ListMedicoesParam {
   options: PageOptionsEntity;
 }
 
-type IListMedicoesUseCase = UseCase<ListMedicoesParam, PageEntity<MedicaoEntity>>;
+type IListMedicoesUseCase = UseCase<
+  ListMedicoesParam,
+  PageEntity<MedicaoEntity>
+>;
 export default IListMedicoesUseCase;

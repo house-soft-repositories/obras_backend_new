@@ -13,6 +13,10 @@ export default abstract class TagMapper {
 
   static toModel(e: TagEntity): Partial<TagModel> {
     const o = e.toObject();
-    return { id: o.id, tenantId: o.tenantId, nome: o.nome } as Partial<TagModel>;
+    return {
+      id: o.id,
+      tenantId: o.tenantId,
+      nome: o.nome,
+    } as Partial<TagModel>;
   }
 }

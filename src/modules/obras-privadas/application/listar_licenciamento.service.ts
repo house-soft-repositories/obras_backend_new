@@ -8,7 +8,9 @@ import IListarLicenciamentoUseCase, {
 } from '@/modules/obras-privadas/domain/usecase/listar_licenciamento.usecase';
 import { LicenciamentoListReadModel } from '@/modules/obras-privadas/infra/read-models/licenciamento_list_read_model';
 
-export default class ListarLicenciamentoService implements IListarLicenciamentoUseCase {
+export default class ListarLicenciamentoService
+  implements IListarLicenciamentoUseCase
+{
   constructor(private readonly obras: IObraPrivadaRepository) {}
 
   async execute(

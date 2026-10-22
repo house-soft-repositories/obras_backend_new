@@ -19,7 +19,12 @@ export default class LinhaObraRelatorioEntity {
   }
 
   toObject(): LinhaObraRelatorio {
-    return { ...this.props, tagIds: [...this.props.tagIds], tags: [...this.props.tags], localizacoes: [...this.props.localizacoes] };
+    return {
+      ...this.props,
+      tagIds: [...this.props.tagIds],
+      tags: [...this.props.tags],
+      localizacoes: [...this.props.localizacoes],
+    };
   }
 
   /** A obra tem ao menos uma localização com lat/long preenchidas (entra no mapa). */

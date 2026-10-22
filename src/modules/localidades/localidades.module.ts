@@ -29,7 +29,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Module({
-  imports: [CoreModule, AuthModule, TypeOrmModule.forFeature([LocalidadeModel])],
+  imports: [
+    CoreModule,
+    AuthModule,
+    TypeOrmModule.forFeature([LocalidadeModel]),
+  ],
   controllers: [LocalidadeController],
   providers: [
     AccessTokenGuard,
@@ -66,17 +70,15 @@ import { DataSource } from 'typeorm';
     {
       provide: GET_LOCALIDADE_SERVICE,
       inject: [LOCALIDADE_REPOSITORY],
-      useFactory: (
-        repository: ILocalidadeRepository,
-      ): IGetLocalidadeUseCase => new GetLocalidadeService(repository),
+      useFactory: (repository: ILocalidadeRepository): IGetLocalidadeUseCase =>
+        new GetLocalidadeService(repository),
     },
     {
       provide: DELETE_LOCALIDADE_SERVICE,
       inject: [LOCALIDADE_REPOSITORY],
       useFactory: (
         repository: ILocalidadeRepository,
-      ): IDeleteLocalidadeUseCase =>
-        new DeleteLocalidadeService(repository),
+      ): IDeleteLocalidadeUseCase => new DeleteLocalidadeService(repository),
     },
   ],
   exports: [

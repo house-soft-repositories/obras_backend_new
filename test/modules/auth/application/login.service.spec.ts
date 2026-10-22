@@ -16,7 +16,12 @@ describe('LoginService', () => {
     const tokens = mockTokenService();
     const sessions = mockUserSessionRepository();
     users.findOne.mockResolvedValue(
-      left(new UserRepositoryException({ code: ErrorCodeConstants.USER_NOT_FOUND, statusCode: 404 })),
+      left(
+        new UserRepositoryException({
+          code: ErrorCodeConstants.USER_NOT_FOUND,
+          statusCode: 404,
+        }),
+      ),
     );
     const service = new LoginService(users, passwords, tokens, sessions);
 
@@ -66,7 +71,9 @@ describe('LoginService', () => {
     passwords.compare.mockResolvedValue(true);
     tokens.signRefresh.mockResolvedValue('refresh-token');
     passwords.hash.mockResolvedValue('refresh-token-hash');
-    sessions.save.mockImplementation((session) => Promise.resolve(right(session)));
+    sessions.save.mockImplementation((session) =>
+      Promise.resolve(right(session)),
+    );
     tokens.signAccess.mockResolvedValue('access-token');
     const service = new LoginService(users, passwords, tokens, sessions);
 
@@ -77,19 +84,30 @@ describe('LoginService', () => {
     });
 
     expect(result.isRight()).toBe(true);
-    expect(sessions.save.mock.calls[0][0].refreshTokenHash).toBe('refresh-token-hash');
-    expect(sessions.save.mock.calls[0][0].refreshTokenHash).not.toBe('refresh-token');
-    expect(tokens.signAccess.mock.calls).toContainEqual([{
-      sub: user.id,
-      role: user.role,
-      tenantId: user.tenantId,
-    }]);
-    expect(tokens.signRefresh.mock.calls).toContainEqual([{
-      sub: user.id,
-      sid: sessions.save.mock.calls[0][0].id,
-      tenantId: user.tenantId,
-    }]);
+    expect(sessions.save.mock.calls[0][0].refreshTokenHash).toBe(
+      'refresh-token-hash',
+    );
+    expect(sessions.save.mock.calls[0][0].refreshTokenHash).not.toBe(
+      'refresh-token',
+    );
+    expect(tokens.signAccess.mock.calls).toContainEqual([
+      {
+        sub: user.id,
+        role: user.role,
+        tenantId: user.tenantId,
+      },
+    ]);
+    expect(tokens.signRefresh.mock.calls).toContainEqual([
+      {
+        sub: user.id,
+        sid: sessions.save.mock.calls[0][0].id,
+        tenantId: user.tenantId,
+      },
+    ]);
     if (result.isLeft()) throw result.value;
-    expect(result.value).toEqual({ accessToken: 'access-token', refreshToken: 'refresh-token' });
+    expect(result.value).toEqual({
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+    });
   });
 });

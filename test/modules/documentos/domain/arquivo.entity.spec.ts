@@ -17,7 +17,10 @@ const base = {
 describe('ArquivoEntity', () => {
   describe('create', () => {
     it('creates an unconfirmed arquivo without attachment link', () => {
-      const entity = ArquivoEntity.create({ ...base, mimeType: 'application/pdf' });
+      const entity = ArquivoEntity.create({
+        ...base,
+        mimeType: 'application/pdf',
+      });
       expect(entity.confirmado).toBe(false);
       expect(entity.attachmentId).toBeNull();
       expect(entity.tamanhoBytes).toBeNull();
@@ -25,14 +28,19 @@ describe('ArquivoEntity', () => {
 
     it('rejects blank nome with ARQUIVO_INVALID_INPUT', () => {
       expect(() => ArquivoEntity.create({ ...base, nome: ' ' })).toThrow(
-        expect.objectContaining({ code: ErrorCodeConstants.ARQUIVO_INVALID_INPUT }),
+        expect.objectContaining({
+          code: ErrorCodeConstants.ARQUIVO_INVALID_INPUT,
+        }),
       );
     });
   });
 
   describe('confirmar', () => {
     it('marks the arquivo as confirmed', () => {
-      const entity = ArquivoEntity.create(base).confirmar('2048', 'application/pdf');
+      const entity = ArquivoEntity.create(base).confirmar(
+        '2048',
+        'application/pdf',
+      );
       expect(entity.confirmado).toBe(true);
       expect(entity.tamanhoBytes).toBe('2048');
       expect(entity.mimeType).toBe('application/pdf');
@@ -59,7 +67,8 @@ describe('ArquivoEntity', () => {
 
     it('links the attachment mirror', () => {
       const attachmentId = '55555555-5555-4555-8555-555555555555';
-      const entity = ArquivoEntity.create(base).vincularAttachment(attachmentId);
+      const entity =
+        ArquivoEntity.create(base).vincularAttachment(attachmentId);
       expect(entity.attachmentId).toBe(attachmentId);
     });
   });

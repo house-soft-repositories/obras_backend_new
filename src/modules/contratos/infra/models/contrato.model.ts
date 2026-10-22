@@ -21,7 +21,8 @@ export class ContratoModel extends BaseModelPrimaryColumnUuid {
   @Column({ name: 'data_assinatura', nullable: true, type: 'date' })
   dataAssinatura!: string | null;
   @Column({ name: 'fim_vigencia', nullable: true, type: 'date' }) fimVigencia!:
-    string | null;
+    | string
+    | null;
   @Column({ name: 'data_os', type: 'date' }) dataOs!: string;
   @Column({ name: 'tipo_prazo_execucao', type: 'varchar' })
   tipoPrazoExecucao!: TipoPrazoExecucao;

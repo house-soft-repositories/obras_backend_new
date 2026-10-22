@@ -24,7 +24,9 @@ export function formatarData(iso: string | Date | null | undefined): string {
   // date/timestamptz podem chegar hidratadas como objeto.
   const texto =
     iso instanceof Date
-      ? (Number.isNaN(iso.getTime()) ? null : iso.toISOString().slice(0, 10))
+      ? Number.isNaN(iso.getTime())
+        ? null
+        : iso.toISOString().slice(0, 10)
       : iso;
   if (!texto) return '—';
   const [ano, mes, dia] = texto.slice(0, 10).split('-');

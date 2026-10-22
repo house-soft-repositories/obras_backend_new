@@ -45,7 +45,9 @@ function texto(value: unknown): string {
   return JSON.stringify(value);
 }
 
-export default class GerarPdfObraRelatorioService implements IGerarPdfObraRelatorioUseCase {
+export default class GerarPdfObraRelatorioService
+  implements IGerarPdfObraRelatorioUseCase
+{
   constructor(
     private readonly query: RelatoriosQuery,
     private readonly fluxo: FluxoFisicoFinanceiroRelatorioService,
@@ -84,7 +86,9 @@ export default class GerarPdfObraRelatorioService implements IGerarPdfObraRelato
       });
       // Uma foto que falhe ao baixar é apenas pulada (contada em omitidas):
       // um anexo incompleto é melhor do que um relatório que não sai.
-      const { fotos, omitidas } = await this.prepararFotos(carregado.value.fotos);
+      const { fotos, omitidas } = await this.prepararFotos(
+        carregado.value.fotos,
+      );
       const subtitulo = `${carregado.value.dossie.obra.codigo} · ${carregado.value.dossie.obra.nome}`;
       const html = montarHtmlDossie({
         titulo: 'Dossiê da Obra',

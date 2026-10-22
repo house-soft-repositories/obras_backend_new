@@ -20,7 +20,9 @@ import type IPessoaRepository from '@/modules/pessoas/adapters/pessoa_repository
 import type IProfissionalTecnicoRepository from '@/modules/pessoas/adapters/profissional_tecnico_repository.interface';
 
 const mockRepo = <T>(methods: string[]): jest.Mocked<T> =>
-  Object.fromEntries(methods.map((m) => [m, jest.fn()])) as unknown as jest.Mocked<T>;
+  Object.fromEntries(
+    methods.map((m) => [m, jest.fn()]),
+  ) as unknown as jest.Mocked<T>;
 
 const makePage = (items: never[]) =>
   new PageEntity(

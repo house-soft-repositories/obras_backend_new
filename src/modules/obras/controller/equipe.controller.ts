@@ -6,7 +6,17 @@ import EquipeService from '@/modules/obras/application/equipe.service';
 import { EQUIPE_SERVICE } from '@/modules/obras/symbols';
 import { Inject } from '@nestjs/common';
 import { AddMembroDto, SeguirdorDto } from '@/modules/obras/dtos/equipe.dto';
-import { Body, Controller, Delete, Get, HttpException, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 
 @Controller('api/obras/:id/equipe')
 @UseGuards(AccessTokenGuard)
@@ -23,8 +33,15 @@ export default class EquipeController {
     @AuthenticatedUser() u: AccessTokenPayload | undefined,
   ) {
     return this.tc.run(u, async () => {
-      const r = await this.equipe.addResponsavel({ obraId: id, usuarioId: b.usuarioId, tipo: b.tipo });
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      const r = await this.equipe.addResponsavel({
+        obraId: id,
+        usuarioId: b.usuarioId,
+        tipo: b.tipo,
+      });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return { ok: true };
     });
   }
@@ -37,16 +54,25 @@ export default class EquipeController {
   ) {
     return this.tc.run(u, async () => {
       const r = await this.equipe.removeResponsavel({ obraId: id, usuarioId });
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return { ok: true };
     });
   }
 
   @Get('responsaveis')
-  async listResp(@Param('id', ParseUUIDPipe) id: string, @AuthenticatedUser() u: AccessTokenPayload | undefined) {
+  async listResp(
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
     return this.tc.run(u, async () => {
       const r = await this.equipe.listResponsaveis(id);
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return r.value;
     });
   }
@@ -58,8 +84,14 @@ export default class EquipeController {
     @AuthenticatedUser() u: AccessTokenPayload | undefined,
   ) {
     return this.tc.run(u, async () => {
-      const r = await this.equipe.addSeguidor({ obraId: id, usuarioId: b.usuarioId });
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      const r = await this.equipe.addSeguidor({
+        obraId: id,
+        usuarioId: b.usuarioId,
+      });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return { ok: true };
     });
   }
@@ -72,16 +104,25 @@ export default class EquipeController {
   ) {
     return this.tc.run(u, async () => {
       const r = await this.equipe.removeSeguidor({ obraId: id, usuarioId });
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return { ok: true };
     });
   }
 
   @Get('seguidores')
-  async listSeg(@Param('id', ParseUUIDPipe) id: string, @AuthenticatedUser() u: AccessTokenPayload | undefined) {
+  async listSeg(
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
     return this.tc.run(u, async () => {
       const r = await this.equipe.listSeguidores(id);
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return r.value;
     });
   }

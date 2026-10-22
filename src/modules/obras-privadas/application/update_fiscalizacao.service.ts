@@ -9,7 +9,9 @@ import IUpdateFiscalizacaoUseCase, {
 } from '@/modules/obras-privadas/domain/usecase/update_fiscalizacao.usecase';
 import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obra_privada_service.exception';
 
-export default class UpdateFiscalizacaoService implements IUpdateFiscalizacaoUseCase {
+export default class UpdateFiscalizacaoService
+  implements IUpdateFiscalizacaoUseCase
+{
   constructor(
     private readonly fiscalizacaoRepository: IFiscalizacaoRepository,
   ) {}

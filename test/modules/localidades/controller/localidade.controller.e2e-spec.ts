@@ -94,12 +94,15 @@ describe('Localidades API (e2e)', () => {
     updateLocalidade = { execute: jest.fn() };
     const tenantRequestContext: Pick<TenantRequestContextService, 'run'> = {
       run: jest.fn(
-        <T>(user: AccessTokenPayload | undefined, callback: () => Promise<T>) => {
-        if (!user || user.role === UserRole.SUPERADMIN || !user.tenantId) {
-          throw new TenantContextException();
-        }
-        return callback();
-      },
+        <T>(
+          user: AccessTokenPayload | undefined,
+          callback: () => Promise<T>,
+        ) => {
+          if (!user || user.role === UserRole.SUPERADMIN || !user.tenantId) {
+            throw new TenantContextException();
+          }
+          return callback();
+        },
       ),
     };
 
@@ -299,9 +302,7 @@ describe('Localidades API (e2e)', () => {
       .expect(400);
 
     const body = response.body as unknown as MessageResponse;
-    expect(body.message).toContain(
-      'property totalObras should not exist',
-    );
+    expect(body.message).toContain('property totalObras should not exist');
     expect(createLocalidade.execute.mock.calls).toHaveLength(0);
   });
 
@@ -335,9 +336,7 @@ describe('Localidades API (e2e)', () => {
       .expect(401);
 
     const body = response.body as unknown as MessageResponse;
-    expect(body.message).toBe(
-      ErrorCodeConstants.TENANT_CONTEXT_REQUIRED,
-    );
+    expect(body.message).toBe(ErrorCodeConstants.TENANT_CONTEXT_REQUIRED);
     expect(listLocalidades.execute.mock.calls).toHaveLength(0);
   });
 
@@ -359,9 +358,7 @@ describe('Localidades API (e2e)', () => {
       .expect(403);
 
     const body = response.body as unknown as MessageResponse;
-    expect(body.message).toBe(
-      ErrorCodeConstants.LOCALIDADE_ACCESS_FORBIDDEN,
-    );
+    expect(body.message).toBe(ErrorCodeConstants.LOCALIDADE_ACCESS_FORBIDDEN);
   });
 
   it('rejects unauthenticated locality requests before use cases run', async () => {

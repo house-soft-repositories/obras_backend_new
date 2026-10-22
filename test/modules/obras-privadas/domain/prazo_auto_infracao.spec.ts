@@ -46,7 +46,9 @@ describe('prazo e efeitos do auto de infracao (RN-PRV-11/12)', () => {
 
   describe('estaAutuada / estaEmbargada', () => {
     it('ABERTO e EM_RECURSO mantem a obra autuada', () => {
-      expect(estaAutuada([auto({ situacao: SituacaoAutoInfracao.ABERTO })])).toBe(true);
+      expect(
+        estaAutuada([auto({ situacao: SituacaoAutoInfracao.ABERTO })]),
+      ).toBe(true);
       expect(
         estaAutuada([auto({ situacao: SituacaoAutoInfracao.EM_RECURSO })]),
       ).toBe(true);
@@ -63,12 +65,12 @@ describe('prazo e efeitos do auto de infracao (RN-PRV-11/12)', () => {
     });
 
     it('so EMBARGO/INTERDICAO ABERTO deixam a obra embargada', () => {
-      expect(
-        estaEmbargada([auto({ tipo: TipoAutoInfracao.EMBARGO })]),
-      ).toBe(true);
-      expect(
-        estaEmbargada([auto({ tipo: TipoAutoInfracao.INTERDICAO })]),
-      ).toBe(true);
+      expect(estaEmbargada([auto({ tipo: TipoAutoInfracao.EMBARGO })])).toBe(
+        true,
+      );
+      expect(estaEmbargada([auto({ tipo: TipoAutoInfracao.INTERDICAO })])).toBe(
+        true,
+      );
       expect(estaEmbargada([auto({ tipo: TipoAutoInfracao.MULTA })])).toBe(
         false,
       );
@@ -121,9 +123,9 @@ describe('prazo e efeitos do auto de infracao (RN-PRV-11/12)', () => {
     });
 
     it('obra sem auto nenhum mantem o andamento atual', () => {
-      expect(
-        andamentoAposAuto([], AndamentoObraPrivada.NAO_INICIADA),
-      ).toBe(AndamentoObraPrivada.NAO_INICIADA);
+      expect(andamentoAposAuto([], AndamentoObraPrivada.NAO_INICIADA)).toBe(
+        AndamentoObraPrivada.NAO_INICIADA,
+      );
     });
   });
 

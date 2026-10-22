@@ -46,7 +46,10 @@ describe('LocalidadeRepository', () => {
       return repository.findAll();
     });
 
-    expect(result.getOrThrow().map((item) => item.nome)).toEqual(['Alpha', 'Zeta']);
+    expect(result.getOrThrow().map((item) => item.nome)).toEqual([
+      'Alpha',
+      'Zeta',
+    ]);
     expect(result.getOrThrow()[0]).toMatchObject({
       uf: 'PI',
       tipo: TipoLocalidade.BAIRRO,
@@ -84,7 +87,9 @@ describe('LocalidadeRepository', () => {
     const foreign = LocalidadeEntity.create(localidade('Foreign'));
 
     await context.run(tenantContext(second), () => repository.save(foreign));
-    const result = await context.run(tenantContext(first), () => repository.findById(foreign.id));
+    const result = await context.run(tenantContext(first), () =>
+      repository.findById(foreign.id),
+    );
 
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('Expected a not-found failure');
@@ -107,7 +112,9 @@ describe('LocalidadeRepository', () => {
       repository.findAll(),
     );
 
-    expect(result.getOrThrow().map((item) => item.nome)).toEqual(['Tenant One']);
+    expect(result.getOrThrow().map((item) => item.nome)).toEqual([
+      'Tenant One',
+    ]);
   });
 });
 

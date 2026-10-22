@@ -111,7 +111,9 @@ export default class ParalisacaoRepository implements IParalisacaoRepository {
         this.dataSource,
         this.tenantContext,
         async (manager: EntityManager) => {
-          await manager.getRepository(ParalisacaoModel).delete({ id, tenantId });
+          await manager
+            .getRepository(ParalisacaoModel)
+            .delete({ id, tenantId });
         },
       );
 

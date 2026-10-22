@@ -88,7 +88,11 @@ export default class DetalharObraService implements IDetalharObraUseCase {
         obra: found.value,
         proprietario: proprietario.value,
         responsaveis: detalhes,
-        derivados: this.calcularDerivados(visitas.value, autos.value, alvaras.value),
+        derivados: this.calcularDerivados(
+          visitas.value,
+          autos.value,
+          alvaras.value,
+        ),
       });
     } catch (error) {
       if (error instanceof AppException) return left(error);

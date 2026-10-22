@@ -41,17 +41,15 @@ describe('SwitchTenancyService', () => {
     tokens.signRefresh.mockResolvedValue('tenant-refresh-token');
     passwords.hash.mockResolvedValue('tenant-refresh-token-hash');
     sessions.save.mockResolvedValue(
-      right(
-        {
-          id: 'session-id',
-          userId: superadmin.sub,
-          refreshTokenHash: 'tenant-refresh-token-hash',
-          expiresAt: new Date(),
-          revokedAt: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ),
+      right({
+        id: 'session-id',
+        userId: superadmin.sub,
+        refreshTokenHash: 'tenant-refresh-token-hash',
+        expiresAt: new Date(),
+        revokedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
     );
     const service = new SwitchTenancyService(
       listTenancies,
@@ -86,14 +84,14 @@ describe('SwitchTenancyService', () => {
   it.each([UserRole.ADMIN, UserRole.STAFF, UserRole.USER])(
     'rejects %s before reading tenancies or issuing a token',
     async (role) => {
-    const listTenancies = mockListTenancies();
-    const tokens = mockTokenService();
-    const service = new SwitchTenancyService(
-      listTenancies,
-      tokens,
-      mockPasswordHasher(),
-      mockUserSessionRepository(),
-    );
+      const listTenancies = mockListTenancies();
+      const tokens = mockTokenService();
+      const service = new SwitchTenancyService(
+        listTenancies,
+        tokens,
+        mockPasswordHasher(),
+        mockUserSessionRepository(),
+      );
 
       const result = await service.execute({
         user: { ...superadmin, role, tenantId },

@@ -6,7 +6,9 @@ import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import { unit, type Unit } from '@/core/types/unit';
 import { withManager } from '@/core/multitenancy/tenant_manager';
-import IObraRepository, { ObraFindPageParams } from '@/modules/obras/adapters/obra_repository.interface';
+import IObraRepository, {
+  ObraFindPageParams,
+} from '@/modules/obras/adapters/obra_repository.interface';
 import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
 import ObraMapper from '@/modules/obras/infra/mapper/obra.mapper';
 import ObraModel from '@/modules/obras/infra/models/obra.model';
@@ -113,7 +115,11 @@ export default class ObraRepository implements IObraRepository {
         `INSERT INTO "${s}"."obras" (${cols.join(',')}) VALUES (${placeholders}) ON CONFLICT (id) DO UPDATE SET nome=EXCLUDED.nome, descricao=EXCLUDED.descricao, tipo=EXCLUDED.tipo, status=EXCLUDED.status, tipo_financiamento=EXCLUDED.tipo_financiamento, modo_duracao=EXCLUDED.modo_duracao, data_inicio=EXCLUDED.data_inicio, data_prazo=EXCLUDED.data_prazo, acao_conveniada=EXCLUDED.acao_conveniada, prioritaria=EXCLUDED.prioritaria, exibir_camera_ao_vivo=EXCLUDED.exibir_camera_ao_vivo, camera_url=EXCLUDED.camera_url, privado=EXCLUDED.privado, invisivel=EXCLUDED.invisivel, considerar_sabado=EXCLUDED.considerar_sabado, considerar_domingo=EXCLUDED.considerar_domingo, seguir_automatico=EXCLUDED.seguir_automatico, vincular_pagamento_percentual=EXCLUDED.vincular_pagamento_percentual, corresponsaveis_podem_editar=EXCLUDED.corresponsaveis_podem_editar, programa_ppa=EXCLUDED.programa_ppa, acao_estrategica=EXCLUDED.acao_estrategica, acao_orcamentaria=EXCLUDED.acao_orcamentaria, unidade_medida=EXCLUDED.unidade_medida, quantidade=EXCLUDED.quantidade, secretario=EXCLUDED.secretario, data_pactuada=EXCLUDED.data_pactuada, updated_at=EXCLUDED.updated_at RETURNING id,codigo,nome,descricao,tipo,status,tipo_financiamento AS "tipoFinanciamento",modo_duracao AS "modoDuracao",data_inicio AS "dataInicio",data_prazo AS "dataPrazo",acao_conveniada AS "acaoConveniada",prioritaria,exibir_camera_ao_vivo AS "exibirCameraAoVivo",camera_url AS "cameraUrl",privado,invisivel,considerar_sabado AS "considerarSabado",considerar_domingo AS "considerarDomingo",seguir_automatico AS "seguirAutomatico",vincular_pagamento_percentual AS "vincularPagamentoPercentual",corresponsaveis_podem_editar AS "corresponsaveisPodemEditar",orgao_id AS "orgaoId",setor_id AS "setorId",localidade_id AS "localidadeId",subclassificacao_id AS "subclassificacaoId",eixo_id AS "eixoId",classificacao_id AS "classificacaoId",tipologia_id AS "tipologiaId",subtipologia_id AS "subtipologiaId",programa_ppa AS "programaPpa",acao_estrategica AS "acaoEstrategica",acao_orcamentaria AS "acaoOrcamentaria",unidade_medida AS "unidadeMedida",quantidade,secretario,data_pactuada AS "dataPactuada",criado_por_usuario_id AS "criadoPorUsuarioId",created_at AS "createdAt",updated_at AS "updatedAt",deleted_at AS "deletedAt"`,
         values,
       );
-      return right(ObraMapper.toEntity(saved as unknown as ObraModel & Record<string, unknown>));
+      return right(
+        ObraMapper.toEntity(
+          saved as unknown as ObraModel & Record<string, unknown>,
+        ),
+      );
     } catch (cause: unknown) {
       const c = cause as { code?: string };
       if (c?.code === '23505')
@@ -161,7 +167,13 @@ export default class ObraRepository implements IObraRepository {
         `SELECT id,codigo,nome,descricao,tipo,status,tipo_financiamento AS "tipoFinanciamento",modo_duracao AS "modoDuracao",data_inicio AS "dataInicio",data_prazo AS "dataPrazo",acao_conveniada AS "acaoConveniada",prioritaria,exibir_camera_ao_vivo AS "exibirCameraAoVivo",camera_url AS "cameraUrl",privado,invisivel,considerar_sabado AS "considerarSabado",considerar_domingo AS "considerarDomingo",seguir_automatico AS "seguirAutomatico",vincular_pagamento_percentual AS "vincularPagamentoPercentual",corresponsaveis_podem_editar AS "corresponsaveisPodemEditar",orgao_id AS "orgaoId",setor_id AS "setorId",localidade_id AS "localidadeId",subclassificacao_id AS "subclassificacaoId",eixo_id AS "eixoId",classificacao_id AS "classificacaoId",tipologia_id AS "tipologiaId",subtipologia_id AS "subtipologiaId",programa_ppa AS "programaPpa",acao_estrategica AS "acaoEstrategica",acao_orcamentaria AS "acaoOrcamentaria",unidade_medida AS "unidadeMedida",quantidade,secretario,data_pactuada AS "dataPactuada",criado_por_usuario_id AS "criadoPorUsuarioId",created_at AS "createdAt",updated_at AS "updatedAt",deleted_at AS "deletedAt" FROM "${s}"."obras" WHERE id=$1 AND deleted_at IS NULL`,
         [id],
       );
-      return right(r ? ObraMapper.toEntity(r as unknown as ObraModel & Record<string, unknown>) : null);
+      return right(
+        r
+          ? ObraMapper.toEntity(
+              r as unknown as ObraModel & Record<string, unknown>,
+            )
+          : null,
+      );
     } catch (cause) {
       return left(
         new ObraRepositoryException({
@@ -173,11 +185,15 @@ export default class ObraRepository implements IObraRepository {
     }
   }
 
-  async findOneWithRelations(id: string): AsyncResult<AppException, ObraEntity | null> {
+  async findOneWithRelations(
+    id: string,
+  ): AsyncResult<AppException, ObraEntity | null> {
     return this.findById(id);
   }
 
-  async findPage(params: ObraFindPageParams): AsyncResult<AppException, PageEntity<ObraEntity>> {
+  async findPage(
+    params: ObraFindPageParams,
+  ): AsyncResult<AppException, PageEntity<ObraEntity>> {
     try {
       const s = this.tc.require().schemaName;
       const conditions: string[] = ['deleted_at IS NULL'];
@@ -200,15 +216,34 @@ export default class ObraRepository implements IObraRepository {
         values.push(`%${params.q}%`);
         idx++;
       }
-      const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+      const where = conditions.length
+        ? `WHERE ${conditions.join(' AND ')}`
+        : '';
       const countSql = `SELECT COUNT(*)::int AS count FROM "${s}"."obras" ${where}`;
-      const [countRow] = await this.ds.query<{ count: number }[]>(countSql, values);
+      const [countRow] = await this.ds.query<{ count: number }[]>(
+        countSql,
+        values,
+      );
       const itemCount = countRow?.count ?? 0;
       const dataSql = `SELECT id,codigo,nome,descricao,tipo,status,tipo_financiamento AS "tipoFinanciamento",modo_duracao AS "modoDuracao",data_inicio AS "dataInicio",data_prazo AS "dataPrazo",acao_conveniada AS "acaoConveniada",prioritaria,exibir_camera_ao_vivo AS "exibirCameraAoVivo",camera_url AS "cameraUrl",privado,invisivel,considerar_sabado AS "considerarSabado",considerar_domingo AS "considerarDomingo",seguir_automatico AS "seguirAutomatico",vincular_pagamento_percentual AS "vincularPagamentoPercentual",corresponsaveis_podem_editar AS "corresponsaveisPodemEditar",orgao_id AS "orgaoId",setor_id AS "setorId",localidade_id AS "localidadeId",subclassificacao_id AS "subclassificacaoId",eixo_id AS "eixoId",classificacao_id AS "classificacaoId",tipologia_id AS "tipologiaId",subtipologia_id AS "subtipologiaId",programa_ppa AS "programaPpa",acao_estrategica AS "acaoEstrategica",acao_orcamentaria AS "acaoOrcamentaria",unidade_medida AS "unidadeMedida",quantidade,secretario,data_pactuada AS "dataPactuada",criado_por_usuario_id AS "criadoPorUsuarioId",created_at AS "createdAt",updated_at AS "updatedAt",deleted_at AS "deletedAt" FROM "${s}"."obras" ${where} ORDER BY created_at DESC LIMIT $${idx++} OFFSET $${idx++}`;
-      const dataValues = [...values, params.pageOptions.take, params.pageOptions.skip];
-      const rows = await this.ds.query<Record<string, unknown>[]>(dataSql, dataValues);
-      const entities = rows.map((r) => ObraMapper.toEntity(r as unknown as ObraModel & Record<string, unknown>));
-      const meta = new PageMetaEntity({ pageOptions: params.pageOptions, itemCount });
+      const dataValues = [
+        ...values,
+        params.pageOptions.take,
+        params.pageOptions.skip,
+      ];
+      const rows = await this.ds.query<Record<string, unknown>[]>(
+        dataSql,
+        dataValues,
+      );
+      const entities = rows.map((r) =>
+        ObraMapper.toEntity(
+          r as unknown as ObraModel & Record<string, unknown>,
+        ),
+      );
+      const meta = new PageMetaEntity({
+        pageOptions: params.pageOptions,
+        itemCount,
+      });
       return right(new PageEntity(entities, meta));
     } catch (cause) {
       return left(
@@ -221,7 +256,9 @@ export default class ObraRepository implements IObraRepository {
     }
   }
 
-  async updatePartial(entity: ObraEntity): AsyncResult<AppException, ObraEntity> {
+  async updatePartial(
+    entity: ObraEntity,
+  ): AsyncResult<AppException, ObraEntity> {
     try {
       const s = this.tc.require().schemaName;
       const o = entity.toObject();
@@ -273,7 +310,11 @@ export default class ObraRepository implements IObraRepository {
             statusCode: 404,
           }),
         );
-      return right(ObraMapper.toEntity(updated as unknown as ObraModel & Record<string, unknown>));
+      return right(
+        ObraMapper.toEntity(
+          updated as unknown as ObraModel & Record<string, unknown>,
+        ),
+      );
     } catch (cause) {
       return left(
         new ObraRepositoryException({
@@ -288,10 +329,9 @@ export default class ObraRepository implements IObraRepository {
   async softDelete(id: string): AsyncResult<AppException, Unit> {
     try {
       await withManager(this.ds, this.tc, async (manager) => {
-        await manager.getRepository(ObraModel).update(
-          { id },
-          { deletedAt: new Date(), updatedAt: new Date() },
-        );
+        await manager
+          .getRepository(ObraModel)
+          .update({ id }, { deletedAt: new Date(), updatedAt: new Date() });
       });
       return right(unit);
     } catch (cause) {

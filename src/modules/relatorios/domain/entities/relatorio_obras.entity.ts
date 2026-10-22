@@ -16,9 +16,7 @@ import RelatoriosDomainException from '@/modules/relatorios/exceptions/relatorio
  * Métodos retornam novas instâncias/valores, nunca mutam.
  */
 export default class RelatorioObrasEntity {
-  private constructor(
-    private readonly linhas: LinhaObraRelatorioEntity[],
-  ) {}
+  private constructor(private readonly linhas: LinhaObraRelatorioEntity[]) {}
 
   static fromLinhas(
     linhas: (LinhaObraRelatorio | LinhaObraRelatorioEntity)[],
@@ -44,9 +42,7 @@ export default class RelatorioObrasEntity {
     return this.linhas.map((linha) => linha.paraItemLista());
   }
 
-  filtrar(
-    filtro: FiltroObrasEntity | FiltroObrasDto,
-  ): RelatorioObrasEntity {
+  filtrar(filtro: FiltroObrasEntity | FiltroObrasDto): RelatorioObrasEntity {
     const entity =
       filtro instanceof FiltroObrasEntity
         ? filtro

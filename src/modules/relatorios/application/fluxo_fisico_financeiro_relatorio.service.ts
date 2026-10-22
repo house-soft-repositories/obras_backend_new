@@ -20,7 +20,10 @@ function pct(valor: number, total: number): number {
 
 function mediaPercentualFisico(linhas: LinhaObraRelatorio[]): number {
   if (!linhas.length) return 0;
-  const soma = linhas.reduce((total, linha) => total + linha.percentualRealizado, 0);
+  const soma = linhas.reduce(
+    (total, linha) => total + linha.percentualRealizado,
+    0,
+  );
   return Number((soma / linhas.length).toFixed(2));
 }
 
@@ -84,7 +87,12 @@ export default class FluxoFisicoFinanceiroRelatorioService
       for (const linha of filtradas)
         somarValores(acc, mapa.get(linha.obraId) ?? valoresZerados());
       return right(
-        this.montar(null, param.orgaoId ?? null, acc, mediaPercentualFisico(filtradas)),
+        this.montar(
+          null,
+          param.orgaoId ?? null,
+          acc,
+          mediaPercentualFisico(filtradas),
+        ),
       );
     } catch (error) {
       if (error instanceof AppException) return left(error);

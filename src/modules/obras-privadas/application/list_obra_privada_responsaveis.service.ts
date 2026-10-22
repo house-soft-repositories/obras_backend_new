@@ -6,7 +6,9 @@ import IListObraPrivadaResponsaveisUseCase, {
   ListObraPrivadaResponsaveisParam,
 } from '@/modules/obras-privadas/domain/usecase/list_obra_privada_responsaveis.usecase';
 
-export default class ListObraPrivadaResponsaveisService implements IListObraPrivadaResponsaveisUseCase {
+export default class ListObraPrivadaResponsaveisService
+  implements IListObraPrivadaResponsaveisUseCase
+{
   constructor(
     private readonly responsavelRepository: IObraPrivadaResponsavelRepository,
   ) {}

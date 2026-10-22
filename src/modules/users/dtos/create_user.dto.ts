@@ -36,14 +36,20 @@ export default class CreateUserDto {
   tenantId?: string;
 
   @IsOptional()
-  @IsUUID(undefined, { message: ErrorCodeConstants.USER_INVALID_ORGANIZATIONAL_LINK })
+  @IsUUID(undefined, {
+    message: ErrorCodeConstants.USER_INVALID_ORGANIZATIONAL_LINK,
+  })
   localidadeId?: string;
 
   @IsOptional()
-  @IsUUID(undefined, { message: ErrorCodeConstants.USER_INVALID_ORGANIZATIONAL_LINK })
+  @IsUUID(undefined, {
+    message: ErrorCodeConstants.USER_INVALID_ORGANIZATIONAL_LINK,
+  })
   orgaoId?: string;
 
   @IsOptional()
-  @IsUUID(undefined, { message: ErrorCodeConstants.USER_INVALID_ORGANIZATIONAL_LINK })
+  @IsUUID(undefined, {
+    message: ErrorCodeConstants.USER_INVALID_ORGANIZATIONAL_LINK,
+  })
   setorId?: string;
 }

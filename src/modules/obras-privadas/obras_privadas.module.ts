@@ -325,7 +325,12 @@ import { DataSource } from 'typeorm';
     },
     {
       provide: CREATE_ALVARA_SERVICE,
-      inject: [OBRA_PRIVADA_REPOSITORY, DataSource, STORAGE_SERVICE, TenantContext],
+      inject: [
+        OBRA_PRIVADA_REPOSITORY,
+        DataSource,
+        STORAGE_SERVICE,
+        TenantContext,
+      ],
       useFactory: (
         obraPrivadaRepository: IObraPrivadaRepository,
         ds: DataSource,
@@ -442,7 +447,12 @@ import { DataSource } from 'typeorm';
     },
     {
       provide: CREATE_HABITE_SE_SERVICE,
-      inject: [OBRA_PRIVADA_REPOSITORY, DataSource, STORAGE_SERVICE, TenantContext],
+      inject: [
+        OBRA_PRIVADA_REPOSITORY,
+        DataSource,
+        STORAGE_SERVICE,
+        TenantContext,
+      ],
       useFactory: (
         obraPrivadaRepository: IObraPrivadaRepository,
         ds: DataSource,

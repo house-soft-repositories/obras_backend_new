@@ -9,7 +9,9 @@ import IDeleteFiscalizacaoUseCase, {
 } from '@/modules/obras-privadas/domain/usecase/delete_fiscalizacao.usecase';
 import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obra_privada_service.exception';
 
-export default class DeleteFiscalizacaoService implements IDeleteFiscalizacaoUseCase {
+export default class DeleteFiscalizacaoService
+  implements IDeleteFiscalizacaoUseCase
+{
   constructor(
     private readonly fiscalizacaoRepository: IFiscalizacaoRepository,
   ) {}

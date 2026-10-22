@@ -86,7 +86,9 @@ export default class UserProvisioningController {
       creator: {
         id: user.sub,
         role: user.role as
-          UserRole.ADMIN | UserRole.STAFF | UserRole.SUPERADMIN,
+          | UserRole.ADMIN
+          | UserRole.STAFF
+          | UserRole.SUPERADMIN,
         tenantId: user.tenantId,
       },
     });

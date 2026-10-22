@@ -16,7 +16,12 @@ export default class ListAutosGlobalQueryDto extends PaginationOptionsDto {
   @IsOptional() @IsString() busca?: string;
   @IsOptional() @IsEnum(TipoAutoInfracao) tipo?: TipoAutoInfracao;
   @IsOptional() @IsEnum(SituacaoAutoInfracao) situacao?: SituacaoAutoInfracao;
-  @IsOptional() @Transform(({ value }) => value === 'true' || value === true, { toClassOnly: true }) @IsBoolean() vencidos?: boolean;
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true, {
+    toClassOnly: true,
+  })
+  @IsBoolean()
+  vencidos?: boolean;
   @IsOptional() @IsDateString() dataInicio?: string;
   @IsOptional() @IsDateString() dataFim?: string;
 }

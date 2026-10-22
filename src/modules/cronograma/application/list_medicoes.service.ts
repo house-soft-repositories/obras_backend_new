@@ -8,7 +8,9 @@ import IObraRepository from '@/modules/obras/adapters/obra_repository.interface'
 import IMedicaoRepository from '@/modules/cronograma/adapters/medicao_repository.interface';
 import MedicaoEntity from '@/modules/cronograma/domain/entities/medicao.entity';
 import CronogramaServiceException from '@/modules/cronograma/exceptions/cronograma_service.exception';
-import IListMedicoesUseCase, { ListMedicoesParam } from '@/modules/cronograma/domain/usecase/list_medicoes.usecase';
+import IListMedicoesUseCase, {
+  ListMedicoesParam,
+} from '@/modules/cronograma/domain/usecase/list_medicoes.usecase';
 
 export default class ListMedicoesService implements IListMedicoesUseCase {
   constructor(
@@ -16,7 +18,9 @@ export default class ListMedicoesService implements IListMedicoesUseCase {
     private readonly obras: IObraRepository,
   ) {}
 
-  async execute(param: ListMedicoesParam): AsyncResult<AppException, PageEntity<MedicaoEntity>> {
+  async execute(
+    param: ListMedicoesParam,
+  ): AsyncResult<AppException, PageEntity<MedicaoEntity>> {
     const obra = await this.ensureObra(param.obraId);
     if (obra.isLeft()) return left(obra.value);
     return this.repo.list(param.obraId, param.options);

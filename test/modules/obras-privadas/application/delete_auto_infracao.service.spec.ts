@@ -4,7 +4,10 @@ import { unit, type Unit } from '@/core/types/unit';
 import DeleteAutoInfracaoService from '@/modules/obras-privadas/application/delete_auto_infracao.service';
 import type IAutoInfracaoRepository from '@/modules/obras-privadas/adapters/auto_infracao_repository.interface';
 import AutoInfracaoEntity from '@/modules/obras-privadas/domain/entities/auto_infracao.entity';
-import { TipoAutoInfracao, SituacaoAutoInfracao } from '@/modules/obras-privadas/domain/enums/obras_privadas.enum';
+import {
+  TipoAutoInfracao,
+  SituacaoAutoInfracao,
+} from '@/modules/obras-privadas/domain/enums/obras_privadas.enum';
 import type { DeleteAutoInfracaoParam } from '@/modules/obras-privadas/domain/usecase/delete_auto_infracao.usecase';
 
 const makeAutoInfracaoRepo = (): jest.Mocked<IAutoInfracaoRepository> =>
@@ -42,7 +45,10 @@ describe('DeleteAutoInfracaoService', () => {
     autoRepo.findById.mockResolvedValue(right(auto));
     autoRepo.delete.mockResolvedValue(right(unit));
     const svc = new DeleteAutoInfracaoService(autoRepo);
-    const param: DeleteAutoInfracaoParam = { id: 'auto-1', obraPrivadaId: 'obra-1' };
+    const param: DeleteAutoInfracaoParam = {
+      id: 'auto-1',
+      obraPrivadaId: 'obra-1',
+    };
     const result = await svc.execute(param);
     expect(result.isRight()).toBe(true);
     expect(result.getOrThrow()).toBe(unit);
@@ -54,7 +60,10 @@ describe('DeleteAutoInfracaoService', () => {
     const autoRepo = makeAutoInfracaoRepo();
     autoRepo.findById.mockResolvedValue(right(null));
     const svc = new DeleteAutoInfracaoService(autoRepo);
-    const param: DeleteAutoInfracaoParam = { id: 'auto-999', obraPrivadaId: 'obra-1' };
+    const param: DeleteAutoInfracaoParam = {
+      id: 'auto-999',
+      obraPrivadaId: 'obra-1',
+    };
     const result = await svc.execute(param);
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('expected failure');
@@ -67,7 +76,10 @@ describe('DeleteAutoInfracaoService', () => {
     const auto = makeAuto();
     autoRepo.findById.mockResolvedValue(right(auto));
     const svc = new DeleteAutoInfracaoService(autoRepo);
-    const param: DeleteAutoInfracaoParam = { id: 'auto-1', obraPrivadaId: 'obra-999' };
+    const param: DeleteAutoInfracaoParam = {
+      id: 'auto-1',
+      obraPrivadaId: 'obra-999',
+    };
     const result = await svc.execute(param);
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('expected failure');
@@ -79,7 +91,10 @@ describe('DeleteAutoInfracaoService', () => {
     const autoRepo = makeAutoInfracaoRepo();
     autoRepo.findById.mockResolvedValue(left(new Error('db error')));
     const svc = new DeleteAutoInfracaoService(autoRepo);
-    const param: DeleteAutoInfracaoParam = { id: 'auto-1', obraPrivadaId: 'obra-1' };
+    const param: DeleteAutoInfracaoParam = {
+      id: 'auto-1',
+      obraPrivadaId: 'obra-1',
+    };
     const result = await svc.execute(param);
     expect(result.isLeft()).toBe(true);
   });
@@ -90,7 +105,10 @@ describe('DeleteAutoInfracaoService', () => {
     autoRepo.findById.mockResolvedValue(right(auto));
     autoRepo.delete.mockResolvedValue(left(new Error('db error')));
     const svc = new DeleteAutoInfracaoService(autoRepo);
-    const param: DeleteAutoInfracaoParam = { id: 'auto-1', obraPrivadaId: 'obra-1' };
+    const param: DeleteAutoInfracaoParam = {
+      id: 'auto-1',
+      obraPrivadaId: 'obra-1',
+    };
     const result = await svc.execute(param);
     expect(result.isLeft()).toBe(true);
   });

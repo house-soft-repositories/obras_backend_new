@@ -5,13 +5,12 @@ import FonteEntity from '@/modules/fontes/domain/entities/fonte.entity';
 import FonteRepositoryException from '@/modules/fontes/exceptions/fonte_repository.exception';
 import type IFonteRepository from '@/modules/fontes/adapters/fonte_repository.interface';
 
-const makeRepo = (): jest.Mocked<IFonteRepository> =>
-  ({
-    save: jest.fn(),
-    findByCodigo: jest.fn(),
-    findById: jest.fn(),
-    findAll: jest.fn(),
-  });
+const makeRepo = (): jest.Mocked<IFonteRepository> => ({
+  save: jest.fn(),
+  findByCodigo: jest.fn(),
+  findById: jest.fn(),
+  findAll: jest.fn(),
+});
 
 describe('CreateFonteService', () => {
   const base = {
@@ -39,7 +38,10 @@ describe('CreateFonteService', () => {
     repo.save.mockImplementation((e) => Promise.resolve(right(e)));
 
     const service = new CreateFonteService(repo);
-    const result = await service.execute({ nome: 'Sem Código', codigo: null } as any);
+    const result = await service.execute({
+      nome: 'Sem Código',
+      codigo: null,
+    } as any);
 
     expect(result.isRight()).toBe(true);
     expect(repo.findByCodigo).not.toHaveBeenCalled();
@@ -64,7 +66,12 @@ describe('CreateFonteService', () => {
   it('propagates repository lookup failure', async () => {
     const repo = makeRepo();
     repo.findByCodigo.mockResolvedValue(
-      left(new FonteRepositoryException({ code: ErrorCodeConstants.FONTE_REPOSITORY_FAILED, statusCode: 500 })),
+      left(
+        new FonteRepositoryException({
+          code: ErrorCodeConstants.FONTE_REPOSITORY_FAILED,
+          statusCode: 500,
+        }),
+      ),
     );
 
     const service = new CreateFonteService(repo);
@@ -79,7 +86,10 @@ describe('CreateFonteService', () => {
     repo.findByCodigo.mockResolvedValue(right(null));
 
     const service = new CreateFonteService(repo);
-    const result = await service.execute({ nome: '  ', codigo: 'F-002' } as any);
+    const result = await service.execute({
+      nome: '  ',
+      codigo: 'F-002',
+    } as any);
 
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('expected failure');

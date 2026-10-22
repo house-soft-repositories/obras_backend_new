@@ -5,7 +5,10 @@ import LiquidacaoModel from '@/modules/obras/infra/models/liquidacao.model';
 export default abstract class LiquidacaoMapper {
   static toEntity(m: Record<string, unknown>): LiquidacaoEntity {
     const rawDate: unknown = m['dataLiquidacao'];
-    const data = rawDate instanceof Date ? rawDate.toISOString().slice(0, 10) : String(rawDate).slice(0, 10);
+    const data =
+      rawDate instanceof Date
+        ? rawDate.toISOString().slice(0, 10)
+        : String(rawDate).slice(0, 10);
     const rawValor: unknown = m['valor'];
     return LiquidacaoEntity.fromData({
       id: m['id'] as string,

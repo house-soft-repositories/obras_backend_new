@@ -35,7 +35,10 @@ describe('EditarArquivoService', () => {
     attachments.findById.mockResolvedValue(right(mirror));
     attachments.save.mockImplementation((e) => Promise.resolve(right(e)));
 
-    const result = await new EditarArquivoService(arquivos, attachments).execute({
+    const result = await new EditarArquivoService(
+      arquivos,
+      attachments,
+    ).execute({
       arquivoId: entity.id,
       nome: 'Novo',
       usuarioId: USUARIO_ID,

@@ -8,7 +8,7 @@ import {
   Max,
   Min,
   IsNumber,
-  IsString
+  IsString,
 } from 'class-validator';
 
 export default class EnvironmentVariables {

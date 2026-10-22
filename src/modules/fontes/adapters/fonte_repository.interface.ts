@@ -7,6 +7,9 @@ export default interface IFonteRepository {
   save(entity: FonteEntity): AsyncResult<AppException, FonteEntity>;
   findByCodigo(codigo: string): AsyncResult<AppException, FonteEntity | null>;
   findById(id: string): AsyncResult<AppException, FonteEntity | null>;
-  findAll(pageOptions: PageOptionsEntity, ativo?: boolean): AsyncResult<AppException, PageEntity<FonteEntity>>;
+  findAll(
+    pageOptions: PageOptionsEntity,
+    ativo?: boolean,
+  ): AsyncResult<AppException, PageEntity<FonteEntity>>;
   delete(id: string): AsyncResult<AppException, void>;
 }

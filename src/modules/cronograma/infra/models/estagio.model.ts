@@ -23,7 +23,11 @@ export default class EstagioModel extends BaseModelPrimaryColumnUuid {
   @Column({ type: 'varchar', default: EstagioStatus.PENDENTE })
   status!: EstagioStatus;
 
-  @Column({ name: 'modo_duracao', type: 'varchar', default: ModoDuracao.NAO_INFORMADO })
+  @Column({
+    name: 'modo_duracao',
+    type: 'varchar',
+    default: ModoDuracao.NAO_INFORMADO,
+  })
   modoDuracao!: ModoDuracao;
 
   @Column({ name: 'data_inicio', type: 'date', nullable: true })
@@ -32,7 +36,13 @@ export default class EstagioModel extends BaseModelPrimaryColumnUuid {
   @Column({ name: 'data_fim', type: 'date', nullable: true })
   dataFim!: string | null;
 
-  @Column({ name: 'percentual_direto', type: 'numeric', precision: 5, scale: 2, nullable: true })
+  @Column({
+    name: 'percentual_direto',
+    type: 'numeric',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+  })
   percentualDireto!: number | null;
 
   @Column({ name: 'responsavel_usuario_id', type: 'uuid', nullable: true })

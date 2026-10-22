@@ -4,7 +4,9 @@ import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import IFonteRepository from '@/modules/fontes/adapters/fonte_repository.interface';
 import FonteEntity from '@/modules/fontes/domain/entities/fonte.entity';
-import IGetFonteUseCase, { GetFonteParam } from '@/modules/fontes/domain/usecase/get_fonte.usecase';
+import IGetFonteUseCase, {
+  GetFonteParam,
+} from '@/modules/fontes/domain/usecase/get_fonte.usecase';
 import FonteServiceException from '@/modules/fontes/exceptions/fonte_service.exception';
 
 export default class GetFonteService implements IGetFonteUseCase {
@@ -15,11 +17,22 @@ export default class GetFonteService implements IGetFonteUseCase {
       const found = await this.repo.findById(param.id);
       if (found.isLeft()) return left(found.value);
       if (!found.value)
-        return left(new FonteServiceException({ code: ErrorCodeConstants.FONTE_NOT_FOUND, statusCode: 404 }));
+        return left(
+          new FonteServiceException({
+            code: ErrorCodeConstants.FONTE_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
       return right(found.value);
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
-      return left(new FonteServiceException({ code: ErrorCodeConstants.FONTE_GET_FAILED, statusCode: 500, cause }));
+      return left(
+        new FonteServiceException({
+          code: ErrorCodeConstants.FONTE_GET_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
 }

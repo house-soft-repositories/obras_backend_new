@@ -16,4 +16,7 @@ export interface VisaoFisicoFinanceira {
   pagoTotal: IndicadorFinanceiro;
 }
 
-export type IVisaoFisicoFinanceiraUseCase = UseCase<string, VisaoFisicoFinanceira>;
+export type IVisaoFisicoFinanceiraUseCase = UseCase<
+  string,
+  VisaoFisicoFinanceira
+>;

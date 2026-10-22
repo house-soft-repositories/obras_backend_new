@@ -19,7 +19,9 @@ export default class ObraPrivadaArquivoResponseDto {
   createdAt: Date;
   updatedAt: Date;
 
-  static fromEntity(entity: ObraPrivadaArquivoEntity): ObraPrivadaArquivoResponseDto {
+  static fromEntity(
+    entity: ObraPrivadaArquivoEntity,
+  ): ObraPrivadaArquivoResponseDto {
     const value = entity.toObject();
     const dto = new ObraPrivadaArquivoResponseDto();
     dto.id = value.id;

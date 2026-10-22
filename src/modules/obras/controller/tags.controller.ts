@@ -6,7 +6,17 @@ import TagsService from '@/modules/obras/application/tags.service';
 import { TAGS_SERVICE } from '@/modules/obras/symbols';
 import { Inject } from '@nestjs/common';
 import { AplicarTagsDto } from '@/modules/obras/dtos/tags.dto';
-import { Body, Controller, Delete, Get, HttpException, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 
 @Controller('api/obras/:id/tags')
 @UseGuards(AccessTokenGuard)
@@ -17,10 +27,16 @@ export default class TagsController {
   ) {}
 
   @Get()
-  async list(@Param('id', ParseUUIDPipe) id: string, @AuthenticatedUser() u: AccessTokenPayload | undefined) {
+  async list(
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuthenticatedUser() u: AccessTokenPayload | undefined,
+  ) {
     return this.tc.run(u, async () => {
       const r = await this.tags.list(id);
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return r.value.map((e) => e.toObject());
     });
   }
@@ -33,7 +49,10 @@ export default class TagsController {
   ) {
     return this.tc.run(u, async () => {
       const r = await this.tags.aplicar({ obraId: id, tags: b.tags });
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return r.value.map((e) => e.toObject());
     });
   }
@@ -46,7 +65,10 @@ export default class TagsController {
   ) {
     return this.tc.run(u, async () => {
       const r = await this.tags.detach({ obraId: id, tagId });
-      if (r.isLeft()) throw new HttpException(r.value.message, r.value.statusCode, { cause: r.value.cause });
+      if (r.isLeft())
+        throw new HttpException(r.value.message, r.value.statusCode, {
+          cause: r.value.cause,
+        });
       return { ok: true };
     });
   }

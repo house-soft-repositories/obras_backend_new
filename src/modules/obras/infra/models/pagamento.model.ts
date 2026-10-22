@@ -19,8 +19,10 @@ export default class PagamentoModel extends BaseModelPrimaryColumnUuid {
   @ManyToOne(() => FonteModel, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'fonte_id' })
   fonte?: FonteModel;
-  @Column({ name: 'numero_ordem_bancaria', type: 'varchar' }) numeroOrdemBancaria!: string;
-  @Column({ name: 'data_ordem_bancaria', type: 'date' }) dataOrdemBancaria!: string;
+  @Column({ name: 'numero_ordem_bancaria', type: 'varchar' })
+  numeroOrdemBancaria!: string;
+  @Column({ name: 'data_ordem_bancaria', type: 'date' })
+  dataOrdemBancaria!: string;
   @Column({ type: 'numeric', precision: 15, scale: 2 }) valor!: string;
   @Column({ type: 'text', nullable: true }) observacoes!: string | null;
 }

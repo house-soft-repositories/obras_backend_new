@@ -26,7 +26,9 @@ export class AddUserOrganizationLinks1781400000000
   async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP INDEX IF EXISTS "public"."IDX_users_setor"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "public"."IDX_users_orgao"`);
-    await queryRunner.query(`DROP INDEX IF EXISTS "public"."IDX_users_localidade"`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS "public"."IDX_users_localidade"`,
+    );
     await queryRunner.query(`
       ALTER TABLE "public"."users"
         DROP COLUMN IF EXISTS "setor_id",

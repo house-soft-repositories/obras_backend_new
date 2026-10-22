@@ -1,8 +1,5 @@
 export default interface IMonitoryService {
-  captureException(
-    exception: Error,
-    context: Record<string, unknown>,
-  ): void;
+  captureException(exception: Error, context: Record<string, unknown>): void;
 
   captureMessage(
     message: string,

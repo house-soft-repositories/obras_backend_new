@@ -34,8 +34,9 @@ export default class CreateProfissionalTecnicoDto {
   declare numeroRegistro: string;
 
   @ApiPropertyOptional()
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toUpperCase() : value,
+  @Transform(
+    ({ value }: { value: unknown }) =>
+      typeof value === 'string' ? value.trim().toUpperCase() : value,
     { toClassOnly: true },
   )
   @IsOptional()

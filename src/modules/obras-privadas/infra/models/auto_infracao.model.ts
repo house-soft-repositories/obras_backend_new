@@ -12,14 +12,18 @@ export default class AutoInfracaoModel extends BaseModelPrimaryColumnUuid {
   @Column() tipo: string;
   @Column({ name: 'data_emissao', type: 'date' }) dataEmissao: string;
   @Column({ name: 'prazo_dias', nullable: true, type: 'int' }) prazoDias:
-    number | null;
+    | number
+    | null;
   @Column({ name: 'data_limite', nullable: true, type: 'date' }) dataLimite:
-    string | null;
+    | string
+    | null;
   @Column({ name: 'base_legal', nullable: true, type: 'text' }) baseLegal:
-    string | null;
+    | string
+    | null;
   @Column({ type: 'text' }) descricao: string;
   @Column({ name: 'valor_multa', nullable: true, type: 'numeric' }) valorMulta:
-    string | null;
+    | string
+    | null;
   @Column({ default: 'ABERTO' }) situacao: string;
   @Column({ name: 'data_encerramento', nullable: true, type: 'date' })
   dataEncerramento: string | null;

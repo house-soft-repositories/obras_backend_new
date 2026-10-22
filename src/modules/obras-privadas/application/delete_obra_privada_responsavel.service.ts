@@ -9,7 +9,9 @@ import IDeleteObraPrivadaResponsavelUseCase, {
 } from '@/modules/obras-privadas/domain/usecase/delete_obra_privada_responsavel.usecase';
 import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obra_privada_service.exception';
 
-export default class DeleteObraPrivadaResponsavelService implements IDeleteObraPrivadaResponsavelUseCase {
+export default class DeleteObraPrivadaResponsavelService
+  implements IDeleteObraPrivadaResponsavelUseCase
+{
   constructor(
     private readonly responsavelRepository: IObraPrivadaResponsavelRepository,
   ) {}

@@ -5,8 +5,5 @@ export interface GetEstagioAtualParam {
   obraId: string;
 }
 
-type IGetEstagioAtualUseCase = UseCase<
-  GetEstagioAtualParam,
-  EstagioEntity
->;
+type IGetEstagioAtualUseCase = UseCase<GetEstagioAtualParam, EstagioEntity>;
 export default IGetEstagioAtualUseCase;

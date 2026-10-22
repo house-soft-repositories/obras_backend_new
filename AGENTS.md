@@ -25,6 +25,15 @@ O container `api` é o ambiente canônico de validação. Antes de considerar um
 
 Sempre que possível, rode os testes dentro do container `api`, pois ele usa o mesmo ambiente de dependências/serviços do desenvolvimento Docker. Use `docker compose logs api` ou `docker compose logs -f api` quando precisar acompanhar o boot, erros de runtime ou o estado do container.
 
+Após qualquer modificação em código, execute os comandos do Biome dentro do container `api`:
+
+```bash
+docker compose exec api pnpm run lint
+docker compose exec api pnpm run format:check
+```
+
+Se o `format:check` falhar, aplique a formatação com `docker compose exec api pnpm run format` e execute novamente o `lint` e o `format:check`.
+
 **Fallback local (sem Docker):**
 
 ```bash
@@ -38,10 +47,10 @@ pnpm run test:e2e     # testes e2e (jest-e2e.json)
 pnpm run test:e2e -- test/modules/<name>/controller/<file>.e2e-spec.ts
 pnpm run test:integration # testes de integração (jest-integration.json)
 pnpm run test:integration -- test/modules/<name>/infra/<file>.spec.ts
-pnpm run lint         # checa ESLint (sem --fix)
-pnpm run lint:fix     # corrige ESLint (--fix)
-pnpm run format       # aplica Prettier em src/ e test/
-pnpm run format:check # só checa Prettier
+pnpm run lint         # checa o lint do Biome em src/ e test/
+pnpm run lint:fix     # aplica correções seguras do Biome
+pnpm run format       # aplica a formatação do Biome em src/ e test/
+pnpm run format:check # só verifica a formatação do Biome
 ```
 
 **Checklist antes de abrir PR:**
@@ -52,6 +61,7 @@ docker compose ps api
 docker compose logs --no-color --tail=200 api
 docker compose exec api pnpm run build
 docker compose exec api pnpm run lint
+docker compose exec api pnpm run format:check
 docker compose exec api pnpm test
 docker compose logs --no-color --tail=200 api
 ```
@@ -185,28 +195,6 @@ async execute(param): AsyncResult<AppException, Response> {
 ```
 
 Referências: `src/modules/users/application/create_user.service.ts`; `src/modules/obras-privadas/application/excluir_obra.service.ts`; `src/modules/documentos/application/remover_arquivo.service.ts`
-
-### Responses de use case
-
-Quando o use case retornar dados, o contrato pode declarar uma classe `Response` própria do use case. Essa classe recebe no construtor os dados necessários para a resposta e expõe `toResponse()`, centralizando a forma pública do retorno sem fazer o controller conhecer a entidade de domínio ou repetir mapeamentos.
-
-A classe `Response` deve ficar junto ao contrato em `domain/usecase/`, e o service deve retorná-la no lado direito do `AsyncResult`:
-
-```typescript
-// domain/usecase/create_user.usecase.ts
-export class CreateUserResponse {
-  constructor(private readonly user: UserEntity) {}
-
-  toResponse() {
-    const { id, name, email, role, createdAt, updatedAt } = this.user.toObject();
-    return { id, name, email, role, createdAt, updatedAt };
-  }
-}
-
-type ICreateUserUseCase = UseCase<CreateUserParam, CreateUserResponse>;
-```
-
-O service instancia a response com o resultado da operação (`right(new CreateUserResponse(entity))`). O controller trata erros e chama `result.value.toResponse()` somente no sucesso. Para operações sem payload, continue usando `Unit`; não crie uma `Response` vazia. O método `toResponse()` deve expor apenas dados públicos deliberados, nunca senha, hash, token interno, entidade, model ou detalhes de infraestrutura.
 
 ### Services de application implementam contratos de use case
 

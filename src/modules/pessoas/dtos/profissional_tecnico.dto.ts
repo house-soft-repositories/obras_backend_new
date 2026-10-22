@@ -7,7 +7,8 @@ export default class ProfissionalTecnicoDto {
   @ApiProperty() pessoaId: string;
   @ApiProperty() nome: string;
   @ApiProperty() documento: string;
-  @ApiProperty({ enum: CONSELHOS_PROFISSIONAIS }) conselho: ConselhoProfissional;
+  @ApiProperty({ enum: CONSELHOS_PROFISSIONAIS })
+  conselho: ConselhoProfissional;
   @ApiProperty() numeroRegistro: string;
   @ApiPropertyOptional() ufRegistro: string | null;
   @ApiPropertyOptional() titulo: string | null;

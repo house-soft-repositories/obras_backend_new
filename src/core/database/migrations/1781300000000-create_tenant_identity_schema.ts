@@ -1,7 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import TenantMigrationRunner from '@/core/multitenancy/tenant_migrations/tenant_migration_runner';
 
-export class CreateTenantIdentitySchema1781300000000 implements MigrationInterface {
+export class CreateTenantIdentitySchema1781300000000
+  implements MigrationInterface
+{
   name = 'CreateTenantIdentitySchema1781300000000';
 
   async up(queryRunner: QueryRunner): Promise<void> {

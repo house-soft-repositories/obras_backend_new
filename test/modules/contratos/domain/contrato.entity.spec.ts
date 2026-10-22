@@ -20,9 +20,7 @@ describe('ContratoEntity', () => {
 
     expect(contrato.id).toEqual(expect.any(String));
     expect(contrato.numero).toBe('CTR-001');
-    expect(contrato.fontes).toEqual([
-      { fonteId: 'fonte-1', valor: '1000.00' },
-    ]);
+    expect(contrato.fontes).toEqual([{ fonteId: 'fonte-1', valor: '1000.00' }]);
   });
 
   it.each([
@@ -30,7 +28,14 @@ describe('ContratoEntity', () => {
     [{ ...base, fontes: [] }],
     [{ ...base, fontes: [{ fonteId: 'fonte-1', valor: '0' }] }],
     [{ ...base, prazoExecucaoDias: 0 }],
-    [{ ...base, tipoPrazoExecucao: TipoPrazoExecucao.DATA, prazoExecucaoDias: null, prazoExecucaoData: null }],
+    [
+      {
+        ...base,
+        tipoPrazoExecucao: TipoPrazoExecucao.DATA,
+        prazoExecucaoDias: null,
+        prazoExecucaoData: null,
+      },
+    ],
   ])('rejects invalid contract input', (props) => {
     expect.assertions(2);
 

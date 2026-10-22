@@ -1,5 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { EstagioStatus, ModoDuracao } from '@/modules/cronograma/domain/enums/cronograma.enums';
+import {
+  EstagioStatus,
+  ModoDuracao,
+} from '@/modules/cronograma/domain/enums/cronograma.enums';
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
 
 export default class EstagioResponseDto {

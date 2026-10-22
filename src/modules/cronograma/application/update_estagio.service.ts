@@ -4,7 +4,9 @@ import AsyncResult from '@/core/types/async_result';
 import { left } from '@/core/types/either';
 import IEstagioRepository from '@/modules/cronograma/adapters/estagio_repository.interface';
 import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
-import IUpdateEstagioUseCase, { UpdateEstagioParam } from '@/modules/cronograma/domain/usecase/update_estagio.usecase';
+import IUpdateEstagioUseCase, {
+  UpdateEstagioParam,
+} from '@/modules/cronograma/domain/usecase/update_estagio.usecase';
 import CronogramaServiceException from '@/modules/cronograma/exceptions/cronograma_service.exception';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 
@@ -14,7 +16,9 @@ export default class UpdateEstagioService implements IUpdateEstagioUseCase {
     private readonly obras: IObraRepository,
   ) {}
 
-  async execute(param: UpdateEstagioParam): AsyncResult<AppException, EstagioEntity> {
+  async execute(
+    param: UpdateEstagioParam,
+  ): AsyncResult<AppException, EstagioEntity> {
     const obra = await this.obras.findById(param.obraId);
     if (obra.isLeft()) return left(obra.value);
     if (!obra.value)
@@ -34,7 +38,10 @@ export default class UpdateEstagioService implements IUpdateEstagioUseCase {
             statusCode: 400,
           }),
         );
-      const parent = await this.repository.findById(param.estagioPaiId, param.obraId);
+      const parent = await this.repository.findById(
+        param.estagioPaiId,
+        param.obraId,
+      );
       if (parent.isLeft()) return left(parent.value);
       if (parent.value.estagioPaiId !== null)
         return left(
@@ -43,7 +50,10 @@ export default class UpdateEstagioService implements IUpdateEstagioUseCase {
             statusCode: 400,
           }),
         );
-      const children = await this.repository.hasChildren(param.obraId, param.id);
+      const children = await this.repository.hasChildren(
+        param.obraId,
+        param.id,
+      );
       if (children.isLeft()) return left(children.value);
       if (children.value)
         return left(

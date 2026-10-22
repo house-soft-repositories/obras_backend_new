@@ -17,13 +17,13 @@ const makeObraRepo = (): jest.Mocked<IObraPrivadaRepository> =>
   ({ findById: jest.fn() }) as unknown as jest.Mocked<IObraPrivadaRepository>;
 
 const makeStorage = (): jest.Mocked<IStorageService> => ({
-    ensureBucket: jest.fn(),
-    ensureTenantPrefix: jest.fn(),
-    putObject: jest.fn(),
-    getDownloadUrl: jest.fn(),
-    getUploadUrl: jest.fn(),
-    removeObject: jest.fn(),
-    copyObject: jest.fn(),
+  ensureBucket: jest.fn(),
+  ensureTenantPrefix: jest.fn(),
+  putObject: jest.fn(),
+  getDownloadUrl: jest.fn(),
+  getUploadUrl: jest.fn(),
+  removeObject: jest.fn(),
+  copyObject: jest.fn(),
 });
 
 const makeDataSource = () => {

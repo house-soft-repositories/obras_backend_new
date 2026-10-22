@@ -3,7 +3,11 @@ import EstagioEntity from '@/modules/cronograma/domain/entities/estagio.entity';
 
 describe('EstagioEntity', () => {
   it('creates a stage with defaults', () => {
-    const stage = EstagioEntity.create({ tenantId: 'tenant', obraId: 'obra', nome: 'Fundação' });
+    const stage = EstagioEntity.create({
+      tenantId: 'tenant',
+      obraId: 'obra',
+      nome: 'Fundação',
+    });
 
     expect(stage.nome).toBe('Fundação');
     expect(stage.posicao).toBe(0);
@@ -12,12 +16,17 @@ describe('EstagioEntity', () => {
   });
 
   it('rejects blank names and negative positions', () => {
-    expect(() => EstagioEntity.create({ tenantId: 'tenant', obraId: 'obra', nome: ' ' })).toThrow(
-      ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT,
-    );
-    expect(() => EstagioEntity.create({ tenantId: 'tenant', obraId: 'obra', nome: 'Etapa', posicao: -1 })).toThrow(
-      ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT,
-    );
+    expect(() =>
+      EstagioEntity.create({ tenantId: 'tenant', obraId: 'obra', nome: ' ' }),
+    ).toThrow(ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT);
+    expect(() =>
+      EstagioEntity.create({
+        tenantId: 'tenant',
+        obraId: 'obra',
+        nome: 'Etapa',
+        posicao: -1,
+      }),
+    ).toThrow(ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT);
   });
 
   it('rejects an end date before the start date', () => {
@@ -47,7 +56,11 @@ describe('EstagioEntity', () => {
   });
 
   it('rejects self as parent on update', () => {
-    const stage = EstagioEntity.create({ tenantId: 'tenant', obraId: 'obra', nome: 'Etapa' });
+    const stage = EstagioEntity.create({
+      tenantId: 'tenant',
+      obraId: 'obra',
+      nome: 'Etapa',
+    });
 
     expect(() => stage.update({ estagioPaiId: stage.id })).toThrow(
       ErrorCodeConstants.CRONOGRAMA_ESTAGIO_PAI_INVALID,
@@ -55,7 +68,11 @@ describe('EstagioEntity', () => {
   });
 
   it('accepts a root parent and clearing the parent on update', () => {
-    const parent = EstagioEntity.create({ tenantId: 'tenant', obraId: 'obra', nome: 'Pai' });
+    const parent = EstagioEntity.create({
+      tenantId: 'tenant',
+      obraId: 'obra',
+      nome: 'Pai',
+    });
     const child = EstagioEntity.create({
       tenantId: 'tenant',
       obraId: 'obra',

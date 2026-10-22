@@ -34,10 +34,26 @@ describe('PredefinidosService', () => {
 
     expect(result.isRight()).toBe(true);
     expect(result.value).toEqual([
-      { nome: 'EM LICITACAO', posicao: 0, modoDuracao: ModoDuracao.NAO_INFORMADO },
-      { nome: 'CONTRATADA', posicao: 1, modoDuracao: ModoDuracao.NAO_INFORMADO },
-      { nome: 'ORDEM DE SERVICO', posicao: 2, modoDuracao: ModoDuracao.NAO_INFORMADO },
-      { nome: 'EM EXECUCAO', posicao: 3, modoDuracao: ModoDuracao.DIAS_CORRIDOS },
+      {
+        nome: 'EM LICITACAO',
+        posicao: 0,
+        modoDuracao: ModoDuracao.NAO_INFORMADO,
+      },
+      {
+        nome: 'CONTRATADA',
+        posicao: 1,
+        modoDuracao: ModoDuracao.NAO_INFORMADO,
+      },
+      {
+        nome: 'ORDEM DE SERVICO',
+        posicao: 2,
+        modoDuracao: ModoDuracao.NAO_INFORMADO,
+      },
+      {
+        nome: 'EM EXECUCAO',
+        posicao: 3,
+        modoDuracao: ModoDuracao.DIAS_CORRIDOS,
+      },
       { nome: 'CONCLUIDA', posicao: 4, modoDuracao: ModoDuracao.NAO_INFORMADO },
     ]);
   });
@@ -56,12 +72,32 @@ describe('PredefinidosService', () => {
 
     expect(result.isRight()).toBe(true);
     expect(result.value).toEqual([
-      { nome: 'EM LICITACAO', posicao: 0, modoDuracao: ModoDuracao.NAO_INFORMADO },
-      { nome: 'CONTRATADA', posicao: 1, modoDuracao: ModoDuracao.NAO_INFORMADO },
-      { nome: 'ORDEM DE SERVICO', posicao: 2, modoDuracao: ModoDuracao.NAO_INFORMADO },
-      { nome: 'EM EXECUCAO', posicao: 3, modoDuracao: ModoDuracao.DIAS_CORRIDOS },
+      {
+        nome: 'EM LICITACAO',
+        posicao: 0,
+        modoDuracao: ModoDuracao.NAO_INFORMADO,
+      },
+      {
+        nome: 'CONTRATADA',
+        posicao: 1,
+        modoDuracao: ModoDuracao.NAO_INFORMADO,
+      },
+      {
+        nome: 'ORDEM DE SERVICO',
+        posicao: 2,
+        modoDuracao: ModoDuracao.NAO_INFORMADO,
+      },
+      {
+        nome: 'EM EXECUCAO',
+        posicao: 3,
+        modoDuracao: ModoDuracao.DIAS_CORRIDOS,
+      },
       { nome: 'MEDICAO', posicao: 4, modoDuracao: ModoDuracao.DIAS_CORRIDOS },
-      { nome: 'PRESTACAO DE CONTAS', posicao: 5, modoDuracao: ModoDuracao.NAO_INFORMADO },
+      {
+        nome: 'PRESTACAO DE CONTAS',
+        posicao: 5,
+        modoDuracao: ModoDuracao.NAO_INFORMADO,
+      },
       { nome: 'CONCLUIDA', posicao: 6, modoDuracao: ModoDuracao.NAO_INFORMADO },
     ]);
   });
@@ -81,8 +117,16 @@ describe('PredefinidosService', () => {
     expect(result.isRight()).toBe(true);
     expect(result.value).toEqual([
       { nome: 'PROJETO', posicao: 0, modoDuracao: ModoDuracao.NAO_INFORMADO },
-      { nome: 'LICENCIAMENTO', posicao: 1, modoDuracao: ModoDuracao.NAO_INFORMADO },
-      { nome: 'EM EXECUCAO', posicao: 2, modoDuracao: ModoDuracao.DIAS_CORRIDOS },
+      {
+        nome: 'LICENCIAMENTO',
+        posicao: 1,
+        modoDuracao: ModoDuracao.NAO_INFORMADO,
+      },
+      {
+        nome: 'EM EXECUCAO',
+        posicao: 2,
+        modoDuracao: ModoDuracao.DIAS_CORRIDOS,
+      },
       { nome: 'CONCLUIDA', posicao: 3, modoDuracao: ModoDuracao.NAO_INFORMADO },
     ]);
   });

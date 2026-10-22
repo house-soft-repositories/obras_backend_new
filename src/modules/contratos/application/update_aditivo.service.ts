@@ -12,7 +12,9 @@ import ErrorCodeConstants from '@/core/constants/error_code.constants';
 export default class UpdateAditivoService implements IUpdateAditivoUseCase {
   constructor(private readonly repo: IAditivoRepository) {}
 
-  async execute(param: UpdateAditivoParam): AsyncResult<AppException, AditivoEntity> {
+  async execute(
+    param: UpdateAditivoParam,
+  ): AsyncResult<AppException, AditivoEntity> {
     try {
       const found = await this.repo.findById(param.id);
       if (found.isLeft()) return left(found.value);
@@ -27,12 +29,18 @@ export default class UpdateAditivoService implements IUpdateAditivoUseCase {
       const updateData = entity.toObject();
       if (param.numero !== undefined) updateData.numero = param.numero;
       if (param.tipo !== undefined) updateData.tipo = param.tipo;
-      if (param.dataAssinatura !== undefined) updateData.dataAssinatura = param.dataAssinatura;
-      if (param.tipoPrazoExecucao !== undefined) updateData.tipoPrazoExecucao = param.tipoPrazoExecucao;
-      if (param.prazoExecucaoDias !== undefined) updateData.prazoExecucaoDias = param.prazoExecucaoDias;
-      if (param.prazoExecucaoData !== undefined) updateData.prazoExecucaoData = param.prazoExecucaoData;
-      if (param.vigenciaAditivada !== undefined) updateData.vigenciaAditivada = param.vigenciaAditivada;
-      if (param.observacoes !== undefined) updateData.observacoes = param.observacoes;
+      if (param.dataAssinatura !== undefined)
+        updateData.dataAssinatura = param.dataAssinatura;
+      if (param.tipoPrazoExecucao !== undefined)
+        updateData.tipoPrazoExecucao = param.tipoPrazoExecucao;
+      if (param.prazoExecucaoDias !== undefined)
+        updateData.prazoExecucaoDias = param.prazoExecucaoDias;
+      if (param.prazoExecucaoData !== undefined)
+        updateData.prazoExecucaoData = param.prazoExecucaoData;
+      if (param.vigenciaAditivada !== undefined)
+        updateData.vigenciaAditivada = param.vigenciaAditivada;
+      if (param.observacoes !== undefined)
+        updateData.observacoes = param.observacoes;
       if (param.fontes !== undefined) updateData.fontes = param.fontes;
       updateData.updatedAt = new Date();
       AditivoEntity.validate(updateData);

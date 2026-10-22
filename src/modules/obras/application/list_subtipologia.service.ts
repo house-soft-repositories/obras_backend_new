@@ -7,7 +7,16 @@ import { SubtipologiaEntity } from '@/modules/obras/domain/entities/cadastro.ent
 
 export default class ListSubtipologiasService {
   constructor(private readonly repository: ISubtipologiaRepository) {}
-  execute(param: { page: number; take: number; apenasAtivos?: boolean; parentId?: string }): AsyncResult<AppException, PageEntity<SubtipologiaEntity>> {
-    return this.repository.findPage(new PageOptionsEntity('ASC', param.page, param.take), param.apenasAtivos, param.parentId);
+  execute(param: {
+    page: number;
+    take: number;
+    apenasAtivos?: boolean;
+    parentId?: string;
+  }): AsyncResult<AppException, PageEntity<SubtipologiaEntity>> {
+    return this.repository.findPage(
+      new PageOptionsEntity('ASC', param.page, param.take),
+      param.apenasAtivos,
+      param.parentId,
+    );
   }
 }

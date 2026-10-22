@@ -4,7 +4,10 @@ import { unit, type Unit } from '@/core/types/unit';
 import UpdateAditivoService from '@/modules/contratos/application/update_aditivo.service';
 import type IAditivoRepository from '@/modules/contratos/adapters/aditivo_repository.interface';
 import AditivoEntity from '@/modules/contratos/domain/entities/aditivo.entity';
-import { TipoAditivo, TipoPrazoExecucao } from '@/modules/contratos/domain/enums/contratos.enums';
+import {
+  TipoAditivo,
+  TipoPrazoExecucao,
+} from '@/modules/contratos/domain/enums/contratos.enums';
 import type { UpdateAditivoParam } from '@/modules/contratos/domain/usecase/update_aditivo.usecase';
 
 const makeAditivoRepo = (): jest.Mocked<IAditivoRepository> =>
@@ -39,7 +42,11 @@ describe('UpdateAditivoService', () => {
     aditivoRepo.findById.mockResolvedValue(right(aditivo));
     aditivoRepo.save.mockResolvedValue(right(aditivo));
     const svc = new UpdateAditivoService(aditivoRepo);
-    const param: UpdateAditivoParam = { id: 'aditivo-1', observacoes: 'Updated', numero: '2' };
+    const param: UpdateAditivoParam = {
+      id: 'aditivo-1',
+      observacoes: 'Updated',
+      numero: '2',
+    };
     const result = await svc.execute(param);
     expect(result.isRight()).toBe(true);
     expect(aditivoRepo.findById).toHaveBeenCalledWith('aditivo-1');
@@ -50,7 +57,10 @@ describe('UpdateAditivoService', () => {
     const aditivoRepo = makeAditivoRepo();
     aditivoRepo.findById.mockResolvedValue(right(null));
     const svc = new UpdateAditivoService(aditivoRepo);
-    const param: UpdateAditivoParam = { id: 'aditivo-999', observacoes: 'Updated' };
+    const param: UpdateAditivoParam = {
+      id: 'aditivo-999',
+      observacoes: 'Updated',
+    };
     const result = await svc.execute(param);
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('expected failure');
@@ -62,7 +72,10 @@ describe('UpdateAditivoService', () => {
     const aditivoRepo = makeAditivoRepo();
     aditivoRepo.findById.mockResolvedValue(left(new Error('db error')));
     const svc = new UpdateAditivoService(aditivoRepo);
-    const param: UpdateAditivoParam = { id: 'aditivo-1', observacoes: 'Updated' };
+    const param: UpdateAditivoParam = {
+      id: 'aditivo-1',
+      observacoes: 'Updated',
+    };
     const result = await svc.execute(param);
     expect(result.isLeft()).toBe(true);
   });
@@ -73,7 +86,10 @@ describe('UpdateAditivoService', () => {
     aditivoRepo.findById.mockResolvedValue(right(aditivo));
     aditivoRepo.save.mockResolvedValue(left(new Error('db error')));
     const svc = new UpdateAditivoService(aditivoRepo);
-    const param: UpdateAditivoParam = { id: 'aditivo-1', observacoes: 'Updated' };
+    const param: UpdateAditivoParam = {
+      id: 'aditivo-1',
+      observacoes: 'Updated',
+    };
     const result = await svc.execute(param);
     expect(result.isLeft()).toBe(true);
   });
@@ -83,7 +99,10 @@ describe('UpdateAditivoService', () => {
     const aditivo = makeAditivo();
     aditivoRepo.findById.mockResolvedValue(right(aditivo));
     const svc = new UpdateAditivoService(aditivoRepo);
-    const param: UpdateAditivoParam = { id: 'aditivo-1', tipo: TipoAditivo.PRAZO };
+    const param: UpdateAditivoParam = {
+      id: 'aditivo-1',
+      tipo: TipoAditivo.PRAZO,
+    };
     const result = await svc.execute(param);
     expect(result.isLeft()).toBe(true);
     if (result.isRight()) throw new Error('expected failure');

@@ -6,7 +6,9 @@ import IListFiscalizacoesUseCase, {
   ListFiscalizacoesParam,
 } from '@/modules/obras-privadas/domain/usecase/list_fiscalizacoes.usecase';
 
-export default class ListFiscalizacoesService implements IListFiscalizacoesUseCase {
+export default class ListFiscalizacoesService
+  implements IListFiscalizacoesUseCase
+{
   constructor(
     private readonly fiscalizacaoRepository: IFiscalizacaoRepository,
   ) {}

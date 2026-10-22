@@ -10,7 +10,9 @@ import IGarantirPastaRaizUseCase, {
 import PastaDomainException from '@/modules/documentos/exceptions/pasta_domain.exception';
 import PastaServiceException from '@/modules/documentos/exceptions/pasta_service.exception';
 
-export default class GarantirPastaRaizService implements IGarantirPastaRaizUseCase {
+export default class GarantirPastaRaizService
+  implements IGarantirPastaRaizUseCase
+{
   constructor(private readonly repo: IPastaRepository) {}
 
   async execute(

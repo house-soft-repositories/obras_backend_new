@@ -23,14 +23,26 @@ describe('ObraPrivadaEntity', () => {
   });
 
   it('ignores caller situacaoAlvara and forces SEM_ALVARA', () => {
-    const obra = ObraPrivadaEntity.create({ ...base, situacaoAlvara: 'COM_ALVARA_VIGENTE' });
+    const obra = ObraPrivadaEntity.create({
+      ...base,
+      situacaoAlvara: 'COM_ALVARA_VIGENTE',
+    });
     expect(obra.toObject().situacaoAlvara).toBe('SEM_ALVARA');
   });
 
   it.each([
-    [{ ...base, descricao: '  ' }, ErrorCodeConstants.OBRA_PRIVADA_INVALID_DESCRICAO],
-    [{ ...base, proprietarioPessoaId: '' }, ErrorCodeConstants.OBRA_PRIVADA_INVALID_PROPRIETARIO],
-    [{ ...base, logradouro: '  ' }, ErrorCodeConstants.OBRA_PRIVADA_INVALID_LOGRADOURO],
+    [
+      { ...base, descricao: '  ' },
+      ErrorCodeConstants.OBRA_PRIVADA_INVALID_DESCRICAO,
+    ],
+    [
+      { ...base, proprietarioPessoaId: '' },
+      ErrorCodeConstants.OBRA_PRIVADA_INVALID_PROPRIETARIO,
+    ],
+    [
+      { ...base, logradouro: '  ' },
+      ErrorCodeConstants.OBRA_PRIVADA_INVALID_LOGRADOURO,
+    ],
     [{ ...base, uf: 'P' }, ErrorCodeConstants.OBRA_PRIVADA_INVALID_UF],
     [{ ...base, uf: '' }, ErrorCodeConstants.OBRA_PRIVADA_INVALID_UF],
   ])('rejects invalid payload %#', (props, code) => {

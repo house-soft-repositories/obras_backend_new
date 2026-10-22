@@ -254,9 +254,13 @@ export default class AutoInfracaoRepository implements IAutoInfracaoRepository {
 
   async delete(id: string): AsyncResult<AppException, Unit> {
     try {
-      await withManager(this.dataSource, this.tenantContext, async (manager) => {
-        await manager.getRepository(AutoInfracaoModel).delete({ id });
-      });
+      await withManager(
+        this.dataSource,
+        this.tenantContext,
+        async (manager) => {
+          await manager.getRepository(AutoInfracaoModel).delete({ id });
+        },
+      );
       return right(unit);
     } catch (cause) {
       return left(this.failed(cause));

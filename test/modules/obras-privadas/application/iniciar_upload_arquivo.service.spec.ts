@@ -27,7 +27,9 @@ const makeStorage = (): jest.Mocked<IStorageService> => ({
 });
 
 const makeTC = () =>
-  ({ require: () => ({ schemaName: 'tenant_abc' }) }) as unknown as TenantContext;
+  ({
+    require: () => ({ schemaName: 'tenant_abc' }),
+  }) as unknown as TenantContext;
 
 const obraStub = {
   toObject: () => ({ tenantId: 't1' }),

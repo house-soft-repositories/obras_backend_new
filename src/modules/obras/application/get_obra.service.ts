@@ -4,7 +4,9 @@ import TenantContext from '@/core/multitenancy/tenant_context';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
-import IGetObraUseCase, { GetObraParam } from '@/modules/obras/domain/usecase/get_obra.usecase';
+import IGetObraUseCase, {
+  GetObraParam,
+} from '@/modules/obras/domain/usecase/get_obra.usecase';
 import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
 

@@ -44,7 +44,12 @@ describe('ComentariosService', () => {
     estagioRepo.findById.mockResolvedValue(right(stage));
     repo.save.mockImplementation(async (item) => right(item));
     const tenantContext = new TenantContext();
-    const service = new ComentariosService(repo, tenantContext, obras, estagioRepo);
+    const service = new ComentariosService(
+      repo,
+      tenantContext,
+      obras,
+      estagioRepo,
+    );
 
     const result = await tenantContext.run(
       {
@@ -82,7 +87,12 @@ describe('ComentariosService', () => {
     const { repo, estagioRepo, obras } = createMocks();
     estagioRepo.findById.mockResolvedValue(right(stage));
     repo.findById.mockResolvedValue(right(comentario));
-    const service = new ComentariosService(repo, new TenantContext(), obras, estagioRepo);
+    const service = new ComentariosService(
+      repo,
+      new TenantContext(),
+      obras,
+      estagioRepo,
+    );
 
     const result = await service.get('obra', stage.id, comentario.id);
 
@@ -108,7 +118,12 @@ describe('ComentariosService', () => {
     const { repo, estagioRepo, obras } = createMocks();
     estagioRepo.findById.mockResolvedValue(right(stage));
     repo.list.mockResolvedValue(right([comentario]));
-    const service = new ComentariosService(repo, new TenantContext(), obras, estagioRepo);
+    const service = new ComentariosService(
+      repo,
+      new TenantContext(),
+      obras,
+      estagioRepo,
+    );
 
     const result = await service.list({ obraId: 'obra', estagioId: stage.id });
 
@@ -135,7 +150,12 @@ describe('ComentariosService', () => {
     estagioRepo.findById.mockResolvedValue(right(stage));
     repo.findById.mockResolvedValue(right(comentario));
     repo.update.mockImplementation(async (item) => right(item));
-    const service = new ComentariosService(repo, new TenantContext(), obras, estagioRepo);
+    const service = new ComentariosService(
+      repo,
+      new TenantContext(),
+      obras,
+      estagioRepo,
+    );
 
     const result = await service.update({
       obraId: 'obra',
@@ -160,7 +180,12 @@ describe('ComentariosService', () => {
     const { repo, estagioRepo, obras } = createMocks();
     estagioRepo.findById.mockResolvedValue(right(stage));
     repo.remove.mockResolvedValue(right(unit));
-    const service = new ComentariosService(repo, new TenantContext(), obras, estagioRepo);
+    const service = new ComentariosService(
+      repo,
+      new TenantContext(),
+      obras,
+      estagioRepo,
+    );
 
     const result = await service.remove('obra', stage.id, 'coment-id');
 
@@ -177,7 +202,12 @@ describe('ComentariosService', () => {
         statusCode: 404,
       } as never),
     );
-    const service = new ComentariosService(repo, new TenantContext(), obras, estagioRepo);
+    const service = new ComentariosService(
+      repo,
+      new TenantContext(),
+      obras,
+      estagioRepo,
+    );
 
     const result = await service.create({
       obraId: 'obra',
@@ -199,7 +229,12 @@ describe('ComentariosService', () => {
     });
     obras.findById.mockResolvedValue(left(failure));
     estagioRepo.findById.mockResolvedValue(right(null as never));
-    const service = new ComentariosService(repo, new TenantContext(), obras, estagioRepo);
+    const service = new ComentariosService(
+      repo,
+      new TenantContext(),
+      obras,
+      estagioRepo,
+    );
 
     const result = await service.list({ obraId: 'obra', estagioId: 'stage' });
 

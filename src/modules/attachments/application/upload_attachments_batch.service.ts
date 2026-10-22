@@ -14,7 +14,9 @@ import AttachmentServiceException from '@/modules/attachments/exceptions/attachm
 import { buildStorageKey } from '@/modules/storage/infra/storage/storage_key';
 import { assertReadableFile } from '@/modules/attachments/application/upload_attachment.service';
 
-export default class UploadAttachmentsBatchService implements IUploadAttachmentsBatchUseCase {
+export default class UploadAttachmentsBatchService
+  implements IUploadAttachmentsBatchUseCase
+{
   constructor(
     private readonly repository: IAttachmentRepository,
     private readonly storage: IStorageService,
