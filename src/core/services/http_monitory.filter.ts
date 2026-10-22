@@ -1,7 +1,7 @@
 import AppException from '@/core/exceptions/app_exception';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import type IMonitoryService from '@/core/services/monitory.service';
-import type ConfigurationService from '@/core/services/configuration.service';
+import ConfigurationService from '@/core/services/configuration.service';
 import NODE_ENV from '@/core/types/node_env';
 import { MONITORY_SERVICE } from '@/core/services/symbols';
 import {
@@ -23,6 +23,7 @@ export default class HttpMonitoryFilter
     @Inject(MONITORY_SERVICE)
     private readonly monitoryService: IMonitoryService,
     httpAdapterHost: HttpAdapterHost,
+    @Inject(ConfigurationService)
     private readonly configurationService: ConfigurationService,
   ) {
     super(httpAdapterHost.httpAdapter);

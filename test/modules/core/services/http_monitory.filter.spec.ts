@@ -7,6 +7,23 @@ import type IMonitoryService from '@/core/services/monitory.service';
 import type ConfigurationService from '@/core/services/configuration.service';
 import NODE_ENV from '@/core/types/node_env';
 
+jest.mock('@/core/services/configuration.service', () => ({
+  __esModule: true,
+  default: class ConfigurationService {},
+}));
+
+jest.mock('@nestjs/config', () => ({
+  ConfigService: class ConfigService {},
+}));
+
+jest.mock('@nestjs/common', () => {
+  const actual = jest.requireActual('@nestjs/common');
+  return {
+    ...actual,
+    Injectable: () => () => undefined,
+  };
+});
+
 const createHost = (request: Record<string, string>) => {
   const response = {};
   return {
