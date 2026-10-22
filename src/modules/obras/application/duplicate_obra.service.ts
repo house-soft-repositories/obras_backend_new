@@ -1,4 +1,3 @@
-import { DataSource } from 'typeorm';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import AppException from '@/core/exceptions/app_exception';
 import TenantContext from '@/core/multitenancy/tenant_context';
@@ -12,14 +11,12 @@ import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
 import ObraServiceException from '@/modules/obras/exceptions/obra_service.exception';
 import ObraEventsService from '@/modules/obras/events/obra_events.service';
-import { randomUUID } from 'node:crypto';
 import { proximoCodigo } from '@/modules/obras/services/codigo_obra.service';
 import { StatusObra } from '@/modules/obras/domain/enums/status_obra.enum';
 
 export default class DuplicateObraService implements IDuplicateObraUseCase {
   constructor(
     private readonly repo: IObraRepository,
-    private readonly ds: DataSource,
     private readonly tc: TenantContext,
     private readonly events: ObraEventsService,
   ) {}
@@ -29,7 +26,6 @@ export default class DuplicateObraService implements IDuplicateObraUseCase {
   ): AsyncResult<AppException, ObraEntity> {
     try {
       const ctx = this.tc.require();
-      const schema = ctx.schemaName;
       const found = await this.repo.findById(param.id);
       if (found.isLeft()) return left(found.value);
       const origin = found.value;
@@ -40,147 +36,70 @@ export default class DuplicateObraService implements IDuplicateObraUseCase {
             statusCode: 404,
           }),
         );
+
       const year = new Date().getFullYear();
       for (let attempt = 0; attempt < 3; attempt++) {
         const last = await this.repo.findLastCodigo(year);
         if (last.isLeft()) return left(last.value);
         const codigo = proximoCodigo('OBR', last.value, year);
-        const o = origin.toObject();
-        const dupEntity = ObraEntity.create({
+        const source = origin.toObject();
+        const duplicate = ObraEntity.create({
           codigo,
-          nome: o.nome,
-          descricao: o.descricao,
-          tipo: o.tipo,
+          nome: source.nome,
+          descricao: source.descricao,
+          tipo: source.tipo,
           status: StatusObra.EM_ABERTO,
-          tipoFinanciamento: o.tipoFinanciamento,
-          modoDuracao: o.modoDuracao,
-          dataInicio: o.dataInicio,
-          dataPrazo: o.dataPrazo,
-          acaoConveniada: o.acaoConveniada,
-          prioritaria: o.prioritaria,
-          exibirCameraAoVivo: o.exibirCameraAoVivo,
-          cameraUrl: o.cameraUrl,
-          privado: o.privado,
-          invisivel: o.invisivel,
-          considerarSabado: o.considerarSabado,
-          considerarDomingo: o.considerarDomingo,
-          seguirAutomatico: o.seguirAutomatico,
-          vincularPagamentoPercentual: o.vincularPagamentoPercentual,
-          corresponsaveisPodemEditar: o.corresponsaveisPodemEditar,
-          orgaoId: o.orgaoId,
-          setorId: o.setorId,
-          localidadeId: o.localidadeId,
-          subclassificacaoId: o.subclassificacaoId,
-          eixoId: o.eixoId,
-          classificacaoId: o.classificacaoId,
-          tipologiaId: o.tipologiaId,
-          subtipologiaId: o.subtipologiaId,
-          programaPpa: o.programaPpa,
-          acaoEstrategica: o.acaoEstrategica,
-          acaoOrcamentaria: o.acaoOrcamentaria,
-          unidadeMedida: o.unidadeMedida,
-          quantidade: o.quantidade,
-          secretario: o.secretario,
-          dataPactuada: o.dataPactuada,
-          criadoPorUsuarioId: o.criadoPorUsuarioId,
+          tipoFinanciamento: source.tipoFinanciamento,
+          modoDuracao: source.modoDuracao,
+          dataInicio: source.dataInicio,
+          dataPrazo: source.dataPrazo,
+          acaoConveniada: source.acaoConveniada,
+          prioritaria: source.prioritaria,
+          exibirCameraAoVivo: source.exibirCameraAoVivo,
+          cameraUrl: source.cameraUrl,
+          privado: source.privado,
+          invisivel: source.invisivel,
+          considerarSabado: source.considerarSabado,
+          considerarDomingo: source.considerarDomingo,
+          seguirAutomatico: source.seguirAutomatico,
+          vincularPagamentoPercentual: source.vincularPagamentoPercentual,
+          corresponsaveisPodemEditar: source.corresponsaveisPodemEditar,
+          orgaoId: source.orgaoId,
+          setorId: source.setorId,
+          localidadeId: source.localidadeId,
+          subclassificacaoId: source.subclassificacaoId,
+          eixoId: source.eixoId,
+          classificacaoId: source.classificacaoId,
+          tipologiaId: source.tipologiaId,
+          subtipologiaId: source.subtipologiaId,
+          programaPpa: source.programaPpa,
+          acaoEstrategica: source.acaoEstrategica,
+          acaoOrcamentaria: source.acaoOrcamentaria,
+          unidadeMedida: source.unidadeMedida,
+          quantidade: source.quantidade,
+          secretario: source.secretario,
+          dataPactuada: source.dataPactuada,
+          criadoPorUsuarioId: source.criadoPorUsuarioId,
         });
-        try {
-          const saved = await this.ds.transaction(async (m) => {
-            const v = dupEntity.toObject();
-            await m.query(
-              `INSERT INTO "${schema}"."obras" (id,codigo,nome,descricao,tipo,status,tipo_financiamento,modo_duracao,data_inicio,data_prazo,acao_conveniada,prioritaria,exibir_camera_ao_vivo,camera_url,privado,invisivel,considerar_sabado,considerar_domingo,seguir_automatico,vincular_pagamento_percentual,corresponsaveis_podem_editar,orgao_id,setor_id,localidade_id,subclassificacao_id,eixo_id,classificacao_id,tipologia_id,subtipologia_id,programa_ppa,acao_estrategica,acao_orcamentaria,unidade_medida,quantidade,secretario,data_pactuada,criado_por_usuario_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38)`,
-              [
-                v.id,
-                v.codigo,
-                v.nome,
-                v.descricao,
-                v.tipo,
-                v.status,
-                v.tipoFinanciamento,
-                v.modoDuracao,
-                v.dataInicio,
-                v.dataPrazo,
-                v.acaoConveniada,
-                v.prioritaria,
-                v.exibirCameraAoVivo,
-                v.cameraUrl,
-                v.privado,
-                v.invisivel,
-                v.considerarSabado,
-                v.considerarDomingo,
-                v.seguirAutomatico,
-                v.vincularPagamentoPercentual,
-                v.corresponsaveisPodemEditar,
-                v.orgaoId,
-                v.setorId,
-                v.localidadeId,
-                v.subclassificacaoId,
-                v.eixoId,
-                v.classificacaoId,
-                v.tipologiaId,
-                v.subtipologiaId,
-                v.programaPpa,
-                v.acaoEstrategica,
-                v.acaoOrcamentaria,
-                v.unidadeMedida,
-                v.quantidade,
-                v.secretario,
-                v.dataPactuada,
-                v.criadoPorUsuarioId,
-                v.createdAt,
-                v.updatedAt,
-              ],
-            );
-            const orcamentos = await m.query<
-              Array<{ id: string; fonte_id: string; valor: string }>
-            >(
-              `SELECT id, fonte_id, valor FROM "${schema}"."obra_orcamento_previsto" WHERE obra_id=$1`,
-              [origin.id],
-            );
-            for (const oRow of orcamentos) {
-              await m.query(
-                `INSERT INTO "${schema}"."obra_orcamento_previsto" (id, tenant_id, obra_id, fonte_id, valor) VALUES ($1,$2,$3,$4,$5)`,
-                [randomUUID(), ctx.tenantId, v.id, oRow.fonte_id, oRow.valor],
-              );
-            }
-            const responsaveis = await m.query<
-              Array<{ usuario_id: string; tipo: string }>
-            >(
-              `SELECT usuario_id, tipo FROM "${schema}"."obra_responsaveis" WHERE obra_id=$1`,
-              [origin.id],
-            );
-            for (const rRow of responsaveis) {
-              await m.query(
-                `INSERT INTO "${schema}"."obra_responsaveis" (id, tenant_id, obra_id, usuario_id, tipo, created_at) VALUES ($1,$2,$3,$4,$5,$6)`,
-                [
-                  randomUUID(),
-                  ctx.tenantId,
-                  v.id,
-                  rRow.usuario_id,
-                  rRow.tipo,
-                  new Date(),
-                ],
-              );
-            }
-            return dupEntity;
-          });
+
+        const saved = await this.repo.duplicate(duplicate, origin.id);
+        if (saved.isRight()) {
           this.events.emitirObraDuplicada({
             tenantId: ctx.tenantId,
             origemObraId: origin.id,
-            novaObraId: saved.toObject().id,
+            novaObraId: saved.value.id,
             copiarArquivos: param.copiarArquivos ?? false,
           });
-          return right(saved);
-        } catch (e: unknown) {
-          const err = e as { code?: string; constraint?: string };
-          if (
-            err?.code === '23505' &&
-            String(err?.constraint || '').includes('codigo')
-          )
-            continue;
-          throw e;
+          return right(saved.value);
         }
+        if (
+          saved.value.code === ErrorCodeConstants.OBRA_DUPLICATE_CODIGO &&
+          saved.value.statusCode === 409
+        )
+          continue;
+        return left(saved.value);
       }
+
       return left(
         new ObraServiceException({
           code: ErrorCodeConstants.OBRA_DUPLICATE_CODIGO,

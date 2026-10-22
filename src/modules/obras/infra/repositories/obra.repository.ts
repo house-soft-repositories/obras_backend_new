@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { DataSource, ILike, IsNull } from 'typeorm';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import TenantContext from '@/core/multitenancy/tenant_context';
@@ -12,6 +13,8 @@ import IObraRepository, {
 import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
 import ObraMapper from '@/modules/obras/infra/mapper/obra.mapper';
 import ObraModel from '@/modules/obras/infra/models/obra.model';
+import { ObraResponsavelModel } from '@/modules/obras/infra/models/obra_items.model';
+import { ObraOrcamentoPrevistoModel } from '@/modules/obras/infra/models/guias.model';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
 import PageEntity from '@/core/pagination/domain/entities/page.entity';
 import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
@@ -41,6 +44,73 @@ export default class ObraRepository implements IObraRepository {
         },
       );
       return right(ObraMapper.toEntity(saved));
+    } catch (cause) {
+      const databaseError = cause as { code?: string };
+      if (databaseError.code === '23505')
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.OBRA_DUPLICATE_CODIGO,
+            statusCode: 409,
+            cause,
+          }),
+        );
+      return left(this.failure(cause));
+    }
+  }
+
+  async duplicate(
+    entity: ObraEntity,
+    sourceObraId: string,
+  ): AsyncResult<AppException, ObraEntity> {
+    try {
+      const duplicated = await withManager(
+        this.dataSource,
+        this.tenantContext,
+        async (manager) => {
+          const obraRepository = manager.getRepository(ObraModel);
+          await obraRepository.save(
+            obraRepository.create(ObraMapper.toModel(entity)),
+          );
+
+          const sourceBudgets = await manager
+            .getRepository(ObraOrcamentoPrevistoModel)
+            .find({ where: { obraId: sourceObraId } });
+          if (sourceBudgets.length) {
+            await manager.getRepository(ObraOrcamentoPrevistoModel).save(
+              sourceBudgets.map((budget) =>
+                manager.getRepository(ObraOrcamentoPrevistoModel).create({
+                  id: randomUUID(),
+                  tenantId: budget.tenantId,
+                  obraId: entity.id,
+                  fonteId: budget.fonteId,
+                  valor: budget.valor,
+                }),
+              ),
+            );
+          }
+
+          const sourceResponsaveis = await manager
+            .getRepository(ObraResponsavelModel)
+            .find({ where: { obraId: sourceObraId } });
+          if (sourceResponsaveis.length) {
+            await manager.getRepository(ObraResponsavelModel).save(
+              sourceResponsaveis.map((responsavel) =>
+                manager.getRepository(ObraResponsavelModel).create({
+                  id: randomUUID(),
+                  tenantId: responsavel.tenantId,
+                  obraId: entity.id,
+                  usuarioId: responsavel.usuarioId,
+                  tipo: responsavel.tipo,
+                  createdAt: new Date(),
+                }),
+              ),
+            );
+          }
+
+          return obraRepository.findOneOrFail({ where: { id: entity.id } });
+        },
+      );
+      return right(ObraMapper.toEntity(duplicated));
     } catch (cause) {
       const databaseError = cause as { code?: string };
       if (databaseError.code === '23505')

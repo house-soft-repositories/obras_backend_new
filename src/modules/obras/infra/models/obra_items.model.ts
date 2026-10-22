@@ -14,7 +14,7 @@ export class ObraResponsavelModel {
   @JoinColumn({ name: 'usuario_id' })
   usuario?: UserModel;
   @Column() tipo: string;
-  @Column({ type: 'timestamptz' }) createdAt: Date;
+  @Column({ name: 'created_at', type: 'timestamptz' }) createdAt: Date;
 }
 @Entity({ name: 'obra_seguidores' })
 export class ObraSeguidorModel {

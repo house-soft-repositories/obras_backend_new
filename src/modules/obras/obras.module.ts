@@ -326,13 +326,12 @@ import { DataSource } from 'typeorm';
     },
     {
       provide: DUPLICATE_OBRA_SERVICE,
-      inject: [OBRA_REPOSITORY, DataSource, TenantContext, OBRA_EVENTS],
+      inject: [OBRA_REPOSITORY, TenantContext, OBRA_EVENTS],
       useFactory: (
         repo: IObraRepository,
-        ds: DataSource,
         tc: TenantContext,
         events: ObraEventsService,
-      ) => new DuplicateObraService(repo, ds, tc, events),
+      ) => new DuplicateObraService(repo, tc, events),
     },
     {
       provide: DELETE_OBRA_SERVICE,

@@ -94,7 +94,7 @@ import MedicaoFonteModel from '@/modules/cronograma/infra/models/medicao_fonte.m
       provide: OBRA_REPOSITORY,
       inject: [DataSource, TenantContext],
       useFactory: (ds: DataSource, tc: TenantContext) =>
-        new ObraRepository(ds, tc) as IObraRepository,
+        new ObraRepository(ds, tc),
     },
     {
       provide: ESTAGIO_REPOSITORY,

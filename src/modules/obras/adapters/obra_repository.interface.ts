@@ -17,6 +17,10 @@ export interface ObraFindPageParams {
 
 export default interface IObraRepository {
   save(e: ObraEntity): AsyncResult<AppException, ObraEntity>;
+  duplicate(
+    entity: ObraEntity,
+    sourceObraId: string,
+  ): AsyncResult<AppException, ObraEntity>;
   findLastCodigo(year: number): AsyncResult<AppException, string | null>;
   findById(id: string): AsyncResult<AppException, ObraEntity | null>;
   findPage(
