@@ -1,11 +1,14 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateIdentityFoundation1781200000000
+export default class CreatePublicFoundation1781200000000
   implements MigrationInterface
 {
-  name = 'CreateIdentityFoundation1781200000000';
+  name = 'CreatePublicFoundation1781200000000';
 
   async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+      CREATE TYPE "public"."user_role_enum" AS ENUM ('SUPERADMIN', 'ADMIN', 'STAFF', 'USER')
+    `);
     await queryRunner.query(`
       CREATE TABLE "public"."tenancies" (
         "id" uuid NOT NULL,
@@ -27,16 +30,16 @@ export class CreateIdentityFoundation1781200000000
         "name" character varying NOT NULL,
         "email" character varying NOT NULL,
         "password" character varying NOT NULL,
-        "role" character varying NOT NULL,
+        "role" "public"."user_role_enum" NOT NULL,
         "tenant_id" uuid,
+        "localidade_id" uuid,
+        "orgao_id" uuid,
+        "setor_id" uuid,
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
         CONSTRAINT "PK_users" PRIMARY KEY ("id"),
         CONSTRAINT "FK_users_tenancies" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenancies"("id"),
-        CONSTRAINT "CHK_users_role_tenant" CHECK (
-          ("role" = 'SUPERADMIN' AND "tenant_id" IS NULL)
-          OR ("role" IN ('ADMIN', 'STAFF', 'USER') AND "tenant_id" IS NOT NULL)
-        )
+        CONSTRAINT "CHK_users_role_tenant" CHECK (("role" = 'SUPERADMIN' AND "tenant_id" IS NULL) OR ("role" IN ('ADMIN', 'STAFF', 'USER') AND "tenant_id" IS NOT NULL))
       )
     `);
     await queryRunner.query(
@@ -66,5 +69,6 @@ export class CreateIdentityFoundation1781200000000
     await queryRunner.query(`DROP INDEX "public"."UQ_users_tenant_email"`);
     await queryRunner.query(`DROP TABLE "public"."users"`);
     await queryRunner.query(`DROP TABLE "public"."tenancies"`);
+    await queryRunner.query(`DROP TYPE "public"."user_role_enum"`);
   }
 }
