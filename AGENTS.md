@@ -186,6 +186,28 @@ async execute(param): AsyncResult<AppException, Response> {
 
 Referências: `src/modules/users/application/create_user.service.ts`; `src/modules/obras-privadas/application/excluir_obra.service.ts`; `src/modules/documentos/application/remover_arquivo.service.ts`
 
+### Responses de use case
+
+Quando o use case retornar dados, o contrato pode declarar uma classe `Response` própria do use case. Essa classe recebe no construtor os dados necessários para a resposta e expõe `toResponse()`, centralizando a forma pública do retorno sem fazer o controller conhecer a entidade de domínio ou repetir mapeamentos.
+
+A classe `Response` deve ficar junto ao contrato em `domain/usecase/`, e o service deve retorná-la no lado direito do `AsyncResult`:
+
+```typescript
+// domain/usecase/create_user.usecase.ts
+export class CreateUserResponse {
+  constructor(private readonly user: UserEntity) {}
+
+  toResponse() {
+    const { id, name, email, role, createdAt, updatedAt } = this.user.toObject();
+    return { id, name, email, role, createdAt, updatedAt };
+  }
+}
+
+type ICreateUserUseCase = UseCase<CreateUserParam, CreateUserResponse>;
+```
+
+O service instancia a response com o resultado da operação (`right(new CreateUserResponse(entity))`). O controller trata erros e chama `result.value.toResponse()` somente no sucesso. Para operações sem payload, continue usando `Unit`; não crie uma `Response` vazia. O método `toResponse()` deve expor apenas dados públicos deliberados, nunca senha, hash, token interno, entidade, model ou detalhes de infraestrutura.
+
 ### Services de application implementam contratos de use case
 
 Todo service em `application/` DEVE implementar um contrato correspondente em `domain/usecase/`. O contrato é um `type` que referencia o `UseCase` genérico de `core/types`, não uma interface duplicada. Não crie services concretos sem contrato: o controller injeta o símbolo do use case, e o módulo fornece a implementação via `useFactory`.
