@@ -3,10 +3,13 @@ import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
 import { AcaoConveniada } from '@/modules/obras/domain/enums/acao_conveniada.enum';
 import { ModoDuracao } from '@/modules/obras/domain/enums/modo_duracao.enum';
 import { TipoFinanciamento } from '@/modules/obras/domain/enums/tipo_financiamento.enum';
+import { TipoObra } from '@/modules/obras/domain/enums/tipo_obra.enum';
+import { StatusObra } from '@/modules/obras/domain/enums/status_obra.enum';
 
 export interface CreateObraParam {
   nome: string;
-  tipo: string;
+  tipo: TipoObra;
+  status?: StatusObra;
   orgaoId: string;
   setorId?: string | null;
   localidadeId?: string | null;

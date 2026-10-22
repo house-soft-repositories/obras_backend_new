@@ -157,13 +157,25 @@ export default abstract class TenantIdentitySchema {
       `CREATE INDEX${ifNotExists} "IDX_profissionais_tecnicos_registro" ON "${schemaName}"."profissionais_tecnicos" ("numero_registro")`,
     );
     await executor.query(`
+      DO $$ BEGIN
+        CREATE TYPE "${schemaName}"."obras_tipo_enum" AS ENUM ('AQUISICAO', 'INVESTIMENTO_PRIVADO', 'OBRA', 'PROGRAMA_PROJETO', 'SERVICOS');
+      EXCEPTION WHEN duplicate_object THEN NULL;
+      END $$;
+    `);
+    await executor.query(`
+      DO $$ BEGIN
+        CREATE TYPE "${schemaName}"."obras_status_enum" AS ENUM ('EM_ABERTO', 'EM_DESENVOLVIMENTO', 'CONCLUIDO', 'PARALISADO', 'CANCELADO');
+      EXCEPTION WHEN duplicate_object THEN NULL;
+      END $$;
+    `);
+    await executor.query(`
       CREATE TABLE${ifNotExists} "${schemaName}"."obras" (
         "id" uuid NOT NULL,
         "codigo" character varying NOT NULL,
         "nome" character varying NOT NULL,
         "descricao" character varying,
-        "tipo" character varying NOT NULL,
-        "status" character varying NOT NULL DEFAULT 'EM_ABERTO',
+        "tipo" "${schemaName}"."obras_tipo_enum" NOT NULL,
+        "status" "${schemaName}"."obras_status_enum" NOT NULL DEFAULT 'EM_ABERTO',
         "tipo_financiamento" character varying NOT NULL DEFAULT 'SEM_OGU',
         "modo_duracao" character varying NOT NULL DEFAULT 'DEFINIDO_PELO_USUARIO',
         "data_inicio" date,

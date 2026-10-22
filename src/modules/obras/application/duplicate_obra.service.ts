@@ -14,6 +14,7 @@ import ObraServiceException from '@/modules/obras/exceptions/obra_service.except
 import ObraEventsService from '@/modules/obras/events/obra_events.service';
 import { randomUUID } from 'node:crypto';
 import { proximoCodigo } from '@/modules/obras/services/codigo_obra.service';
+import { StatusObra } from '@/modules/obras/domain/enums/status_obra.enum';
 
 export default class DuplicateObraService implements IDuplicateObraUseCase {
   constructor(
@@ -46,12 +47,11 @@ export default class DuplicateObraService implements IDuplicateObraUseCase {
         const codigo = proximoCodigo('OBR', last.value, year);
         const o = origin.toObject();
         const dupEntity = ObraEntity.create({
-          tenantId: o.tenantId,
           codigo,
           nome: o.nome,
           descricao: o.descricao,
           tipo: o.tipo,
-          status: 'EM_ABERTO',
+          status: StatusObra.EM_ABERTO,
           tipoFinanciamento: o.tipoFinanciamento,
           modoDuracao: o.modoDuracao,
           dataInicio: o.dataInicio,
@@ -140,7 +140,7 @@ export default class DuplicateObraService implements IDuplicateObraUseCase {
             for (const oRow of orcamentos) {
               await m.query(
                 `INSERT INTO "${schema}"."obra_orcamento_previsto" (id, tenant_id, obra_id, fonte_id, valor) VALUES ($1,$2,$3,$4,$5)`,
-                [randomUUID(), o.tenantId, v.id, oRow.fonte_id, oRow.valor],
+                [randomUUID(), ctx.tenantId, v.id, oRow.fonte_id, oRow.valor],
               );
             }
             const responsaveis = await m.query<
@@ -154,7 +154,7 @@ export default class DuplicateObraService implements IDuplicateObraUseCase {
                 `INSERT INTO "${schema}"."obra_responsaveis" (id, tenant_id, obra_id, usuario_id, tipo, created_at) VALUES ($1,$2,$3,$4,$5,$6)`,
                 [
                   randomUUID(),
-                  o.tenantId,
+                  ctx.tenantId,
                   v.id,
                   rRow.usuario_id,
                   rRow.tipo,
@@ -165,7 +165,7 @@ export default class DuplicateObraService implements IDuplicateObraUseCase {
             return dupEntity;
           });
           this.events.emitirObraDuplicada({
-            tenantId: o.tenantId,
+            tenantId: ctx.tenantId,
             origemObraId: origin.id,
             novaObraId: saved.toObject().id,
             copiarArquivos: param.copiarArquivos ?? false,

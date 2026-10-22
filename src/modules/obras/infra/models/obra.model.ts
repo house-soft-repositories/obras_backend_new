@@ -22,8 +22,14 @@ export default class ObraModel extends BaseModelPrimaryColumnUuid {
   @Column() codigo!: string;
   @Column() nome!: string;
   @Column({ nullable: true, type: 'varchar' }) descricao!: string | null;
-  @Column({ type: 'varchar' }) tipo!: TipoObra;
-  @Column({ type: 'varchar', default: StatusObra.EM_ABERTO })
+  @Column({ type: 'enum', enum: TipoObra, enumName: 'obras_tipo_enum' })
+  tipo!: TipoObra;
+  @Column({
+    type: 'enum',
+    enum: StatusObra,
+    enumName: 'obras_status_enum',
+    default: StatusObra.EM_ABERTO,
+  })
   status!: StatusObra;
   @Column({
     name: 'tipo_financiamento',

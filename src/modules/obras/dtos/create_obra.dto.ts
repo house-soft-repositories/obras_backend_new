@@ -17,6 +17,7 @@ import {
 import { AcaoConveniada } from '@/modules/obras/domain/enums/acao_conveniada.enum';
 import { ModoDuracao } from '@/modules/obras/domain/enums/modo_duracao.enum';
 import { TipoFinanciamento } from '@/modules/obras/domain/enums/tipo_financiamento.enum';
+import { TipoObra } from '@/modules/obras/domain/enums/tipo_obra.enum';
 
 export class OrcamentoDto {
   @IsUUID()
@@ -32,9 +33,9 @@ export default class CreateObraDto {
   @MinLength(2, { message: ErrorCodeConstants.OBRA_INVALID_NOME })
   nome: string;
 
-  @IsString({ message: ErrorCodeConstants.OBRA_INVALID_TIPO })
+  @IsEnum(TipoObra, { message: ErrorCodeConstants.OBRA_INVALID_TIPO })
   @IsNotEmpty({ message: ErrorCodeConstants.OBRA_INVALID_TIPO })
-  tipo: string;
+  tipo: TipoObra;
 
   @IsUUID(undefined, { message: ErrorCodeConstants.OBRA_INVALID_RESPONSAVEL })
   @IsNotEmpty({ message: ErrorCodeConstants.OBRA_INVALID_RESPONSAVEL })

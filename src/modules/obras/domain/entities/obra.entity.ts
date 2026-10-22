@@ -4,15 +4,16 @@ import ObraDomainException from '@/modules/obras/exceptions/obra_domain.exceptio
 import { TipoFinanciamento } from '@/modules/obras/domain/enums/tipo_financiamento.enum';
 import { ModoDuracao } from '@/modules/obras/domain/enums/modo_duracao.enum';
 import { AcaoConveniada } from '@/modules/obras/domain/enums/acao_conveniada.enum';
+import { TipoObra } from '@/modules/obras/domain/enums/tipo_obra.enum';
+import { StatusObra } from '@/modules/obras/domain/enums/status_obra.enum';
 
 export interface ObraProps {
   id: string;
-  tenantId: string;
   codigo: string;
   nome: string;
   descricao: string | null;
-  tipo: string;
-  status: string;
+  tipo: TipoObra;
+  status: StatusObra;
   tipoFinanciamento: TipoFinanciamento;
   modoDuracao: ModoDuracao;
   dataInicio: string | null;
@@ -50,12 +51,11 @@ export interface ObraProps {
 }
 
 export type CreateObraProps = {
-  tenantId: string;
   codigo: string;
   nome: string;
   descricao?: string | null;
-  tipo: string;
-  status?: string;
+  tipo: TipoObra;
+  status?: StatusObra;
   tipoFinanciamento?: TipoFinanciamento;
   modoDuracao?: ModoDuracao;
   dataInicio?: string | null;
@@ -92,7 +92,7 @@ export type CreateObraProps = {
 export type UpdateObraProps = Partial<
   Omit<CreateObraProps, 'tenantId' | 'codigo' | 'criadoPorUsuarioId'>
 > & {
-  status?: string;
+  status?: StatusObra;
 };
 
 export default class ObraEntity {
@@ -103,12 +103,11 @@ export default class ObraEntity {
     const now = new Date();
     return new ObraEntity({
       id: randomUUID(),
-      tenantId: p.tenantId,
       codigo: p.codigo,
       nome: p.nome.trim(),
       descricao: p.descricao?.trim() || null,
       tipo: p.tipo,
-      status: p.status || 'EM_ABERTO',
+      status: p.status ?? StatusObra.EM_ABERTO,
       tipoFinanciamento: p.tipoFinanciamento ?? TipoFinanciamento.SEM_OGU,
       modoDuracao: p.modoDuracao ?? ModoDuracao.DEFINIDO_PELO_USUARIO,
       dataInicio: p.dataInicio ?? null,
@@ -163,7 +162,7 @@ export default class ObraEntity {
       throw new ObraDomainException({
         code: ErrorCodeConstants.OBRA_INVALID_ORGAO,
       });
-    if (p.subclassificacaoId && p.tipo !== 'OBRA')
+    if (p.subclassificacaoId && p.tipo !== TipoObra.OBRA)
       throw new ObraDomainException({
         code: ErrorCodeConstants.OBRA_INVALID_SUBCLASSIFICACAO,
       });
@@ -201,7 +200,7 @@ export default class ObraEntity {
       p.subclassificacaoId !== undefined
         ? p.subclassificacaoId
         : this.props.subclassificacaoId;
-    if (nextSub && nextTipo !== 'OBRA') {
+    if (nextSub && nextTipo !== TipoObra.OBRA) {
       throw new ObraDomainException({
         code: ErrorCodeConstants.OBRA_INVALID_SUBCLASSIFICACAO,
       });
@@ -216,9 +215,9 @@ export default class ObraEntity {
     if (p.descricao !== undefined)
       (this.props as { descricao: string | null }).descricao =
         p.descricao?.trim() || null;
-    if (p.tipo !== undefined) (this.props as { tipo: string }).tipo = p.tipo;
+    if (p.tipo !== undefined) (this.props as { tipo: TipoObra }).tipo = p.tipo;
     if (p.status !== undefined)
-      (this.props as { status: string }).status = p.status;
+      (this.props as { status: StatusObra }).status = p.status;
     if (p.tipoFinanciamento !== undefined)
       (
         this.props as { tipoFinanciamento: TipoFinanciamento }
@@ -421,9 +420,6 @@ export default class ObraEntity {
   }
   get dataPactuada() {
     return this.props.dataPactuada;
-  }
-  get tenantId() {
-    return this.props.tenantId;
   }
   get criadoPorUsuarioId() {
     return this.props.criadoPorUsuarioId;

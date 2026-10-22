@@ -1,14 +1,16 @@
-import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 import { PageOptionsDto } from '@/core/pagination/dto/page_options.dto';
+import { TipoObra } from '@/modules/obras/domain/enums/tipo_obra.enum';
+import { StatusObra } from '@/modules/obras/domain/enums/status_obra.enum';
 
 export default class ListObrasQueryDto extends PageOptionsDto {
   @IsOptional()
-  @IsString()
-  status?: string;
+  @IsEnum(StatusObra)
+  status?: StatusObra;
 
   @IsOptional()
-  @IsString()
-  tipo?: string;
+  @IsEnum(TipoObra)
+  tipo?: TipoObra;
 
   @IsOptional()
   @IsUUID()

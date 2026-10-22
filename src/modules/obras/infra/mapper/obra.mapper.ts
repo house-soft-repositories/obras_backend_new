@@ -1,65 +1,98 @@
 import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
 import ObraModel from '@/modules/obras/infra/models/obra.model';
-import { TipoFinanciamento } from '@/modules/obras/domain/enums/tipo_financiamento.enum';
-import { ModoDuracao } from '@/modules/obras/domain/enums/modo_duracao.enum';
-import { AcaoConveniada } from '@/modules/obras/domain/enums/acao_conveniada.enum';
+import BaseMapper from '@/core/types/base_mapper';
 
-export default abstract class ObraMapper {
-  static toModel(e: ObraEntity): Partial<ObraModel> {
-    return e.toObject() as unknown as Partial<ObraModel>;
+export default abstract class ObraMapper extends BaseMapper<
+  ObraEntity,
+  ObraModel
+> {
+  static toModel(entity: ObraEntity): Partial<ObraModel> {
+    return {
+      id: entity.id,
+      codigo: entity.codigo,
+      nome: entity.nome,
+      descricao: entity.descricao,
+      tipo: entity.tipo,
+      status: entity.status,
+      tipoFinanciamento: entity.tipoFinanciamento,
+      modoDuracao: entity.modoDuracao,
+      dataInicio: entity.dataInicio,
+      dataPrazo: entity.dataPrazo,
+      acaoConveniada: entity.acaoConveniada,
+      prioritaria: entity.prioritaria,
+      exibirCameraAoVivo: entity.exibirCameraAoVivo,
+      cameraUrl: entity.cameraUrl,
+      privado: entity.privado,
+      invisivel: entity.invisivel,
+      considerarSabado: entity.considerarSabado,
+      considerarDomingo: entity.considerarDomingo,
+      seguirAutomatico: entity.seguirAutomatico,
+      vincularPagamentoPercentual: entity.vincularPagamentoPercentual,
+      corresponsaveisPodemEditar: entity.corresponsaveisPodemEditar,
+      orgaoId: entity.orgaoId,
+      setorId: entity.setorId,
+      localidadeId: entity.localidadeId,
+      subclassificacaoId: entity.subclassificacaoId,
+      eixoId: entity.eixoId,
+      classificacaoId: entity.classificacaoId,
+      tipologiaId: entity.tipologiaId,
+      subtipologiaId: entity.subtipologiaId,
+      programaPpa: entity.programaPpa,
+      acaoEstrategica: entity.acaoEstrategica,
+      acaoOrcamentaria: entity.acaoOrcamentaria,
+      unidadeMedida: entity.unidadeMedida,
+      quantidade: entity.quantidade,
+      secretario: entity.secretario,
+      dataPactuada: entity.dataPactuada,
+      criadoPorUsuarioId: entity.criadoPorUsuarioId,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+      deletedAt: entity.deletedAt,
+    };
   }
 
-  static toEntity(m: ObraModel & Record<string, unknown>): ObraEntity {
-    const anyM = m as unknown as Record<string, unknown>;
+  static toEntity(model: ObraModel): ObraEntity {
     return ObraEntity.fromData({
-      id: m.id,
-      tenantId: (anyM['tenantId'] as string) ?? '',
-      codigo: m.codigo,
-      nome: m.nome,
-      descricao: m.descricao,
-      tipo: m.tipo,
-      status: m.status,
-      tipoFinanciamento:
-        (anyM['tipoFinanciamento'] as TipoFinanciamento) ??
-        TipoFinanciamento.SEM_OGU,
-      modoDuracao:
-        (anyM['modoDuracao'] as ModoDuracao) ??
-        ModoDuracao.DEFINIDO_PELO_USUARIO,
-      dataInicio: (anyM['dataInicio'] as string | null) ?? null,
-      dataPrazo: (anyM['dataPrazo'] as string | null) ?? null,
-      acaoConveniada:
-        (anyM['acaoConveniada'] as AcaoConveniada) ?? AcaoConveniada.NAO,
-      prioritaria: (anyM['prioritaria'] as boolean) ?? false,
-      exibirCameraAoVivo: (anyM['exibirCameraAoVivo'] as boolean) ?? false,
-      cameraUrl: (anyM['cameraUrl'] as string | null) ?? null,
-      privado: (anyM['privado'] as boolean) ?? false,
-      invisivel: (anyM['invisivel'] as boolean) ?? false,
-      considerarSabado: (anyM['considerarSabado'] as boolean) ?? false,
-      considerarDomingo: (anyM['considerarDomingo'] as boolean) ?? false,
-      seguirAutomatico: m.seguirAutomatico,
-      vincularPagamentoPercentual:
-        (anyM['vincularPagamentoPercentual'] as boolean) ?? false,
-      corresponsaveisPodemEditar:
-        (anyM['corresponsaveisPodemEditar'] as boolean) ?? false,
-      orgaoId: m.orgaoId,
-      setorId: m.setorId,
-      localidadeId: m.localidadeId,
-      subclassificacaoId: m.subclassificacaoId,
-      eixoId: m.eixoId,
-      classificacaoId: m.classificacaoId,
-      tipologiaId: m.tipologiaId,
-      subtipologiaId: m.subtipologiaId,
-      programaPpa: (anyM['programaPpa'] as string | null) ?? null,
-      acaoEstrategica: (anyM['acaoEstrategica'] as string | null) ?? null,
-      acaoOrcamentaria: (anyM['acaoOrcamentaria'] as string | null) ?? null,
-      unidadeMedida: (anyM['unidadeMedida'] as string | null) ?? null,
-      quantidade: (anyM['quantidade'] as string | null) ?? null,
-      secretario: (anyM['secretario'] as string | null) ?? null,
-      dataPactuada: (anyM['dataPactuada'] as string | null) ?? null,
-      criadoPorUsuarioId: m.criadoPorUsuarioId,
-      createdAt: m.createdAt,
-      updatedAt: m.updatedAt,
-      deletedAt: (anyM['deletedAt'] as Date | null) ?? null,
+      id: model.id,
+      codigo: model.codigo,
+      nome: model.nome,
+      descricao: model.descricao,
+      tipo: model.tipo,
+      status: model.status,
+      tipoFinanciamento: model.tipoFinanciamento,
+      modoDuracao: model.modoDuracao,
+      dataInicio: model.dataInicio,
+      dataPrazo: model.dataPrazo,
+      acaoConveniada: model.acaoConveniada,
+      prioritaria: model.prioritaria,
+      exibirCameraAoVivo: model.exibirCameraAoVivo,
+      cameraUrl: model.cameraUrl,
+      privado: model.privado,
+      invisivel: model.invisivel,
+      considerarSabado: model.considerarSabado,
+      considerarDomingo: model.considerarDomingo,
+      seguirAutomatico: model.seguirAutomatico,
+      vincularPagamentoPercentual: model.vincularPagamentoPercentual,
+      corresponsaveisPodemEditar: model.corresponsaveisPodemEditar,
+      orgaoId: model.orgaoId,
+      setorId: model.setorId,
+      localidadeId: model.localidadeId,
+      subclassificacaoId: model.subclassificacaoId,
+      eixoId: model.eixoId,
+      classificacaoId: model.classificacaoId,
+      tipologiaId: model.tipologiaId,
+      subtipologiaId: model.subtipologiaId,
+      programaPpa: model.programaPpa,
+      acaoEstrategica: model.acaoEstrategica,
+      acaoOrcamentaria: model.acaoOrcamentaria,
+      unidadeMedida: model.unidadeMedida,
+      quantidade: model.quantidade,
+      secretario: model.secretario,
+      dataPactuada: model.dataPactuada,
+      criadoPorUsuarioId: model.criadoPorUsuarioId,
+      createdAt: model.createdAt,
+      updatedAt: model.updatedAt,
+      deletedAt: model.deletedAt,
     });
   }
 }

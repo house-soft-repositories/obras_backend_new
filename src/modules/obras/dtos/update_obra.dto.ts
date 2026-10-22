@@ -11,11 +11,13 @@ import {
 import { TipoFinanciamento } from '@/modules/obras/domain/enums/tipo_financiamento.enum';
 import { ModoDuracao } from '@/modules/obras/domain/enums/modo_duracao.enum';
 import { AcaoConveniada } from '@/modules/obras/domain/enums/acao_conveniada.enum';
+import { TipoObra } from '@/modules/obras/domain/enums/tipo_obra.enum';
+import { StatusObra } from '@/modules/obras/domain/enums/status_obra.enum';
 
 export default class UpdateObraDto {
   @IsOptional() @IsString() @MinLength(2) nome?: string;
-  @IsOptional() @IsString() tipo?: string;
-  @IsOptional() @IsString() status?: string;
+  @IsOptional() @IsEnum(TipoObra) tipo?: TipoObra;
+  @IsOptional() @IsEnum(StatusObra) status?: StatusObra;
   @IsOptional() @IsUUID() orgaoId?: string;
   @IsOptional() @IsUUID() setorId?: string | null;
   @IsOptional() @IsUUID() localidadeId?: string | null;

@@ -18,6 +18,7 @@ import ObraDomainException from '@/modules/obras/exceptions/obra_domain.exceptio
 import ObraServiceException from '@/modules/obras/exceptions/obra_service.exception';
 import ObraEventsService from '@/modules/obras/events/obra_events.service';
 import { proximoCodigo } from '@/modules/obras/services/codigo_obra.service';
+import { TipoObra } from '@/modules/obras/domain/enums/tipo_obra.enum';
 import { DataSource } from 'typeorm';
 
 export default class CreateObraService implements ICreateObraUseCase {
@@ -38,7 +39,7 @@ export default class CreateObraService implements ICreateObraUseCase {
           }),
         );
       }
-      if (p.subclassificacaoId && p.tipo !== 'OBRA') {
+      if (p.subclassificacaoId && p.tipo !== TipoObra.OBRA) {
         return left(
           new ObraDomainException({
             code: ErrorCodeConstants.OBRA_INVALID_SUBCLASSIFICACAO,
@@ -73,7 +74,6 @@ export default class CreateObraService implements ICreateObraUseCase {
         if (last.isLeft()) return left(last.value);
         codigo = proximoCodigo('OBR', last.value, year);
         const entity = ObraEntity.create({
-          tenantId: p.tenantId,
           codigo,
           nome: p.nome,
           descricao: p.descricao,

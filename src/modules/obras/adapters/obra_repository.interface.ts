@@ -4,10 +4,12 @@ import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
 import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import PageEntity from '@/core/pagination/domain/entities/page.entity';
 import type { Unit } from '@/core/types/unit';
+import { TipoObra } from '@/modules/obras/domain/enums/tipo_obra.enum';
+import { StatusObra } from '@/modules/obras/domain/enums/status_obra.enum';
 
 export interface ObraFindPageParams {
-  status?: string;
-  tipo?: string;
+  status?: StatusObra;
+  tipo?: TipoObra;
   orgaoId?: string;
   q?: string;
   pageOptions: PageOptionsEntity;
