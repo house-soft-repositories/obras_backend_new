@@ -4,6 +4,8 @@ import { HttpAdapterHost } from '@nestjs/core/helpers/http-adapter-host';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import HttpMonitoryFilter from '@/core/services/http_monitory.filter';
 import type IMonitoryService from '@/core/services/monitory.service';
+import type ConfigurationService from '@/core/services/configuration.service';
+import NODE_ENV from '@/core/types/node_env';
 
 const createHost = (request: Record<string, string>) => {
   const response = {};
@@ -21,6 +23,7 @@ const createHost = (request: Record<string, string>) => {
 describe('HttpMonitoryFilter', () => {
   let filter: HttpMonitoryFilter;
   let monitoryService: jest.Mocked<IMonitoryService>;
+  let configurationService: jest.Mocked<ConfigurationService>;
   let reply: jest.Mock;
   let end: jest.Mock;
 
@@ -28,6 +31,9 @@ describe('HttpMonitoryFilter', () => {
     monitoryService = {
       captureException: jest.fn(),
     } as unknown as jest.Mocked<IMonitoryService>;
+    configurationService = {
+      get: jest.fn().mockReturnValue(NODE_ENV.PRD),
+    } as unknown as jest.Mocked<ConfigurationService>;
     reply = jest.fn();
     end = jest.fn();
     const httpAdapter = {
@@ -35,9 +41,13 @@ describe('HttpMonitoryFilter', () => {
       reply,
       end,
     } as unknown as HttpServer;
-    filter = new HttpMonitoryFilter(monitoryService, {
-      httpAdapter,
-    } as HttpAdapterHost);
+    filter = new HttpMonitoryFilter(
+      monitoryService,
+      {
+        httpAdapter,
+      } as HttpAdapterHost,
+      configurationService,
+    );
   });
 
   it('preserves a string HttpException body through the Nest adapter', () => {
@@ -79,6 +89,39 @@ describe('HttpMonitoryFilter', () => {
       body,
       HttpStatus.UNPROCESSABLE_ENTITY,
     );
+  });
+
+  it.each([
+    [NODE_ENV.DEV, HttpStatus.BAD_REQUEST],
+    [NODE_ENV.TST, HttpStatus.UNAUTHORIZED],
+  ])('captures client errors in %s environment', (environment, statusCode) => {
+    const { host, response } = createHost({
+      method: 'GET',
+      url: '/resource',
+    });
+    const exception = new HttpException('request failed', statusCode);
+    configurationService.get.mockReturnValue(environment);
+
+    filter.catch(exception, host);
+
+    expect(monitoryService.captureException).toHaveBeenCalled();
+    expect(reply).toHaveBeenCalledWith(
+      response,
+      { statusCode, message: 'request failed' },
+      statusCode,
+    );
+  });
+
+  it('does not capture client errors in production', () => {
+    const { host } = createHost({ method: 'GET', url: '/resource' });
+    const exception = new HttpException(
+      'request failed',
+      HttpStatus.BAD_REQUEST,
+    );
+
+    filter.catch(exception, host);
+
+    expect(monitoryService.captureException).not.toHaveBeenCalled();
   });
 
   it('captures server errors and still delegates response formatting to Nest', () => {
@@ -148,9 +191,13 @@ describe('HttpMonitoryFilter', () => {
       reply,
       end,
     } as unknown as HttpServer;
-    filter = new HttpMonitoryFilter(monitoryService, {
-      httpAdapter,
-    } as HttpAdapterHost);
+    filter = new HttpMonitoryFilter(
+      monitoryService,
+      {
+        httpAdapter,
+      } as HttpAdapterHost,
+      configurationService,
+    );
 
     filter.catch(exception, host);
 

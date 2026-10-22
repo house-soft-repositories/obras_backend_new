@@ -1,6 +1,8 @@
 import AppException from '@/core/exceptions/app_exception';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import type IMonitoryService from '@/core/services/monitory.service';
+import type ConfigurationService from '@/core/services/configuration.service';
+import NODE_ENV from '@/core/types/node_env';
 import { MONITORY_SERVICE } from '@/core/services/symbols';
 import {
   ArgumentsHost,
@@ -21,6 +23,7 @@ export default class HttpMonitoryFilter
     @Inject(MONITORY_SERVICE)
     private readonly monitoryService: IMonitoryService,
     httpAdapterHost: HttpAdapterHost,
+    private readonly configurationService: ConfigurationService,
   ) {
     super(httpAdapterHost.httpAdapter);
   }
@@ -30,7 +33,13 @@ export default class HttpMonitoryFilter
     const statusCode =
       exception instanceof HttpException ? exception.getStatus() : 500;
 
-    if (statusCode >= 500) {
+    const environment = this.configurationService.get('NODE_ENV');
+    const shouldCapture =
+      statusCode >= 500 ||
+      (statusCode >= 400 &&
+        (environment === NODE_ENV.DEV || environment === NODE_ENV.TST));
+
+    if (shouldCapture) {
       const error =
         exception instanceof Error ? exception : new Error(String(exception));
       const cause =
