@@ -44,7 +44,9 @@ export default class TenancyRepository implements ITenancyRepository {
   ): AsyncResult<AppException, TenancyEntity> {
     try {
       const saved = await this.dataSource.transaction(async (manager) => {
-        await manager.query(`CREATE SCHEMA "${tenancy.schemaName}"`);
+        await manager.query(
+          `CREATE SCHEMA IF NOT EXISTS "${tenancy.schemaName}"`,
+        );
         await TenantMigrationRunner.runPending(manager, tenancy.schemaName);
         const repository = manager.getRepository(TenancyModel);
         return repository.save(
