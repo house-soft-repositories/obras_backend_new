@@ -3,8 +3,12 @@ import AppException from '@/core/exceptions/app_exception';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import { unit, type Unit } from '@/core/types/unit';
+import { withManager } from '@/core/multitenancy/tenant_manager';
+import { DataSource } from 'typeorm';
+import ObraModel from '@/modules/obras/infra/models/obra.model';
 import IFonteRepository from '@/modules/fontes/adapters/fonte_repository.interface';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
+import TenantContext from '@/core/multitenancy/tenant_context';
 import IMedicaoRepository from '@/modules/cronograma/adapters/medicao_repository.interface';
 import MedicaoEntity from '@/modules/cronograma/domain/entities/medicao.entity';
 import { TipoMedicao } from '@/modules/cronograma/domain/enums/cronograma.enums';
@@ -16,8 +20,10 @@ import CronogramaServiceException from '@/modules/cronograma/exceptions/cronogra
 export default class UpdateMedicaoService implements IUpdateMedicaoUseCase {
   constructor(
     private readonly repo: IMedicaoRepository,
+    private readonly tc: TenantContext,
     private readonly obras: IObraRepository,
     private readonly fontes: IFonteRepository,
+    private readonly ds?: DataSource,
   ) {}
 
   async execute(
@@ -39,16 +45,54 @@ export default class UpdateMedicaoService implements IUpdateMedicaoUseCase {
     );
     if (duplicated.isLeft()) return left(duplicated.value);
     try {
-      return this.repo.update(
-        found.value.update({
-          numero: param.numero,
-          orgaoId: param.orgaoId,
-          tipo: param.tipo,
-          dataMedicao: param.dataMedicao,
-          observacao: param.observacoes,
-          itens: param.fontes,
-        }),
-      );
+      if (!this.ds)
+        return this.repo.update(
+          found.value.update({
+            numero: param.numero,
+            orgaoId: param.orgaoId,
+            tipo: param.tipo,
+            dataMedicao: param.dataMedicao,
+            observacao: param.observacoes,
+            itens: param.fontes,
+          }),
+        );
+      return await withManager(this.ds, this.tc, async (manager) => {
+        await manager.getRepository(ObraModel).findOne({
+          where: { id: param.obraId },
+          lock: { mode: 'pessimistic_write' },
+        });
+        const saldo = await this.repo.getSaldoMedicao(
+          param.obraId,
+          param.id,
+          manager,
+        );
+        if (saldo.isLeft()) return left(saldo.value);
+        const valorMedicao = (param.fontes ?? found.value.itens).reduce(
+          (total, item) => total + item.valor,
+          0,
+        );
+        if (
+          Number(saldo.value.medicoesAcumuladas) + valorMedicao >
+          Number(saldo.value.orcamentoTotal)
+        )
+          return left(
+            new CronogramaServiceException({
+              code: ErrorCodeConstants.MEDICAO_ORCAMENTO_EXCEDIDO,
+              statusCode: 422,
+            }),
+          );
+        return this.repo.update(
+          found.value.update({
+            numero: param.numero,
+            orgaoId: param.orgaoId,
+            tipo: param.tipo,
+            dataMedicao: param.dataMedicao,
+            observacao: param.observacoes,
+            itens: param.fontes,
+          }),
+          manager,
+        );
+      });
     } catch (error) {
       if (error instanceof AppException) return left(error);
       return left(

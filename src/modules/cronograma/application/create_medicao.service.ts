@@ -3,6 +3,9 @@ import AppException from '@/core/exceptions/app_exception';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import { unit, type Unit } from '@/core/types/unit';
+import { withManager } from '@/core/multitenancy/tenant_manager';
+import { DataSource } from 'typeorm';
+import ObraModel from '@/modules/obras/infra/models/obra.model';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import IFonteRepository from '@/modules/fontes/adapters/fonte_repository.interface';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
@@ -20,6 +23,7 @@ export default class CreateMedicaoService implements ICreateMedicaoUseCase {
     private readonly tc: TenantContext,
     private readonly obras: IObraRepository,
     private readonly fontes: IFonteRepository,
+    private readonly ds?: DataSource,
   ) {}
 
   async execute(
@@ -36,18 +40,75 @@ export default class CreateMedicaoService implements ICreateMedicaoUseCase {
     );
     if (duplicated.isLeft()) return left(duplicated.value);
     try {
-      return this.repo.save(
-        MedicaoEntity.create({
-          tenantId: this.tc.require().tenantId,
-          obraId: param.obraId,
-          orgaoId: param.orgaoId,
-          numero: param.numero,
-          tipo: param.tipo,
-          dataMedicao: param.dataMedicao,
-          observacao: param.observacoes,
-          itens: param.fontes,
-        }),
-      );
+      if (!this.ds) {
+        const saldo = await this.repo.getSaldoMedicao(param.obraId);
+        if (saldo.isLeft()) return left(saldo.value);
+        const valorMedicao = param.fontes.reduce(
+          (total, item) => total + item.valor,
+          0,
+        );
+        if (
+          Number(saldo.value.medicoesAcumuladas) + valorMedicao >
+          Number(saldo.value.orcamentoTotal)
+        )
+          return left(
+            new CronogramaServiceException({
+              code: ErrorCodeConstants.MEDICAO_ORCAMENTO_EXCEDIDO,
+              statusCode: 422,
+            }),
+          );
+        return this.repo.save(
+          MedicaoEntity.create({
+            tenantId: this.tc.require().tenantId,
+            obraId: param.obraId,
+            orgaoId: param.orgaoId,
+            numero: param.numero,
+            tipo: param.tipo,
+            dataMedicao: param.dataMedicao,
+            observacao: param.observacoes,
+            itens: param.fontes,
+          }),
+        );
+      }
+      return await withManager(this.ds, this.tc, async (manager) => {
+        await manager.getRepository(ObraModel).findOne({
+          where: { id: param.obraId },
+          lock: { mode: 'pessimistic_write' },
+        });
+        const saldo = await this.repo.getSaldoMedicao(
+          param.obraId,
+          undefined,
+          manager,
+        );
+        if (saldo.isLeft()) return left(saldo.value);
+        const valorMedicao = param.fontes.reduce(
+          (total, item) => total + item.valor,
+          0,
+        );
+        if (
+          Number(saldo.value.medicoesAcumuladas) + valorMedicao >
+          Number(saldo.value.orcamentoTotal)
+        )
+          return left(
+            new CronogramaServiceException({
+              code: ErrorCodeConstants.MEDICAO_ORCAMENTO_EXCEDIDO,
+              statusCode: 422,
+            }),
+          );
+        return this.repo.save(
+          MedicaoEntity.create({
+            tenantId: this.tc.require().tenantId,
+            obraId: param.obraId,
+            orgaoId: param.orgaoId,
+            numero: param.numero,
+            tipo: param.tipo,
+            dataMedicao: param.dataMedicao,
+            observacao: param.observacoes,
+            itens: param.fontes,
+          }),
+          manager,
+        );
+      });
     } catch (error) {
       if (error instanceof AppException) return left(error);
       return left(

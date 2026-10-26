@@ -250,13 +250,15 @@ import MedicaoFonteModel from '@/modules/cronograma/infra/models/medicao_fonte.m
         TenantContext,
         OBRA_REPOSITORY,
         FONTE_REPOSITORY,
+        DataSource,
       ],
       useFactory: (
         r: IMedicaoRepository,
         tc: TenantContext,
         o: IObraRepository,
         f: IFonteRepository,
-      ) => new CreateMedicaoService(r, tc, o, f),
+        ds: DataSource,
+      ) => new CreateMedicaoService(r, tc, o, f, ds),
     },
     {
       provide: LIST_MEDICOES_SERVICE,
@@ -272,12 +274,20 @@ import MedicaoFonteModel from '@/modules/cronograma/infra/models/medicao_fonte.m
     },
     {
       provide: UPDATE_MEDICAO_SERVICE,
-      inject: [MEDICAO_REPOSITORY, OBRA_REPOSITORY, FONTE_REPOSITORY],
+      inject: [
+        MEDICAO_REPOSITORY,
+        TenantContext,
+        OBRA_REPOSITORY,
+        FONTE_REPOSITORY,
+        DataSource,
+      ],
       useFactory: (
         r: IMedicaoRepository,
+        tc: TenantContext,
         o: IObraRepository,
         f: IFonteRepository,
-      ) => new UpdateMedicaoService(r, o, f),
+        ds: DataSource,
+      ) => new UpdateMedicaoService(r, tc, o, f, ds),
     },
     {
       provide: REMOVE_MEDICAO_SERVICE,
