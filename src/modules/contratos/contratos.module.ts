@@ -3,6 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import CoreModule from '@/core/core.module';
 import TenantContext from '@/core/multitenancy/tenant_context';
+import AttachmentsModule from '@/modules/attachments/attachments.module';
+import StorageModule from '@/modules/storage/storage.module';
+import IniciarUploadTermoParalisacaoService from '@/modules/contratos/application/iniciar_upload_termo_paralisacao.service';
+import IIniciarUploadTermoParalisacaoUseCase from '@/modules/contratos/domain/usecase/iniciar_upload_termo_paralisacao.usecase';
 import AuthModule from '@/modules/auth/auth.module';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import {
@@ -73,16 +77,23 @@ import {
   LIST_PARALISACOES_USE_CASE,
   REINICIAR_PARALISACAO_USE_CASE,
   DELETE_PARALISACAO_USE_CASE,
+  INICIAR_UPLOAD_TERMO_PARALISACAO_USE_CASE,
 } from '@/modules/contratos/symbols';
 import IContratoRepository from '@/modules/contratos/adapters/contrato_repository.interface';
 import IAditivoRepository from '@/modules/contratos/adapters/aditivo_repository.interface';
 import IParalisacaoRepository from '@/modules/contratos/adapters/paralisacao_repository.interface';
 import IEmpresaContratadaRepository from '@/modules/contratos/adapters/empresa_contratada_repository.interface';
+import IAttachmentRepository from '@/modules/attachments/adapters/attachment_repository.interface';
+import IStorageService from '@/modules/storage/adapters/storage_service.interface';
+import { ATTACHMENT_REPOSITORY } from '@/modules/attachments/symbols';
+import { STORAGE_SERVICE } from '@/modules/storage/symbols';
 
 @Module({
   imports: [
     CoreModule,
     AuthModule,
+    AttachmentsModule,
+    StorageModule,
     TypeOrmModule.forFeature([
       ContratoModel,
       ContratoFonteModel,
@@ -263,6 +274,22 @@ import IEmpresaContratadaRepository from '@/modules/contratos/adapters/empresa_c
       useFactory: (pr: IParalisacaoRepository) =>
         new DeleteParalisacaoService(pr),
     },
+    {
+      provide: INICIAR_UPLOAD_TERMO_PARALISACAO_USE_CASE,
+      inject: [
+        CONTRATO_REPOSITORY,
+        ATTACHMENT_REPOSITORY,
+        STORAGE_SERVICE,
+        TenantContext,
+      ],
+      useFactory: (
+        cr: IContratoRepository,
+        ar: IAttachmentRepository,
+        storage: IStorageService,
+        tc: TenantContext,
+      ): IIniciarUploadTermoParalisacaoUseCase =>
+        new IniciarUploadTermoParalisacaoService(cr, ar, storage, tc),
+    },
   ],
   exports: [
     CONTRATO_REPOSITORY,
@@ -290,6 +317,7 @@ import IEmpresaContratadaRepository from '@/modules/contratos/adapters/empresa_c
     LIST_PARALISACOES_USE_CASE,
     REINICIAR_PARALISACAO_USE_CASE,
     DELETE_PARALISACAO_USE_CASE,
+    INICIAR_UPLOAD_TERMO_PARALISACAO_USE_CASE,
   ],
 })
 export default class ContratosModule {}

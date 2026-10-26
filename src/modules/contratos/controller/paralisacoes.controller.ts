@@ -10,6 +10,7 @@ import {
   ParseUUIDPipe,
   Inject,
 } from '@nestjs/common';
+import IniciarUploadTermoParalisacaoDto from '@/modules/contratos/dtos/iniciar_upload_termo_paralisacao.dto';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
 import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
@@ -22,11 +23,13 @@ import {
   LIST_PARALISACOES_USE_CASE,
   REINICIAR_PARALISACAO_USE_CASE,
   DELETE_PARALISACAO_USE_CASE,
+  INICIAR_UPLOAD_TERMO_PARALISACAO_USE_CASE,
 } from '@/modules/contratos/symbols';
 import type ICreateParalisacaoUseCase from '@/modules/contratos/domain/usecase/create_paralisacao.usecase';
 import type IListParalisacoesUseCase from '@/modules/contratos/domain/usecase/list_paralisacoes.usecase';
 import type IReiniciarParalisacaoUseCase from '@/modules/contratos/domain/usecase/reiniciar_paralisacao.usecase';
 import type IDeleteParalisacaoUseCase from '@/modules/contratos/domain/usecase/delete_paralisacao.usecase';
+import type IIniciarUploadTermoParalisacaoUseCase from '@/modules/contratos/domain/usecase/iniciar_upload_termo_paralisacao.usecase';
 
 @Controller('api')
 @UseGuards(AccessTokenGuard)
@@ -40,8 +43,31 @@ export default class ParalisacoesController {
     private readonly reiniciarParalisacao: IReiniciarParalisacaoUseCase,
     @Inject(DELETE_PARALISACAO_USE_CASE)
     private readonly deleteParalisacao: IDeleteParalisacaoUseCase,
+    @Inject(INICIAR_UPLOAD_TERMO_PARALISACAO_USE_CASE)
+    private readonly iniciarUploadTermo: IIniciarUploadTermoParalisacaoUseCase,
     private readonly tc: TenantRequestContextService,
   ) {}
+
+  @Post('contratos/:contratoId/paralisacoes/termo-upload')
+  async iniciarUploadTermoEndpoint(
+    @Param('contratoId', ParseUUIDPipe) contratoId: string,
+    @Body() dto: IniciarUploadTermoParalisacaoDto,
+    @AuthenticatedUser() user?: AccessTokenPayload,
+  ) {
+    return this.tc.run(user, async () => {
+      const res = await this.iniciarUploadTermo.execute({
+        contratoId,
+        nomeOriginal: dto.nomeOriginal,
+        mimeType: dto.mimeType,
+        usuarioId: user?.sub ?? '',
+      });
+      if (res.isLeft())
+        throw new HttpException(res.value.message, res.value.statusCode, {
+          cause: res.value.cause,
+        });
+      return res.value;
+    });
+  }
 
   @Post('contratos/:contratoId/paralisacoes')
   async create(
