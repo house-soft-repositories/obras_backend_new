@@ -16,6 +16,23 @@ describe('UpdateMedicaoService', () => {
     schemaName: 'tenant_00000000000000000000000000000000',
   };
 
+  const makeDataSource = () =>
+    ({
+      createQueryRunner: () => ({
+        connect: jest.fn(),
+        startTransaction: jest.fn(),
+        query: jest.fn(),
+        commitTransaction: jest.fn(),
+        rollbackTransaction: jest.fn(),
+        release: jest.fn(),
+        isTransactionActive: true,
+        isReleased: false,
+        manager: {
+          getRepository: () => ({ findOne: jest.fn() }),
+        },
+      }),
+    }) as never;
+
   function makeFonte(ativo = true) {
     return FonteEntity.create({
       nome: 'Fonte',
@@ -44,6 +61,7 @@ describe('UpdateMedicaoService', () => {
     const repository = {
       findById: jest.fn(),
       update: jest.fn(),
+      getSaldoMedicao: jest.fn(),
       existsNormalNumero: jest.fn(),
     } as unknown as jest.Mocked<IMedicaoRepository>;
     const obras = {
@@ -52,26 +70,38 @@ describe('UpdateMedicaoService', () => {
     const fontes = {
       findById: jest.fn(),
     } as unknown as jest.Mocked<IFonteRepository>;
-    const service = new UpdateMedicaoService(repository, obras, fontes);
+    const tenantContext = new TenantContext();
+    const service = new UpdateMedicaoService(
+      repository,
+      tenantContext,
+      obras,
+      fontes,
+      makeDataSource(),
+    );
 
     obras.findById.mockResolvedValue(right({} as never));
     fontes.findById.mockResolvedValue(right(makeFonte()));
     repository.existsNormalNumero.mockResolvedValue(right(false));
+    repository.getSaldoMedicao.mockResolvedValue(
+      right({ orcamentoTotal: '1000', medicoesAcumuladas: '0' }),
+    );
 
-    return { repository, obras, fontes, service };
+    return { repository, obras, fontes, tenantContext, service };
   }
 
   it('blocks duplicate NORMAL number on update', async () => {
-    const { repository, service } = setup();
+    const { repository, tenantContext, service } = setup();
     const medicao = makeMedicao();
     repository.findById.mockResolvedValue(right(medicao));
     repository.existsNormalNumero.mockResolvedValue(right(true));
 
-    const result = await service.execute({
-      obraId: 'obra',
-      id: medicao.id,
-      numero: 2,
-    });
+    const result = await tenantContext.run(tenant, () =>
+      service.execute({
+        obraId: 'obra',
+        id: medicao.id,
+        numero: 2,
+      }),
+    );
 
     expect(result.isLeft()).toBe(true);
     expect(result.value.code).toBe(ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT);
@@ -79,17 +109,65 @@ describe('UpdateMedicaoService', () => {
     expect(repository.update).not.toHaveBeenCalled();
   });
 
+  it('accepts update when replacement value fits remaining budget', async () => {
+    const { repository, tenantContext, service } = setup();
+    const medicao = makeMedicao();
+    repository.findById.mockResolvedValue(right(medicao));
+    repository.update.mockImplementation((updatedMedicao) =>
+      Promise.resolve(right(updatedMedicao)),
+    );
+    repository.getSaldoMedicao.mockResolvedValue(
+      right({ orcamentoTotal: '200', medicoesAcumuladas: '100' }),
+    );
+
+    const result = await tenantContext.run(tenant, () =>
+      service.execute({
+        obraId: 'obra',
+        id: medicao.id,
+        fontes: [{ fonteId: 'fonte', valor: 100 }],
+      }),
+    );
+
+    expect(result.isRight()).toBe(true);
+    expect(repository.update).toHaveBeenCalled();
+  });
+
+  it('rejects update when replacement exceeds remaining budget', async () => {
+    const { repository, tenantContext, service } = setup();
+    const medicao = makeMedicao();
+    repository.findById.mockResolvedValue(right(medicao));
+    repository.getSaldoMedicao.mockResolvedValue(
+      right({ orcamentoTotal: '150', medicoesAcumuladas: '100' }),
+    );
+
+    const result = await tenantContext.run(tenant, () =>
+      service.execute({
+        obraId: 'obra',
+        id: medicao.id,
+        fontes: [{ fonteId: 'fonte', valor: 51 }],
+      }),
+    );
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value.code).toBe(
+      ErrorCodeConstants.MEDICAO_ORCAMENTO_EXCEDIDO,
+    );
+    expect(repository.update).not.toHaveBeenCalled();
+  });
+
   it('rejects inactive fonte before saving', async () => {
-    const { repository, fontes, service } = setup();
+    const { repository, fontes, tenantContext, service } = setup();
     const medicao = makeMedicao();
     repository.findById.mockResolvedValue(right(medicao));
     fontes.findById.mockResolvedValue(right(makeFonte(false)));
 
-    const result = await service.execute({
-      obraId: 'obra',
-      id: medicao.id,
-      fontes: [{ fonteId: 'fonte', valor: 100 }],
-    });
+    const result = await tenantContext.run(tenant, () =>
+      service.execute({
+        obraId: 'obra',
+        id: medicao.id,
+        fontes: [{ fonteId: 'fonte', valor: 100 }],
+      }),
+    );
 
     expect(result.isLeft()).toBe(true);
     expect(result.value.code).toBe(ErrorCodeConstants.MEDICAO_FONTE_INVALIDA);

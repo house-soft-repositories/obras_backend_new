@@ -16,6 +16,23 @@ describe('CreateMedicaoService', () => {
     schemaName: 'tenant_00000000000000000000000000000000',
   };
 
+  const makeDataSource = () =>
+    ({
+      createQueryRunner: () => ({
+        connect: jest.fn(),
+        startTransaction: jest.fn(),
+        query: jest.fn(),
+        commitTransaction: jest.fn(),
+        rollbackTransaction: jest.fn(),
+        release: jest.fn(),
+        isTransactionActive: true,
+        isReleased: false,
+        manager: {
+          getRepository: () => ({ findOne: jest.fn() }),
+        },
+      }),
+    }) as never;
+
   function makeFonte(ativo = true) {
     return FonteEntity.create({
       nome: 'Fonte',
@@ -31,6 +48,7 @@ describe('CreateMedicaoService', () => {
   function setup() {
     const repository = {
       save: jest.fn(),
+      getSaldoMedicao: jest.fn(),
       existsNormalNumero: jest.fn(),
     } as unknown as jest.Mocked<IMedicaoRepository>;
     const obras = {
@@ -45,11 +63,15 @@ describe('CreateMedicaoService', () => {
       tenantContext,
       obras,
       fontes,
+      makeDataSource(),
     );
 
     obras.findById.mockResolvedValue(right({} as never));
     fontes.findById.mockResolvedValue(right(makeFonte()));
     repository.existsNormalNumero.mockResolvedValue(right(false));
+    repository.getSaldoMedicao.mockResolvedValue(
+      right({ orcamentoTotal: '1000', medicoesAcumuladas: '0' }),
+    );
 
     return { repository, obras, fontes, tenantContext, service };
   }
@@ -97,6 +119,54 @@ describe('CreateMedicaoService', () => {
     expect(result.value.code).toBe(ErrorCodeConstants.CRONOGRAMA_INVALID_INPUT);
     expect(result.value.statusCode).toBe(409);
     expect(repository.save).not.toHaveBeenCalled();
+  });
+
+  it('rejects measurement when accumulated value exceeds budget', async () => {
+    const { repository, tenantContext, service } = setup();
+    repository.getSaldoMedicao.mockResolvedValue(
+      right({ orcamentoTotal: '100', medicoesAcumuladas: '50' }),
+    );
+
+    const result = await tenantContext.run(tenant, () =>
+      service.execute({
+        obraId: 'obra',
+        orgaoId: 'orgao',
+        numero: 2,
+        tipo: TipoMedicao.EXTRA,
+        dataMedicao: '2026-10-05',
+        fontes: [{ fonteId: 'fonte', valor: 51 }],
+      }),
+    );
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value.code).toBe(
+      ErrorCodeConstants.MEDICAO_ORCAMENTO_EXCEDIDO,
+    );
+    expect(repository.save).not.toHaveBeenCalled();
+  });
+
+  it('accepts measurement exactly at remaining budget', async () => {
+    const { repository, tenantContext, service } = setup();
+    repository.getSaldoMedicao.mockResolvedValue(
+      right({ orcamentoTotal: '100', medicoesAcumuladas: '50' }),
+    );
+    repository.save.mockImplementation((medicao) =>
+      Promise.resolve(right(medicao)),
+    );
+
+    const result = await tenantContext.run(tenant, () =>
+      service.execute({
+        obraId: 'obra',
+        orgaoId: 'orgao',
+        numero: 2,
+        tipo: TipoMedicao.EXTRA,
+        dataMedicao: '2026-10-05',
+        fontes: [{ fonteId: 'fonte', valor: 50 }],
+      }),
+    );
+
+    expect(result.isRight()).toBe(true);
+    expect(repository.save).toHaveBeenCalled();
   });
 
   it('rejects inactive fonte before saving', async () => {
