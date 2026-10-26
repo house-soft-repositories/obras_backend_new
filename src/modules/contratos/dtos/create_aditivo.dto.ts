@@ -1,17 +1,28 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsDateString,
   IsEnum,
   IsInt,
+  IsNumberString,
   IsOptional,
   IsString,
+  IsUUID,
   Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 import {
   TipoAditivo,
   TipoPrazoExecucao,
 } from '@/modules/contratos/domain/enums/contratos.enums';
+
+export class AditivoFonteDto {
+  @ApiProperty() @IsUUID() fonteId!: string;
+  @ApiProperty() @IsNumberString() valor!: string;
+}
+
 export default class CriarAditivoDto {
   @ApiProperty() @IsString() @MinLength(1) numero!: string;
   @ApiProperty({ enum: TipoAditivo }) @IsEnum(TipoAditivo) tipo!: TipoAditivo;
@@ -40,4 +51,12 @@ export default class CriarAditivoDto {
   @IsOptional()
   @IsString()
   observacoes?: string;
+  @ApiProperty({ required: false, type: [AditivoFonteDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AditivoFonteDto)
+  fontes?: AditivoFonteDto[];
 }
+
+export class AtualizarAditivoDto extends PartialType(CriarAditivoDto) {}

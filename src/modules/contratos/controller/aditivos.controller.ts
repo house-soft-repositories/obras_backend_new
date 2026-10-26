@@ -15,7 +15,9 @@ import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import AuthenticatedUser from '@/modules/auth/controller/authenticated_user.decorator';
 import type { AccessTokenPayload } from '@/modules/auth/adapters/token_service.interface';
 import TenantRequestContextService from '@/core/multitenancy/tenant_request_context.service';
-import CriarAditivoDto from '@/modules/contratos/dtos/create_aditivo.dto';
+import CriarAditivoDto, {
+  AtualizarAditivoDto,
+} from '@/modules/contratos/dtos/create_aditivo.dto';
 import {
   CREATE_ADITIVO_USE_CASE,
   LIST_ADITIVOS_USE_CASE,
@@ -67,6 +69,7 @@ export default class AditivosController {
         prazoExecucaoData: dto.prazoExecucaoData ?? null,
         vigenciaAditivada: dto.vigenciaAditivada ?? null,
         observacoes: dto.observacoes ?? null,
+        fontes: dto.fontes,
       });
       if (res.isLeft())
         throw new HttpException(res.value.message, res.value.statusCode, {
@@ -110,7 +113,7 @@ export default class AditivosController {
   async update(
     @Param('contratoId', ParseUUIDPipe) contratoId: string,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: Partial<CriarAditivoDto>,
+    @Body() body: AtualizarAditivoDto,
     @AuthenticatedUser() user?: AccessTokenPayload,
   ) {
     return this.tc.run(user, async () => {
@@ -126,6 +129,7 @@ export default class AditivosController {
         prazoExecucaoData: body.prazoExecucaoData ?? undefined,
         vigenciaAditivada: body.vigenciaAditivada ?? undefined,
         observacoes: body.observacoes ?? undefined,
+        fontes: body.fontes,
       });
       if (res.isLeft())
         throw new HttpException(res.value.message, res.value.statusCode, {
