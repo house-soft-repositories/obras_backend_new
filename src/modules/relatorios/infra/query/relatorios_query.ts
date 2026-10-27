@@ -340,7 +340,7 @@ export default class RelatoriosQuery {
                   (SELECT ea.percentual
                      FROM "${schema}"."estagio_acompanhamento" ea
                     WHERE ea.estagio_id = e.id AND ea.data <= $1
-                    ORDER BY ea.data DESC, ea.criado_em DESC
+                    ORDER BY ea.data DESC, ea.created_at DESC
                     LIMIT 1) AS meta_atual
              FROM "${schema}"."estagio" e
             WHERE e.ativo = true
@@ -433,7 +433,7 @@ export default class RelatoriosQuery {
                   (SELECT ea.percentual
                      FROM "${schema}"."estagio_acompanhamento" ea
                     WHERE ea.estagio_id = e.id AND ea.data <= $2
-                    ORDER BY ea.data DESC, ea.criado_em DESC
+                    ORDER BY ea.data DESC, ea.created_at DESC
                     LIMIT 1) AS meta_atual
              FROM "${schema}"."estagio" e
             WHERE e.ativo = true AND e.obra_id = ANY($1)
