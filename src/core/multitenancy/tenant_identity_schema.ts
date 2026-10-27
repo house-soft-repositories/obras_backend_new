@@ -495,6 +495,20 @@ export default abstract class TenantIdentitySchema {
     await executor.query(
       `CREATE INDEX${ifNotExists} "IDX_obra_privada_responsavel_obra" ON "${schemaName}"."obra_privada_responsavel" ("tenant_id", "obra_privada_id")`,
     );
+    const duplicateRows = (await executor.query(
+      `SELECT "tenant_id", "obra_privada_id", "papel", COUNT(*)::int AS count
+       FROM "${schemaName}"."obra_privada_responsavel"
+       WHERE "data_baixa" IS NULL
+       GROUP BY "tenant_id", "obra_privada_id", "papel"
+       HAVING COUNT(*) > 1`,
+    )) as { count: number }[];
+    if (duplicateRows.length > 0)
+      throw new Error(
+        'Cannot create vigente responsavel index: duplicate active responsibilities exist',
+      );
+    await executor.query(
+      `CREATE UNIQUE INDEX${ifNotExists} "UQ_obra_privada_responsavel_vigente_papel" ON "${schemaName}"."obra_privada_responsavel" ("tenant_id", "obra_privada_id", "papel") WHERE "data_baixa" IS NULL`,
+    );
     await this.createGuiasCadastrosTables(executor, schemaName, ifNotExists);
     await this.createAttachmentsTable(executor, schemaName, ifNotExists);
     await this.createDocumentosTables(executor, schemaName, ifNotExists);

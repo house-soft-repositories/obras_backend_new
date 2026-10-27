@@ -10,7 +10,6 @@ import {
   CreateObraPrivadaResponsavelDto,
   UpdateObraPrivadaResponsavelDto,
 } from '@/modules/obras-privadas/dtos/obra_privada_responsavel.dto';
-import ObraPrivadaResponsavelResponseDto from '@/modules/obras-privadas/dtos/obra_privada_responsavel_response.dto';
 import {
   CREATE_OBRA_PRIVADA_RESPONSAVEL_SERVICE,
   DELETE_OBRA_PRIVADA_RESPONSAVEL_SERVICE,
@@ -59,7 +58,7 @@ export default class ObraPrivadaResponsavelController {
         obraPrivadaId,
       });
       if (result.isLeft()) this.throwHttp(result.value);
-      return ObraPrivadaResponsavelResponseDto.fromEntity(result.value);
+      return result.value.fromResponse();
     });
   }
   @Get() async list(
@@ -69,26 +68,35 @@ export default class ObraPrivadaResponsavelController {
     return this.withTenant(user, async () => {
       const result = await this.listResponsaveis.execute({ obraPrivadaId });
       if (result.isLeft()) this.throwHttp(result.value);
-      return result.value.map(ObraPrivadaResponsavelResponseDto.fromEntity);
+      return result.value.fromResponse();
     });
   }
   @Patch(':id') async update(
+    @Param('obraPrivadaId') obraPrivadaId: string,
     @Param('id') id: string,
     @Body() body: UpdateObraPrivadaResponsavelDto,
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
   ) {
     return this.withTenant(user, async () => {
-      const result = await this.updateResponsavel.execute({ ...body, id });
+      const result = await this.updateResponsavel.execute({
+        ...body,
+        id,
+        obraPrivadaId,
+      });
       if (result.isLeft()) this.throwHttp(result.value);
-      return ObraPrivadaResponsavelResponseDto.fromEntity(result.value);
+      return result.value.fromResponse();
     });
   }
   @Delete(':id') @HttpCode(204) async delete(
+    @Param('obraPrivadaId') obraPrivadaId: string,
     @Param('id') id: string,
     @AuthenticatedUser() user: AccessTokenPayload | undefined,
   ) {
     return this.withTenant(user, async () => {
-      const result = await this.deleteResponsavel.execute({ id });
+      const result = await this.deleteResponsavel.execute({
+        id,
+        obraPrivadaId,
+      });
       if (result.isLeft()) this.throwHttp(result.value);
     });
   }

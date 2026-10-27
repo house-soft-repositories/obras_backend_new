@@ -1,7 +1,10 @@
 import UseCase from '@/core/types/use_case';
 import type { Unit } from '@/core/types/unit';
 
-export type DeleteObraPrivadaResponsavelParam = { id: string };
+export type DeleteObraPrivadaResponsavelParam = {
+  id: string;
+  obraPrivadaId: string;
+};
 
 type IDeleteObraPrivadaResponsavelUseCase = UseCase<
   DeleteObraPrivadaResponsavelParam,

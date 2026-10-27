@@ -1,7 +1,7 @@
 import AppException from '@/core/exceptions/app_exception';
 import AsyncResult from '@/core/types/async_result';
 import IObraPrivadaResponsavelRepository from '@/modules/obras-privadas/adapters/obra_privada_responsavel_repository.interface';
-import ObraPrivadaResponsavelEntity from '@/modules/obras-privadas/domain/entities/obra_privada_responsavel.entity';
+import { ObraPrivadaResponsaveisResponse } from '@/modules/obras-privadas/domain/usecase/obra_privada_responsavel.response';
 import IListObraPrivadaResponsaveisUseCase, {
   ListObraPrivadaResponsaveisParam,
 } from '@/modules/obras-privadas/domain/usecase/list_obra_privada_responsaveis.usecase';
@@ -14,7 +14,10 @@ export default class ListObraPrivadaResponsaveisService
   ) {}
   async execute(
     param: ListObraPrivadaResponsaveisParam,
-  ): AsyncResult<AppException, ObraPrivadaResponsavelEntity[]> {
-    return this.responsavelRepository.findByObraPrivadaId(param.obraPrivadaId);
+  ): AsyncResult<AppException, ObraPrivadaResponsaveisResponse> {
+    const found = await this.responsavelRepository.findByObraPrivadaId(
+      param.obraPrivadaId,
+    );
+    return found.map((value) => new ObraPrivadaResponsaveisResponse(value));
   }
 }

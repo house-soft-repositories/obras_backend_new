@@ -15,6 +15,11 @@ export default interface IObraPrivadaResponsavelRepository {
   findByObraPrivadaId(
     obraPrivadaId: string,
   ): AsyncResult<AppException, ObraPrivadaResponsavelEntity[]>;
+  existsActiveByObraPrivadaIdAndPapel(
+    obraPrivadaId: string,
+    papel: string,
+    excludedId?: string,
+  ): AsyncResult<AppException, boolean>;
   update(
     id: string,
     props: ObraPrivadaResponsavelUpdate,

@@ -148,6 +148,9 @@ export default class ObraPrivadaEntity {
   static fromData(p: ObraPrivadaProps) {
     return new ObraPrivadaEntity(p);
   }
+  get deletedAt(): Date | null {
+    return this.props.deletedAt;
+  }
   editar(patch: ObraPrivadaUpdate): ObraPrivadaEntity {
     const next: ObraPrivadaProps = { ...this.props };
     if (patch.descricao !== undefined) {

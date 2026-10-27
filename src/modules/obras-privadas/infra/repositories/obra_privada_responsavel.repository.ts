@@ -1,9 +1,11 @@
+import { DataSource } from 'typeorm';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import AppException from '@/core/exceptions/app_exception';
 import TenantContext from '@/core/multitenancy/tenant_context';
+import { withTenantManager } from '@/core/multitenancy/tenant_manager';
 import AsyncResult from '@/core/types/async_result';
-import { unit, type Unit } from '@/core/types/unit';
 import { left, right } from '@/core/types/either';
+import { unit, type Unit } from '@/core/types/unit';
 import IObraPrivadaResponsavelRepository, {
   ObraPrivadaResponsavelUpdate,
 } from '@/modules/obras-privadas/adapters/obra_privada_responsavel_repository.interface';
@@ -11,24 +13,7 @@ import ObraPrivadaResponsavelEntity from '@/modules/obras-privadas/domain/entiti
 import ObraPrivadaResponsavelRepositoryException from '@/modules/obras-privadas/exceptions/obra_privada_responsavel_repository.exception';
 import ObraPrivadaResponsavelMapper from '@/modules/obras-privadas/infra/mapper/obra_privada_responsavel.mapper';
 import ObraPrivadaResponsavelModel from '@/modules/obras-privadas/infra/models/obra_privada_responsavel.model';
-import { DataSource } from 'typeorm';
-const SELECT_COLUMNS = `id, tenant_id AS "tenantId", obra_privada_id AS "obraPrivadaId", profissional_tecnico_id AS "profissionalTecnicoId", papel, tipo_documento AS "tipoDocumento", numero_documento AS "numeroDocumento", data_documento AS "dataDocumento", arquivo_id AS "arquivoId", data_inicio AS "dataInicio", data_baixa AS "dataBaixa", motivo_baixa AS "motivoBaixa", created_at AS "createdAt", updated_at AS "updatedAt"`;
-const UPDATE_COLUMNS: Record<keyof ObraPrivadaResponsavelUpdate, string> = {
-  id: 'id',
-  tenantId: 'tenant_id',
-  obraPrivadaId: 'obra_privada_id',
-  profissionalTecnicoId: 'profissional_tecnico_id',
-  papel: 'papel',
-  tipoDocumento: 'tipo_documento',
-  numeroDocumento: 'numero_documento',
-  dataDocumento: 'data_documento',
-  arquivoId: 'arquivo_id',
-  dataInicio: 'data_inicio',
-  dataBaixa: 'data_baixa',
-  motivoBaixa: 'motivo_baixa',
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
-};
+
 export default class ObraPrivadaResponsavelRepository
   implements IObraPrivadaResponsavelRepository
 {
@@ -36,140 +21,214 @@ export default class ObraPrivadaResponsavelRepository
     private readonly dataSource: DataSource,
     private readonly tenantContext: TenantContext,
   ) {}
+
   async save(
     entity: ObraPrivadaResponsavelEntity,
   ): AsyncResult<AppException, ObraPrivadaResponsavelEntity> {
     try {
-      const schema = this.tenantContext.require().schemaName;
-      const model = ObraPrivadaResponsavelMapper.toModel(entity);
-      const [saved] = await this.dataSource.query<
-        ObraPrivadaResponsavelModel[]
-      >(
-        `INSERT INTO "${schema}"."obra_privada_responsavel" (id, tenant_id, obra_privada_id, profissional_tecnico_id, papel, tipo_documento, numero_documento, data_documento, arquivo_id, data_inicio, data_baixa, motivo_baixa, created_at, updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING ${SELECT_COLUMNS}`,
-        [
-          model.id,
-          model.tenantId,
-          model.obraPrivadaId,
-          model.profissionalTecnicoId,
-          model.papel,
-          model.tipoDocumento,
-          model.numeroDocumento,
-          model.dataDocumento,
-          model.arquivoId,
-          model.dataInicio,
-          model.dataBaixa,
-          model.motivoBaixa,
-          model.createdAt,
-          model.updatedAt,
-        ],
+      const tenantId = this.tenantContext.require().tenantId;
+      const saved = await withTenantManager(
+        this.dataSource,
+        this.tenantContext,
+        async (manager) => {
+          const repository = manager.getRepository(ObraPrivadaResponsavelModel);
+          return repository.save(
+            repository.create({
+              ...ObraPrivadaResponsavelMapper.toModel(entity),
+              tenantId,
+            }),
+          );
+        },
       );
-      return right(
-        ObraPrivadaResponsavelMapper.toEntity(
-          saved as ObraPrivadaResponsavelModel,
-        ),
-      );
+      return right(ObraPrivadaResponsavelMapper.toEntity(saved));
     } catch (cause) {
-      return left(this.failed(cause));
+      const isConflict = this.isUniqueViolation(cause);
+      return left(
+        new ObraPrivadaResponsavelRepositoryException({
+          code: isConflict
+            ? ErrorCodeConstants.OBRA_PRIVADA_RESPONSAVEL_INVALID_INPUT
+            : ErrorCodeConstants.OBRA_PRIVADA_RESPONSAVEL_REPOSITORY_FAILED,
+          statusCode: isConflict ? 409 : 500,
+          cause,
+        }),
+      );
     }
   }
+
   async findById(
     id: string,
   ): AsyncResult<AppException, ObraPrivadaResponsavelEntity | null> {
     try {
-      const schema = this.tenantContext.require().schemaName;
-      const [row] = await this.dataSource.query<ObraPrivadaResponsavelModel[]>(
-        `SELECT ${SELECT_COLUMNS} FROM "${schema}"."obra_privada_responsavel" WHERE id = $1`,
-        [id],
+      const tenantId = this.tenantContext.require().tenantId;
+      const model = await withTenantManager(
+        this.dataSource,
+        this.tenantContext,
+        (manager) =>
+          manager
+            .getRepository(ObraPrivadaResponsavelModel)
+            .findOne({ where: { id, tenantId } }),
       );
-      return right(
-        row
-          ? ObraPrivadaResponsavelMapper.toEntity(
-              row as ObraPrivadaResponsavelModel,
-            )
-          : null,
-      );
+      return right(model ? ObraPrivadaResponsavelMapper.toEntity(model) : null);
     } catch (cause) {
-      return left(this.failed(cause));
+      return left(
+        new ObraPrivadaResponsavelRepositoryException({
+          code: ErrorCodeConstants.OBRA_PRIVADA_RESPONSAVEL_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
+
   async findByObraPrivadaId(
     obraPrivadaId: string,
   ): AsyncResult<AppException, ObraPrivadaResponsavelEntity[]> {
     try {
-      const schema = this.tenantContext.require().schemaName;
-      const rows = await this.dataSource.query<ObraPrivadaResponsavelModel[]>(
-        `SELECT ${SELECT_COLUMNS} FROM "${schema}"."obra_privada_responsavel" WHERE obra_privada_id = $1 ORDER BY data_baixa NULLS FIRST, created_at DESC`,
-        [obraPrivadaId],
+      const tenantId = this.tenantContext.require().tenantId;
+      const models = await withTenantManager(
+        this.dataSource,
+        this.tenantContext,
+        (manager) =>
+          manager
+            .getRepository(ObraPrivadaResponsavelModel)
+            .createQueryBuilder('responsavel')
+            .where('responsavel.obraPrivadaId = :obraPrivadaId', {
+              obraPrivadaId,
+            })
+            .andWhere('responsavel.tenantId = :tenantId', { tenantId })
+            .orderBy('responsavel.dataBaixa', 'ASC', 'NULLS FIRST')
+            .addOrderBy('responsavel.createdAt', 'DESC')
+            .getMany(),
       );
       return right(
-        rows.map((row) =>
-          ObraPrivadaResponsavelMapper.toEntity(
-            row as ObraPrivadaResponsavelModel,
-          ),
-        ),
+        models.map((model) => ObraPrivadaResponsavelMapper.toEntity(model)),
       );
     } catch (cause) {
-      return left(this.failed(cause));
+      return left(
+        new ObraPrivadaResponsavelRepositoryException({
+          code: ErrorCodeConstants.OBRA_PRIVADA_RESPONSAVEL_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
   }
+
+  async existsActiveByObraPrivadaIdAndPapel(
+    obraPrivadaId: string,
+    papel: string,
+    excludedId?: string,
+  ): AsyncResult<AppException, boolean> {
+    try {
+      const tenantId = this.tenantContext.require().tenantId;
+      const exists = await withTenantManager(
+        this.dataSource,
+        this.tenantContext,
+        (manager) =>
+          manager
+            .getRepository(ObraPrivadaResponsavelModel)
+            .createQueryBuilder('responsavel')
+            .where('responsavel.tenantId = :tenantId', { tenantId })
+            .andWhere('responsavel.obraPrivadaId = :obraPrivadaId', {
+              obraPrivadaId,
+            })
+            .andWhere('responsavel.papel = :papel', { papel })
+            .andWhere('responsavel.dataBaixa IS NULL')
+            .andWhere(
+              excludedId ? 'responsavel.id != :excludedId' : '1 = 1',
+              excludedId ? { excludedId } : {},
+            )
+            .getExists(),
+      );
+      return right(exists);
+    } catch (cause) {
+      return left(
+        new ObraPrivadaResponsavelRepositoryException({
+          code: ErrorCodeConstants.OBRA_PRIVADA_RESPONSAVEL_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
+    }
+  }
+
   async update(
     id: string,
     props: ObraPrivadaResponsavelUpdate,
   ): AsyncResult<AppException, ObraPrivadaResponsavelEntity | null> {
     try {
-      const schema = this.tenantContext.require().schemaName;
-      const entries = Object.entries(props).filter(
-        ([property, value]) =>
-          value !== undefined &&
-          ![
-            'id',
-            'tenantId',
-            'obraPrivadaId',
-            'createdAt',
-            'updatedAt',
-          ].includes(property),
-      ) as [
-        keyof ObraPrivadaResponsavelUpdate,
-        ObraPrivadaResponsavelUpdate[keyof ObraPrivadaResponsavelUpdate],
-      ][];
-      if (entries.length === 0) return this.findById(id);
-      const setSql = entries
-        .map(
-          ([property], index) => `${UPDATE_COLUMNS[property]} = $${index + 2}`,
-        )
-        .join(', ');
-      const [row] = await this.dataSource.query<ObraPrivadaResponsavelModel[]>(
-        `UPDATE "${schema}"."obra_privada_responsavel" SET ${setSql}, updated_at = now() WHERE id = $1 RETURNING ${SELECT_COLUMNS}`,
-        [id, ...entries.map(([, value]) => value)],
+      const tenantId = this.tenantContext.require().tenantId;
+      const model = await withTenantManager(
+        this.dataSource,
+        this.tenantContext,
+        async (manager) => {
+          const repository = manager.getRepository(ObraPrivadaResponsavelModel);
+          const current = await repository.findOne({
+            where: { id, tenantId },
+          });
+          if (!current) return null;
+          const mutableProps = Object.fromEntries(
+            Object.entries(props).filter(
+              ([key, value]) =>
+                value !== undefined &&
+                ![
+                  'id',
+                  'tenantId',
+                  'obraPrivadaId',
+                  'createdAt',
+                  'updatedAt',
+                ].includes(key),
+            ),
+          ) as Partial<ObraPrivadaResponsavelModel>;
+          repository.merge(current, mutableProps);
+          return repository.save(current);
+        },
       );
-      return right(
-        row
-          ? ObraPrivadaResponsavelMapper.toEntity(
-              row as ObraPrivadaResponsavelModel,
-            )
-          : null,
-      );
+      return right(model ? ObraPrivadaResponsavelMapper.toEntity(model) : null);
     } catch (cause) {
-      return left(this.failed(cause));
+      const isConflict = this.isUniqueViolation(cause);
+      return left(
+        new ObraPrivadaResponsavelRepositoryException({
+          code: isConflict
+            ? ErrorCodeConstants.OBRA_PRIVADA_RESPONSAVEL_INVALID_INPUT
+            : ErrorCodeConstants.OBRA_PRIVADA_RESPONSAVEL_REPOSITORY_FAILED,
+          statusCode: isConflict ? 409 : 500,
+          cause,
+        }),
+      );
     }
   }
+
+  private isUniqueViolation(error: unknown): boolean {
+    const cause = error as Record<string, unknown>;
+    const driverError =
+      (cause?.driverError as Record<string, unknown>) ?? cause;
+    return (
+      (driverError?.code ?? cause?.code) === '23505' &&
+      String(driverError?.constraint ?? cause?.constraint ?? '').includes(
+        'obra_privada_responsavel_vigente_papel',
+      )
+    );
+  }
+
   async delete(id: string): AsyncResult<AppException, Unit> {
     try {
-      const schema = this.tenantContext.require().schemaName;
-      await this.dataSource.query(
-        `DELETE FROM "${schema}"."obra_privada_responsavel" WHERE id = $1`,
-        [id],
+      const tenantId = this.tenantContext.require().tenantId;
+      await withTenantManager(this.dataSource, this.tenantContext, (manager) =>
+        manager.getRepository(ObraPrivadaResponsavelModel).delete({
+          id,
+          tenantId,
+        }),
       );
       return right(unit);
     } catch (cause) {
-      return left(this.failed(cause));
+      return left(
+        new ObraPrivadaResponsavelRepositoryException({
+          code: ErrorCodeConstants.OBRA_PRIVADA_RESPONSAVEL_REPOSITORY_FAILED,
+          statusCode: 500,
+          cause,
+        }),
+      );
     }
-  }
-  private failed(cause: unknown): ObraPrivadaResponsavelRepositoryException {
-    return new ObraPrivadaResponsavelRepositoryException({
-      code: ErrorCodeConstants.OBRA_PRIVADA_RESPONSAVEL_REPOSITORY_FAILED,
-      statusCode: 500,
-      cause,
-    });
   }
 }

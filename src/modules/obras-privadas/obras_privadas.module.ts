@@ -493,6 +493,7 @@ import { DataSource } from 'typeorm';
       provide: CREATE_OBRA_PRIVADA_RESPONSAVEL_SERVICE,
       inject: [
         OBRA_PRIVADA_RESPONSAVEL_REPOSITORY,
+        OBRA_PRIVADA_REPOSITORY,
         PROFISSIONAL_TECNICO_REPOSITORY,
       ],
       useFactory: (
@@ -516,11 +517,18 @@ import { DataSource } from 'typeorm';
     },
     {
       provide: UPDATE_OBRA_PRIVADA_RESPONSAVEL_SERVICE,
-      inject: [OBRA_PRIVADA_RESPONSAVEL_REPOSITORY],
+      inject: [
+        OBRA_PRIVADA_RESPONSAVEL_REPOSITORY,
+        PROFISSIONAL_TECNICO_REPOSITORY,
+      ],
       useFactory: (
         repo: IObraPrivadaResponsavelRepository,
+        profissionalTecnicoRepository: IProfissionalTecnicoRepository,
       ): IUpdateObraPrivadaResponsavelUseCase =>
-        new UpdateObraPrivadaResponsavelService(repo),
+        new UpdateObraPrivadaResponsavelService(
+          repo,
+          profissionalTecnicoRepository,
+        ),
     },
     {
       provide: DELETE_OBRA_PRIVADA_RESPONSAVEL_SERVICE,

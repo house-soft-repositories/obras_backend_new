@@ -1,10 +1,10 @@
 import UseCase from '@/core/types/use_case';
-import ObraPrivadaResponsavelEntity from '@/modules/obras-privadas/domain/entities/obra_privada_responsavel.entity';
+import { ObraPrivadaResponsaveisResponse } from '@/modules/obras-privadas/domain/usecase/obra_privada_responsavel.response';
 
 export type ListObraPrivadaResponsaveisParam = { obraPrivadaId: string };
 
 type IListObraPrivadaResponsaveisUseCase = UseCase<
   ListObraPrivadaResponsaveisParam,
-  ObraPrivadaResponsavelEntity[]
+  ObraPrivadaResponsaveisResponse
 >;
 export default IListObraPrivadaResponsaveisUseCase;

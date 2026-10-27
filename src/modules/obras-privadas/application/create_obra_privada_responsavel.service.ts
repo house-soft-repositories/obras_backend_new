@@ -9,6 +9,7 @@ import ICreateObraPrivadaResponsavelUseCase, {
   CreateObraPrivadaResponsavelParam,
 } from '@/modules/obras-privadas/domain/usecase/create_obra_privada_responsavel.usecase';
 import ObraPrivadaServiceException from '@/modules/obras-privadas/exceptions/obra_privada_service.exception';
+import { ObraPrivadaResponsavelResponse } from '@/modules/obras-privadas/domain/usecase/obra_privada_responsavel.response';
 import IProfissionalTecnicoRepository from '@/modules/pessoas/adapters/profissional_tecnico_repository.interface';
 
 export default class CreateObraPrivadaResponsavelService
@@ -22,13 +23,13 @@ export default class CreateObraPrivadaResponsavelService
 
   async execute(
     param: CreateObraPrivadaResponsavelParam,
-  ): AsyncResult<AppException, ObraPrivadaResponsavelEntity> {
+  ): AsyncResult<AppException, ObraPrivadaResponsavelResponse> {
     try {
       const obra = await this.obraPrivadaRepository.findById(
         param.obraPrivadaId,
       );
       if (obra.isLeft()) return left(obra.value);
-      if (!obra.value || obra.value.toObject().deletedAt)
+      if (!obra.value || obra.value.deletedAt)
         return left(
           new ObraPrivadaServiceException({
             code: ErrorCodeConstants.OBRA_PRIVADA_NOT_FOUND,
@@ -48,6 +49,21 @@ export default class CreateObraPrivadaResponsavelService
           }),
         );
 
+      const responsaveis = await this.responsavelRepository.findByObraPrivadaId(
+        param.obraPrivadaId,
+      );
+      if (responsaveis.isLeft()) return left(responsaveis.value);
+      const duplicateVigente = responsaveis.value.some((responsavel) => {
+        return !responsavel.dataBaixa && responsavel.papel === param.papel;
+      });
+      if (duplicateVigente)
+        return left(
+          new ObraPrivadaServiceException({
+            code: ErrorCodeConstants.OBRA_PRIVADA_RESPONSAVEL_INVALID_INPUT,
+            statusCode: 409,
+          }),
+        );
+
       const entity = ObraPrivadaResponsavelEntity.create({
         ...param,
         dataDocumento: param.dataDocumento ?? null,
@@ -56,13 +72,14 @@ export default class CreateObraPrivadaResponsavelService
         dataBaixa: param.dataBaixa ?? null,
         motivoBaixa: param.motivoBaixa ?? null,
       });
-      return this.responsavelRepository.save(entity);
+      const saved = await this.responsavelRepository.save(entity);
+      return saved.map((value) => new ObraPrivadaResponsavelResponse(value));
     } catch (error) {
       if (error instanceof AppException) return left(error);
       return left(
         new ObraPrivadaServiceException({
-          code: ErrorCodeConstants.OBRA_PRIVADA_RESPONSAVEL_INVALID_INPUT,
-          statusCode: 400,
+          code: ErrorCodeConstants.UNEXPECTED_ERROR,
+          statusCode: 500,
           cause: error,
         }),
       );

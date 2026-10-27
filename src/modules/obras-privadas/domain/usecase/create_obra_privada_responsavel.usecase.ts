@@ -1,5 +1,5 @@
 import UseCase from '@/core/types/use_case';
-import ObraPrivadaResponsavelEntity from '@/modules/obras-privadas/domain/entities/obra_privada_responsavel.entity';
+import { ObraPrivadaResponsavelResponse } from '@/modules/obras-privadas/domain/usecase/obra_privada_responsavel.response';
 import {
   PapelResponsavelTecnico,
   TipoDocumentoResponsabilidade,
@@ -21,6 +21,6 @@ export type CreateObraPrivadaResponsavelParam = {
 
 type ICreateObraPrivadaResponsavelUseCase = UseCase<
   CreateObraPrivadaResponsavelParam,
-  ObraPrivadaResponsavelEntity
+  ObraPrivadaResponsavelResponse
 >;
 export default ICreateObraPrivadaResponsavelUseCase;

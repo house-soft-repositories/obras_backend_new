@@ -6,6 +6,7 @@ import { PartialType } from '@nestjs/swagger';
 import {
   IsEnum,
   IsNotEmpty,
+  IsDateString,
   IsOptional,
   IsString,
   IsUUID,
@@ -17,11 +18,11 @@ export class CreateObraPrivadaResponsavelDto {
   @IsEnum(TipoDocumentoResponsabilidade)
   tipoDocumento: TipoDocumentoResponsabilidade;
   @IsString() @IsNotEmpty() numeroDocumento: string;
-  @IsOptional() @IsString() dataDocumento?: string | null;
+  @IsOptional() @IsDateString() dataDocumento?: string | null;
   @IsOptional() @IsUUID() arquivoId?: string | null;
-  @IsOptional() @IsString() dataInicio?: string | null;
-  @IsOptional() @IsString() dataBaixa?: string | null;
-  @IsOptional() @IsString() motivoBaixa?: string | null;
+  @IsOptional() @IsDateString() dataInicio?: string | null;
+  @IsOptional() @IsDateString() dataBaixa?: string | null;
+  @IsOptional() @IsString() @IsNotEmpty() motivoBaixa?: string | null;
 }
 
 export class UpdateObraPrivadaResponsavelDto extends PartialType(
