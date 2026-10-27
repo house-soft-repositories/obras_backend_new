@@ -59,23 +59,29 @@ Não crie services concretos sem contrato de use case. Cada contrato específico
 
 #### **Response dos Use Cases**
 
-Use cases que retornam dados podem declarar uma classe `Response` junto ao contrato em `domain/usecase/`. Ela recebe no construtor os dados necessários para montar o resultado e expõe `toResponse()`, mantendo a transformação para a representação pública do retorno no contrato do caso de uso e evitando que controllers conheçam entidades ou repitam mapeamentos.
+Use cases que retornam dados podem declarar uma classe `Response` junto ao contrato em `domain/usecase/`. Ela recebe no construtor os dados necessários para montar o resultado e expõe `fromResponse()`, mantendo a transformação para a representação pública do retorno no contrato do caso de uso e evitando que controllers conheçam entidades ou repitam mapeamentos.
 
 ```typescript
 // domain/usecase/create_user.usecase.ts
 export class CreateUserResponse {
   constructor(private readonly user: UserEntity) {}
 
-  toResponse() {
-    const { id, name, email, role, createdAt, updatedAt } = this.user.toObject();
-    return { id, name, email, role, createdAt, updatedAt };
+  fromResponse() {
+    return {
+      id: this.user.id,
+      name: this.user.name,
+      email: this.user.email,
+      role: this.user.role,
+      createdAt: this.user.createdAt,
+      updatedAt: this.user.updatedAt,
+    };
   }
 }
 
 type ICreateUserUseCase = UseCase<CreateUserParam, CreateUserResponse>;
 ```
 
-O application service deve retornar `right(new CreateUserResponse(entity))`, e o controller deve chamar `result.value.toResponse()` depois de tratar `left`. A resposta deve expor somente dados públicos deliberados; nunca exponha senha, hash, token interno, entidade, model ou detalhes de infraestrutura. Operações sem payload continuam usando `Unit`, sem criar uma `Response` vazia.
+O application service deve retornar `right(new CreateUserResponse(entity))`, e o controller deve chamar `result.value.fromResponse()` depois de tratar `left`. A resposta deve expor somente dados públicos deliberados; nunca exponha senha, hash, token interno, entidade, model ou detalhes de infraestrutura. Operações sem payload continuam usando `Unit`, sem criar uma `Response` vazia.
 
 ### 2. **Application (Aplicação)**
 

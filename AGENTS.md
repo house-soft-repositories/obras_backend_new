@@ -248,7 +248,7 @@ export default class MyController {
       throw new HttpException(result.value.message, result.value.statusCode, {
         cause: result.value.cause,
       });
-    return result.value; // ou result.value.fromResponse()
+    return result.value.fromResponse();
   }
 }
 ```
