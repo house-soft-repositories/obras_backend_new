@@ -6,8 +6,9 @@ import { left, right } from '@/core/types/either';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
 import IGetObraUseCase, {
   GetObraParam,
+  GetObraResponse,
 } from '@/modules/obras/domain/usecase/get_obra.usecase';
-import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
+import type ObraDetailReadModel from '@/modules/obras/domain/read-models/obra_detail.read-model';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
 
 export default class GetObraService implements IGetObraUseCase {
@@ -16,7 +17,9 @@ export default class GetObraService implements IGetObraUseCase {
     private readonly tc: TenantContext,
   ) {}
 
-  async execute(param: GetObraParam): AsyncResult<AppException, ObraEntity> {
+  async execute(
+    param: GetObraParam,
+  ): AsyncResult<AppException, GetObraResponse> {
     try {
       this.tc.require();
       const result = await this.repo.findOneWithRelations(param.id);
@@ -28,7 +31,7 @@ export default class GetObraService implements IGetObraUseCase {
             statusCode: 404,
           }),
         );
-      return right(result.value);
+      return right(new GetObraResponse(result.value));
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
       return left(

@@ -28,6 +28,7 @@ import {
 } from '@/modules/obras/adapters/cadastros_repository.interface';
 import IGuiasRepository from '@/modules/obras/adapters/guias_repository.interface';
 import IObraRepository from '@/modules/obras/adapters/obra_repository.interface';
+import IUserRepository from '@/modules/users/adapters/user_repository.interface';
 import IObservacaoRepository from '@/modules/obras/adapters/observacao_repository.interface';
 import IEmpenhoRepository from '@/modules/obras/adapters/empenho_repository.interface';
 import ILiquidacaoRepository from '@/modules/obras/adapters/liquidacao_repository.interface';
@@ -142,6 +143,8 @@ import {
   DELETE_OBRA_SERVICE,
 } from '@/modules/obras/symbols';
 import PessoasModule from '@/modules/pessoas/pessoas.module';
+import UsersModule from '@/modules/users/users.module';
+import { USER_REPOSITORY } from '@/modules/users/symbols';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -152,6 +155,7 @@ import { DataSource } from 'typeorm';
     AuthModule,
     FontesModule,
     PessoasModule,
+    UsersModule,
     TypeOrmModule.forFeature([
       ObraModel,
       ObraResponsavelModel,
@@ -302,6 +306,7 @@ import { DataSource } from 'typeorm';
         DataSource,
         TenantContext,
         OBRA_EVENTS,
+        USER_REPOSITORY,
       ],
       useFactory: (
         obra: IObraRepository,
@@ -309,8 +314,9 @@ import { DataSource } from 'typeorm';
         ds: DataSource,
         tc: TenantContext,
         events: ObraEventsService,
+        users: IUserRepository,
       ): ICreateObraUseCase =>
-        new CreateObraService(obra, fonte, ds, tc, events),
+        new CreateObraService(obra, fonte, ds, tc, events, users),
     },
     {
       provide: LIST_OBRAS_SERVICE,
@@ -340,9 +346,9 @@ import { DataSource } from 'typeorm';
     },
     {
       provide: EQUIPE_SERVICE,
-      inject: [DataSource, TenantContext],
-      useFactory: (ds: DataSource, tc: TenantContext) =>
-        new EquipeService(ds, tc),
+      inject: [DataSource, TenantContext, USER_REPOSITORY],
+      useFactory: (ds: DataSource, tc: TenantContext, users: IUserRepository) =>
+        new EquipeService(ds, tc, users),
     },
     {
       provide: OBSERVACOES_SERVICE,

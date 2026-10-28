@@ -1,9 +1,19 @@
-import { DataSource } from 'typeorm';
+import { DataSource, IsNull } from 'typeorm';
+import { withManager } from '@/core/multitenancy/tenant_manager';
+import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
+import { ObraResponsavelTipo } from '@/modules/obras/domain/enums/obra_responsavel_tipo.enum';
+import IUserRepository from '@/modules/users/adapters/user_repository.interface';
+import ObraModel from '@/modules/obras/infra/models/obra.model';
+import {
+  ObraResponsavelModel,
+  ObraSeguidorModel,
+} from '@/modules/obras/infra/models/obra_items.model';
 import ErrorCodeConstants from '@/core/constants/error_code.constants';
 import AppException from '@/core/exceptions/app_exception';
 import TenantContext from '@/core/multitenancy/tenant_context';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
+import { unit, type Unit } from '@/core/types/unit';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
 import { randomUUID } from 'node:crypto';
 
@@ -11,53 +21,81 @@ export default class EquipeService {
   constructor(
     private readonly ds: DataSource,
     private readonly tc: TenantContext,
+    private readonly users: IUserRepository,
   ) {}
 
   async addResponsavel(param: {
     obraId: string;
     usuarioId: string;
-    tipo?: string;
-  }): AsyncResult<AppException, void> {
+    tipo?: ObraResponsavelTipo;
+  }): AsyncResult<AppException, Unit> {
     try {
       const ctx = this.tc.require();
-      const schema = ctx.schemaName;
-      const obra = await this.ds.query(
-        `SELECT id FROM "${schema}"."obras" WHERE id=$1 AND deleted_at IS NULL`,
-        [param.obraId],
+      if (
+        param.tipo !== undefined &&
+        param.tipo !== ObraResponsavelTipo.RESPONSAVEL
+      )
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.OBRA_INVALID_RESPONSAVEL,
+            statusCode: 422,
+          }),
+        );
+      const userResult = await this.users.findOne({
+        id: param.usuarioId,
+        tenantId: ctx.tenantId,
+      });
+      if (userResult.isLeft()) return left(userResult.value);
+      if (userResult.value.role !== UserRole.STAFF)
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.OBRA_INVALID_RESPONSAVEL,
+            statusCode: 422,
+          }),
+        );
+      const obra = await withManager(this.ds, this.tc, (manager) =>
+        manager.getRepository(ObraModel).findOne({
+          where: { id: param.obraId, deletedAt: IsNull() },
+        }),
       );
-      if (!obra.length)
+      if (!obra)
         return left(
           new ObraRepositoryException({
             code: ErrorCodeConstants.OBRA_NOT_FOUND,
             statusCode: 404,
           }),
         );
-      const user = await this.ds.query(
-        `SELECT id FROM public.users WHERE id=$1 AND (tenant_id=$2 OR tenant_id IS NULL)`,
-        [param.usuarioId, ctx.tenantId],
-      );
-      if (!user.length)
+      if (userResult.value.tenantId !== ctx.tenantId)
         return left(
           new ObraRepositoryException({
             code: ErrorCodeConstants.OBRA_EQUIPE_INVALID_USUARIO,
             statusCode: 400,
           }),
         );
-      const tipo = param.tipo ?? 'RESPONSAVEL';
-      await this.ds.query(
-        `INSERT INTO "${schema}"."obra_responsaveis" (id, tenant_id, obra_id, usuario_id, tipo, created_at) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (id) DO NOTHING`,
-        [
-          randomUUID(),
-          ctx.tenantId,
-          param.obraId,
-          param.usuarioId,
-          tipo,
-          new Date(),
-        ],
-      );
+      const tipo = ObraResponsavelTipo.RESPONSAVEL;
+      await withManager(this.ds, this.tc, async (manager) => {
+        const repository = manager.getRepository(ObraResponsavelModel);
+        const existing = await repository.findOne({
+          where: {
+            tenantId: ctx.tenantId,
+            obraId: param.obraId,
+            usuarioId: param.usuarioId,
+            tipo,
+          },
+        });
+        if (!existing)
+          await repository.save({
+            id: randomUUID(),
+            tenantId: ctx.tenantId,
+            obraId: param.obraId,
+            usuarioId: param.usuarioId,
+            tipo,
+            createdAt: new Date(),
+          });
+      });
       // idempotence via OR check duplicate usuario+obra+tipo: use unique on (obra_id, usuario_id, tipo) not exists so ON CONFLICT not work, use INSERT ... ON CONFLICT DO NOTHING with unique constraint on (obra_id, usuario_id) if exists, else check beforehand
       // fallback: ensure no duplicate by checking existing
-      return right(undefined);
+      return right(unit);
     } catch (cause) {
       if (cause instanceof AppException) return left(cause);
       return left(
@@ -73,14 +111,30 @@ export default class EquipeService {
   async removeResponsavel(param: {
     obraId: string;
     usuarioId: string;
-  }): AsyncResult<AppException, void> {
+  }): AsyncResult<AppException, Unit> {
     try {
-      const schema = this.tc.require().schemaName;
-      await this.ds.query(
-        `DELETE FROM "${schema}"."obra_responsaveis" WHERE obra_id=$1 AND usuario_id=$2`,
-        [param.obraId, param.usuarioId],
+      const { tenantId } = this.tc.require();
+      const obra = await withManager(this.ds, this.tc, (manager) =>
+        manager.getRepository(ObraModel).findOne({
+          where: { id: param.obraId, deletedAt: IsNull() },
+        }),
       );
-      return right(undefined);
+      if (!obra)
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.OBRA_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
+      await withManager(this.ds, this.tc, (manager) =>
+        manager.getRepository(ObraResponsavelModel).delete({
+          tenantId,
+          obraId: param.obraId,
+          usuarioId: param.usuarioId,
+          tipo: ObraResponsavelTipo.RESPONSAVEL,
+        }),
+      );
+      return right(unit);
     } catch (cause) {
       return left(
         new ObraRepositoryException({
@@ -96,13 +150,14 @@ export default class EquipeService {
     obraId: string,
   ): AsyncResult<AppException, Array<{ usuarioId: string; tipo: string }>> {
     try {
-      const schema = this.tc.require().schemaName;
-      const rows = await this.ds.query<{ usuario_id: string; tipo: string }[]>(
-        `SELECT usuario_id, tipo FROM "${schema}"."obra_responsaveis" WHERE obra_id=$1`,
-        [obraId],
+      const { tenantId } = this.tc.require();
+      const rows = await withManager(this.ds, this.tc, (manager) =>
+        manager.getRepository(ObraResponsavelModel).find({
+          where: { tenantId, obraId },
+        }),
       );
       return right(
-        rows.map((r) => ({ usuarioId: r.usuario_id, tipo: r.tipo })),
+        rows.map((row) => ({ usuarioId: row.usuarioId, tipo: row.tipo })),
       );
     } catch (cause) {
       return left(
@@ -118,26 +173,55 @@ export default class EquipeService {
   async addSeguidor(param: {
     obraId: string;
     usuarioId: string;
-  }): AsyncResult<AppException, void> {
+  }): AsyncResult<AppException, Unit> {
     try {
       const ctx = this.tc.require();
-      const schema = ctx.schemaName;
-      const obra = await this.ds.query(
-        `SELECT id FROM "${schema}"."obras" WHERE id=$1 AND deleted_at IS NULL`,
-        [param.obraId],
+      const obra = await withManager(this.ds, this.tc, (manager) =>
+        manager.getRepository(ObraModel).findOne({
+          where: {
+            id: param.obraId,
+            deletedAt: IsNull(),
+          },
+        }),
       );
-      if (!obra.length)
+      if (!obra)
         return left(
           new ObraRepositoryException({
             code: ErrorCodeConstants.OBRA_NOT_FOUND,
             statusCode: 404,
           }),
         );
-      await this.ds.query(
-        `INSERT INTO "${schema}"."obra_seguidores" (id, tenant_id, obra_id, usuario_id, seguido_em) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (id) DO NOTHING`,
-        [randomUUID(), ctx.tenantId, param.obraId, param.usuarioId, new Date()],
-      );
-      return right(undefined);
+      const userResult = await this.users.findOne({
+        id: param.usuarioId,
+        tenantId: ctx.tenantId,
+      });
+      if (userResult.isLeft()) return left(userResult.value);
+      if (userResult.value.tenantId !== ctx.tenantId)
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.OBRA_EQUIPE_INVALID_USUARIO,
+            statusCode: 400,
+          }),
+        );
+      await withManager(this.ds, this.tc, async (manager) => {
+        const repository = manager.getRepository(ObraSeguidorModel);
+        const existing = await repository.findOne({
+          where: {
+            tenantId: ctx.tenantId,
+            obraId: param.obraId,
+            usuarioId: param.usuarioId,
+          },
+        });
+        if (!existing)
+          await repository.save({
+            id: randomUUID(),
+            tenantId: ctx.tenantId,
+            obraId: param.obraId,
+            usuarioId: param.usuarioId,
+            seguidoEm: new Date(),
+          });
+      });
+      return right(unit);
     } catch (cause) {
       return left(
         new ObraRepositoryException({
@@ -152,14 +236,29 @@ export default class EquipeService {
   async removeSeguidor(param: {
     obraId: string;
     usuarioId: string;
-  }): AsyncResult<AppException, void> {
+  }): AsyncResult<AppException, Unit> {
     try {
-      const schema = this.tc.require().schemaName;
-      await this.ds.query(
-        `DELETE FROM "${schema}"."obra_seguidores" WHERE obra_id=$1 AND usuario_id=$2`,
-        [param.obraId, param.usuarioId],
+      const { tenantId } = this.tc.require();
+      const obra = await withManager(this.ds, this.tc, (manager) =>
+        manager.getRepository(ObraModel).findOne({
+          where: { id: param.obraId, deletedAt: IsNull() },
+        }),
       );
-      return right(undefined);
+      if (!obra)
+        return left(
+          new ObraRepositoryException({
+            code: ErrorCodeConstants.OBRA_NOT_FOUND,
+            statusCode: 404,
+          }),
+        );
+      await withManager(this.ds, this.tc, (manager) =>
+        manager.getRepository(ObraSeguidorModel).delete({
+          tenantId,
+          obraId: param.obraId,
+          usuarioId: param.usuarioId,
+        }),
+      );
+      return right(unit);
     } catch (cause) {
       return left(
         new ObraRepositoryException({
@@ -175,12 +274,13 @@ export default class EquipeService {
     obraId: string,
   ): AsyncResult<AppException, Array<{ usuarioId: string }>> {
     try {
-      const schema = this.tc.require().schemaName;
-      const rows = await this.ds.query<{ usuario_id: string }[]>(
-        `SELECT usuario_id FROM "${schema}"."obra_seguidores" WHERE obra_id=$1`,
-        [obraId],
+      const { tenantId } = this.tc.require();
+      const rows = await withManager(this.ds, this.tc, (manager) =>
+        manager.getRepository(ObraSeguidorModel).find({
+          where: { tenantId, obraId },
+        }),
       );
-      return right(rows.map((r) => ({ usuarioId: r.usuario_id })));
+      return right(rows.map((row) => ({ usuarioId: row.usuarioId })));
     } catch (cause) {
       return left(
         new ObraRepositoryException({

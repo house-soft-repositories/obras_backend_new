@@ -64,10 +64,44 @@ describe('ListUsersService', () => {
     expect(repository.listWithOrganizational).toHaveBeenCalledWith(
       expect.any(PageOptionsEntity),
       validUser.tenantId,
+      undefined,
     );
     expect(result.getOrThrow().toObject().data).toEqual(users);
     expect(result.getOrThrow().toObject().data[0]).not.toHaveProperty(
       'password',
+    );
+  });
+
+  it('passes optional organizational filters without accepting tenantId', async () => {
+    const repository = mockUserRepository();
+    repository.listWithOrganizational.mockResolvedValue(
+      right(
+        new PageEntity(
+          [],
+          new PageMetaEntity({
+            pageOptions: new PageOptionsEntity(),
+            itemCount: 0,
+          }),
+        ),
+      ),
+    );
+    const service = new ListUsersService(repository);
+
+    await service.execute({
+      requester: {
+        id: 'creator-id',
+        role: UserRole.ADMIN,
+        tenantId: validUser.tenantId,
+      },
+      role: UserRole.STAFF,
+      orgaoId: 'orgao-id',
+      setorId: 'setor-id',
+    });
+
+    expect(repository.listWithOrganizational).toHaveBeenCalledWith(
+      expect.any(PageOptionsEntity),
+      validUser.tenantId,
+      { role: UserRole.STAFF, orgaoId: 'orgao-id', setorId: 'setor-id' },
     );
   });
 

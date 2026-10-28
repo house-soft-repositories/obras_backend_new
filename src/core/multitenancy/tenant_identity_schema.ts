@@ -217,12 +217,18 @@ export default abstract class TenantIdentitySchema {
       `CREATE UNIQUE INDEX${ifNotExists} "UQ_obras_codigo" ON "${schemaName}"."obras" ("codigo") WHERE "deleted_at" IS NULL`,
     );
     await executor.query(`
+      DO $$ BEGIN
+        CREATE TYPE "${schemaName}"."obra_responsavel_tipo_enum" AS ENUM ('RESPONSAVEL', 'CORRESPONSAVEL');
+      EXCEPTION WHEN duplicate_object THEN NULL;
+      END $$;
+    `);
+    await executor.query(`
       CREATE TABLE${ifNotExists} "${schemaName}"."obra_responsaveis" (
         "id" uuid NOT NULL,
         "tenant_id" uuid NOT NULL,
         "obra_id" uuid NOT NULL,
         "usuario_id" uuid NOT NULL,
-        "tipo" character varying NOT NULL,
+        "tipo" "${schemaName}"."obra_responsavel_tipo_enum" NOT NULL,
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
         CONSTRAINT "PK_obra_responsaveis" PRIMARY KEY ("id")
       )

@@ -10,7 +10,8 @@ import {
   SubtipologiaModel,
   TipologiaModel,
 } from '@/modules/obras/infra/models/cadastro.model';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { ObraResponsavelModel } from '@/modules/obras/infra/models/obra_items.model';
 import { TipoObra } from '@/modules/obras/domain/enums/tipo_obra.enum';
 import { StatusObra } from '@/modules/obras/domain/enums/status_obra.enum';
 import { TipoFinanciamento } from '@/modules/obras/domain/enums/tipo_financiamento.enum';
@@ -74,6 +75,11 @@ export default class ObraModel extends BaseModelPrimaryColumnUuid {
   @Column({ name: 'corresponsaveis_podem_editar', default: false })
   corresponsaveisPodemEditar!: boolean;
   @Column({ name: 'orgao_id', type: 'uuid' }) orgaoId!: string;
+  @OneToMany(
+    () => ObraResponsavelModel,
+    (responsavel) => responsavel.obra,
+  )
+  responsaveis?: ObraResponsavelModel[];
   @ManyToOne(() => OrgaoModel, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'orgao_id' })
   orgao?: OrgaoModel;

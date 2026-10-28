@@ -1,0 +1,4 @@
+export enum ObraResponsavelTipo {
+  RESPONSAVEL = 'RESPONSAVEL',
+  CORRESPONSAVEL = 'CORRESPONSAVEL',
+}

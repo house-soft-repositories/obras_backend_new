@@ -16,6 +16,8 @@ import ObraModel from '@/modules/obras/infra/models/obra.model';
 import { ObraResponsavelModel } from '@/modules/obras/infra/models/obra_items.model';
 import { ObraOrcamentoPrevistoModel } from '@/modules/obras/infra/models/guias.model';
 import ObraRepositoryException from '@/modules/obras/exceptions/obra_repository.exception';
+import type ObraDetailReadModel from '@/modules/obras/domain/read-models/obra_detail.read-model';
+import { ObraResponsavelTipo } from '@/modules/obras/domain/enums/obra_responsavel_tipo.enum';
 import PageEntity from '@/core/pagination/domain/entities/page.entity';
 import PageMetaEntity from '@/core/pagination/domain/entities/page_meta.entity';
 
@@ -160,7 +162,7 @@ export default class ObraRepository implements IObraRepository {
 
   async findOneWithRelations(
     id: string,
-  ): AsyncResult<AppException, ObraEntity | null> {
+  ): AsyncResult<AppException, ObraDetailReadModel | null> {
     try {
       const model = await withManager(
         this.dataSource,
@@ -180,7 +182,33 @@ export default class ObraRepository implements IObraRepository {
             },
           }),
       );
-      return right(model ? ObraMapper.toEntity(model) : null);
+      if (!model) return right(null);
+      const tenantId = this.tenantContext.require().tenantId;
+      const responsavel = await withManager(
+        this.dataSource,
+        this.tenantContext,
+        (manager) =>
+          manager.getRepository(ObraResponsavelModel).findOne({
+            where: {
+              obraId: id,
+              tenantId,
+              tipo: ObraResponsavelTipo.RESPONSAVEL,
+              usuario: { tenantId },
+            },
+            relations: { usuario: true },
+          }),
+      );
+      return right({
+        obra: ObraMapper.toEntity(model),
+        responsavel: responsavel?.usuario
+          ? {
+              id: responsavel.usuario.id,
+              name: responsavel.usuario.name,
+              email: responsavel.usuario.email,
+              role: responsavel.usuario.role,
+            }
+          : null,
+      });
     } catch (cause) {
       return left(this.failure(cause));
     }

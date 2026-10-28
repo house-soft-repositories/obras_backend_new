@@ -6,6 +6,7 @@ import PageEntity from '@/core/pagination/domain/entities/page.entity';
 import type { Unit } from '@/core/types/unit';
 import { TipoObra } from '@/modules/obras/domain/enums/tipo_obra.enum';
 import { StatusObra } from '@/modules/obras/domain/enums/status_obra.enum';
+import type ObraDetailReadModel from '@/modules/obras/domain/read-models/obra_detail.read-model';
 
 export interface ObraFindPageParams {
   status?: StatusObra;
@@ -28,7 +29,7 @@ export default interface IObraRepository {
   ): AsyncResult<AppException, PageEntity<ObraEntity>>;
   findOneWithRelations(
     id: string,
-  ): AsyncResult<AppException, ObraEntity | null>;
+  ): AsyncResult<AppException, ObraDetailReadModel | null>;
   updatePartial(entity: ObraEntity): AsyncResult<AppException, ObraEntity>;
   softDelete(id: string): AsyncResult<AppException, Unit>;
 }

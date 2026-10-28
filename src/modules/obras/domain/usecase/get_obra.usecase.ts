@@ -1,9 +1,24 @@
 import type UseCase from '@/core/types/use_case';
-import ObraEntity from '@/modules/obras/domain/entities/obra.entity';
+import ObraDetailReadModel from '@/modules/obras/domain/read-models/obra_detail.read-model';
 
 export interface GetObraParam {
   id: string;
 }
 
-type IGetObraUseCase = UseCase<GetObraParam, ObraEntity>;
+export class GetObraResponse {
+  constructor(private readonly readModel: ObraDetailReadModel) {}
+
+  fromResponse() {
+    const obra = this.readModel.obra.toObject();
+    return {
+      ...obra,
+      createdAt: obra.createdAt.toISOString(),
+      updatedAt: obra.updatedAt.toISOString(),
+      deletedAt: obra.deletedAt?.toISOString() ?? null,
+      responsavel: this.readModel.responsavel,
+    };
+  }
+}
+
+type IGetObraUseCase = UseCase<GetObraParam, GetObraResponse>;
 export default IGetObraUseCase;

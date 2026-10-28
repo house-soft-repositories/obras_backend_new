@@ -117,7 +117,7 @@ export default class ObraController {
         throw new HttpException(r.value.message, r.value.statusCode, {
           cause: r.value.cause,
         });
-      return ObraResponseDto.fromEntity(r.value);
+      return r.value.fromResponse();
     });
   }
 

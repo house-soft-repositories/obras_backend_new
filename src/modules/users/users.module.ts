@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import CoreModule from '@/core/core.module';
 import TenantSchemaResolver from '@/core/multitenancy/tenant_schema_resolver';
+import TenantContext from '@/core/multitenancy/tenant_context';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -26,13 +27,24 @@ import {
   providers: [
     {
       provide: USER_REPOSITORY,
-      inject: [getRepositoryToken(UserModel), DataSource, TenantSchemaResolver],
+      inject: [
+        getRepositoryToken(UserModel),
+        DataSource,
+        TenantSchemaResolver,
+        TenantContext,
+      ],
       useFactory: (
         repository: Repository<UserModel>,
         dataSource: DataSource,
         tenantSchemaResolver: TenantSchemaResolver,
+        tenantContext: TenantContext,
       ): IUserRepository =>
-        new UserRepository(repository, dataSource, tenantSchemaResolver),
+        new UserRepository(
+          repository,
+          dataSource,
+          tenantSchemaResolver,
+          tenantContext,
+        ),
     },
     {
       provide: CREATE_USER_SERVICE,

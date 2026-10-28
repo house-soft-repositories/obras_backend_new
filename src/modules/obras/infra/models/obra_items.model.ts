@@ -1,6 +1,7 @@
 import UserModel from '@/modules/users/infra/models/user.model';
 import ObraModel from '@/modules/obras/infra/models/obra.model';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { ObraResponsavelTipo } from '@/modules/obras/domain/enums/obra_responsavel_tipo.enum';
 @Entity({ name: 'obra_responsaveis' })
 export class ObraResponsavelModel {
   @PrimaryColumn('uuid') id: string;
@@ -13,7 +14,12 @@ export class ObraResponsavelModel {
   @ManyToOne(() => UserModel, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'usuario_id' })
   usuario?: UserModel;
-  @Column() tipo: string;
+  @Column({
+    type: 'enum',
+    enum: ObraResponsavelTipo,
+    enumName: 'obra_responsavel_tipo_enum',
+  })
+  tipo: ObraResponsavelTipo;
   @Column({ name: 'created_at', type: 'timestamptz' }) createdAt: Date;
 }
 @Entity({ name: 'obra_seguidores' })

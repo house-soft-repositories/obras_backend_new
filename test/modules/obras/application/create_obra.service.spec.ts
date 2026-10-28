@@ -8,12 +8,19 @@ import type { DataSource } from 'typeorm';
 import type TenantContext from '@/core/multitenancy/tenant_context';
 import type ObraEventsService from '@/modules/obras/events/obra_events.service';
 import type { CreateObraParam } from '@/modules/obras/domain/usecase/create_obra.usecase';
+import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
+import type IUserRepository from '@/modules/users/adapters/user_repository.interface';
 
-type MockManager = {
-  query: jest.Mock<Promise<{ id: string }[]>, [string, unknown[]?]>;
+type MockRepository = {
+  create: jest.Mock;
+  save: jest.Mock;
 };
 
-type MockDataSource = Pick<DataSource, 'transaction'> & {
+type MockManager = {
+  getRepository: jest.Mock<MockRepository>;
+};
+
+type MockDataSource = Pick<DataSource, 'createQueryRunner'> & {
   mockManager: MockManager;
 };
 
@@ -41,20 +48,48 @@ const makeFonteRepo = (): jest.Mocked<IFonteRepository> => ({
 });
 
 const makeDS = (): MockDataSource => {
-  const mockManager = {
-    query: jest.fn().mockResolvedValue([{ id: 'obra-1' }]),
+  const repositories = new Map<string, MockRepository>();
+  const getRepository = jest.fn((model: { name: string }) => {
+    if (!repositories.has(model.name))
+      repositories.set(model.name, {
+        create: jest.fn((data) => data),
+        save: jest.fn(async (data) =>
+          Array.isArray(data) ? data : { id: data.id ?? 'obra-1', ...data },
+        ),
+      });
+    return repositories.get(model.name);
+  });
+  const mockManager = { getRepository };
+  const queryRunner = {
+    manager: mockManager,
+    connect: jest.fn(),
+    startTransaction: jest.fn(),
+    commitTransaction: jest.fn(),
+    rollbackTransaction: jest.fn(),
+    release: jest.fn(),
+    query: jest.fn(),
+    isTransactionActive: true,
+    isReleased: false,
   };
   return {
-    transaction: jest.fn(async (cb: (m: MockManager) => Promise<unknown>) => {
-      const result = await cb(mockManager);
-      return result;
-    }) as unknown as DataSource['transaction'],
+    createQueryRunner: jest.fn(() => queryRunner),
     mockManager,
-  };
+  } as unknown as MockDataSource;
 };
 
 const makeTC = (schema = 'tenant_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa') =>
-  ({ require: () => ({ schemaName: schema }) }) as unknown as TenantContext;
+  ({
+    require: () => ({ schemaName: schema, tenantId: 't1' }),
+  }) as unknown as TenantContext;
+
+const makeUserRepo = (): jest.Mocked<IUserRepository> =>
+  ({
+    findById: jest
+      .fn()
+      .mockResolvedValue(
+        right({ role: UserRole.STAFF, tenantId: 't1' } as never),
+      ),
+  }) as unknown as jest.Mocked<IUserRepository>;
 
 const makeEvents = () =>
   ({
@@ -88,15 +123,12 @@ describe('CreateObraService', () => {
       ds as DataSource,
       tc,
       makeEvents(),
+      makeUserRepo(),
     );
     const result = await svc.execute(baseParam);
     expect(result.isRight()).toBe(true);
     expect(result.getOrThrow().codigo).toMatch(/^OBR-\d{4}-0001$/);
-    expect(ds.transaction).toHaveBeenCalledTimes(1);
-    expect(ds.mockManager.query).toHaveBeenCalledWith(
-      expect.stringContaining('"obra_orcamento_previsto"'),
-      expect.any(Array),
-    );
+    expect(ds.createQueryRunner).toHaveBeenCalledTimes(1);
   });
 
   it('rejects when orcamentos empty', async () => {
@@ -106,6 +138,7 @@ describe('CreateObraService', () => {
       makeDS(),
       makeTC(),
       makeEvents(),
+      makeUserRepo(),
     );
     const result = await svc.execute({ ...baseParam, orcamentos: [] });
     expect(result.isLeft()).toBe(true);
@@ -120,6 +153,7 @@ describe('CreateObraService', () => {
       makeDS(),
       makeTC(),
       makeEvents(),
+      makeUserRepo(),
     );
     const result = await svc.execute({
       ...baseParam,
@@ -143,6 +177,7 @@ describe('CreateObraService', () => {
       makeDS(),
       makeTC(),
       makeEvents(),
+      makeUserRepo(),
     );
     const result = await svc.execute(baseParam);
     expect(result.isLeft()).toBe(true);
@@ -165,7 +200,9 @@ describe('CreateObraService', () => {
       constraint: 'UQ_obras_codigo',
     });
     const ds2 = {
-      transaction: jest.fn().mockRejectedValue(collision),
+      createQueryRunner: jest.fn(() => {
+        throw collision;
+      }),
     } as unknown as DataSource;
     const svc2 = new CreateObraService(
       obraRepo,
@@ -173,6 +210,7 @@ describe('CreateObraService', () => {
       ds2,
       makeTC(),
       makeEvents(),
+      makeUserRepo(),
     );
     const result = await svc2.execute(baseParam);
     expect(result.isLeft()).toBe(true);

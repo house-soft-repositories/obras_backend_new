@@ -12,6 +12,9 @@ export interface ListUsersParam {
   order?: 'ASC' | 'DESC';
   page?: number;
   take?: number;
+  role?: UserRole;
+  orgaoId?: string;
+  setorId?: string;
 }
 
 type IListUsersUseCase = UseCase<

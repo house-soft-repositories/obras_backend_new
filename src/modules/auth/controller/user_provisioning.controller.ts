@@ -1,5 +1,4 @@
 import AppException from '@/core/exceptions/app_exception';
-import PaginationOptionsDto from '@/core/pagination/dto/pagination_options.dto';
 import AccessTokenGuard from '@/modules/auth/controller/access_token.guard';
 import RoleDecorator from '@/modules/auth/controller/role.decorator';
 import TenantRequestContextService from '@/core/multitenancy/tenant_request_context.service';
@@ -8,6 +7,7 @@ import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 import type ICreateUserUseCase from '@/modules/users/domain/usecase/create_user.usecase';
 import type IListUsersUseCase from '@/modules/users/domain/usecase/list_users.usecase';
 import CreateUserDto from '@/modules/users/dtos/create_user.dto';
+import ListUsersQueryDto from '@/modules/users/dtos/list_users_query.dto';
 import {
   CREATE_USER_SERVICE,
   LIST_USERS_SERVICE,
@@ -36,7 +36,7 @@ export default class UserProvisioningController {
 
   @Get()
   async list(
-    @Query() query: PaginationOptionsDto,
+    @Query() query: ListUsersQueryDto,
     @RoleDecorator(UserRole.ADMIN, UserRole.STAFF, UserRole.SUPERADMIN)
     user: AllowedRolePayload,
   ) {
@@ -47,7 +47,12 @@ export default class UserProvisioningController {
           role: user.role,
           tenantId: null,
         },
-        ...query,
+        order: query.order,
+        page: query.page,
+        take: query.take,
+        role: query.role,
+        orgaoId: query.orgaoId,
+        setorId: query.setorId,
       });
       if (result.isLeft()) {
         throw new HttpException(result.value.message, result.value.statusCode, {
@@ -63,7 +68,12 @@ export default class UserProvisioningController {
           role: user.role,
           tenantId: user.tenantId,
         },
-        ...query,
+        order: query.order,
+        page: query.page,
+        take: query.take,
+        role: query.role,
+        orgaoId: query.orgaoId,
+        setorId: query.setorId,
       });
       if (result.isLeft()) {
         throw new HttpException(result.value.message, result.value.statusCode, {

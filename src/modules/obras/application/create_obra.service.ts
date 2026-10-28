@@ -20,6 +20,17 @@ import ObraEventsService from '@/modules/obras/events/obra_events.service';
 import { proximoCodigo } from '@/modules/obras/services/codigo_obra.service';
 import { TipoObra } from '@/modules/obras/domain/enums/tipo_obra.enum';
 import { DataSource } from 'typeorm';
+import { withManager } from '@/core/multitenancy/tenant_manager';
+import ObraModel from '@/modules/obras/infra/models/obra.model';
+import {
+  ObraResponsavelModel,
+  ObraSeguidorModel,
+} from '@/modules/obras/infra/models/obra_items.model';
+import { ObraOrcamentoPrevistoModel } from '@/modules/obras/infra/models/guias.model';
+import ObraMapper from '@/modules/obras/infra/mapper/obra.mapper';
+import ObraItemsMapper from '@/modules/obras/infra/mapper/obra_items.mapper';
+import IUserRepository from '@/modules/users/adapters/user_repository.interface';
+import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 
 export default class CreateObraService implements ICreateObraUseCase {
   constructor(
@@ -28,6 +39,7 @@ export default class CreateObraService implements ICreateObraUseCase {
     private readonly ds: DataSource,
     private readonly tc: TenantContext,
     private readonly events: ObraEventsService,
+    private readonly users: IUserRepository,
   ) {}
 
   async execute(p: CreateObraParam): AsyncResult<AppException, ObraEntity> {
@@ -46,6 +58,26 @@ export default class CreateObraService implements ICreateObraUseCase {
           }),
         );
       }
+      const context = this.tc.require();
+      if (context.tenantId !== p.tenantId)
+        return left(
+          new ObraServiceException({
+            code: ErrorCodeConstants.OBRA_INVALID_RESPONSAVEL,
+            statusCode: 422,
+          }),
+        );
+      const userResult = await this.users.findById(p.responsavelUsuarioId);
+      if (userResult.isLeft()) return left(userResult.value);
+      if (
+        userResult.value.tenantId !== p.tenantId ||
+        userResult.value.role !== UserRole.STAFF
+      )
+        return left(
+          new ObraServiceException({
+            code: ErrorCodeConstants.OBRA_INVALID_RESPONSAVEL,
+            statusCode: 422,
+          }),
+        );
       for (const orcamento of p.orcamentos) {
         const fonte = await this.fonteRepo.findById(orcamento.fonteId);
         if (fonte.isLeft()) return left(fonte.value);
@@ -110,106 +142,53 @@ export default class CreateObraService implements ICreateObraUseCase {
           dataPactuada: p.dataPactuada,
           criadoPorUsuarioId: p.criadoPorUsuarioId,
         });
-        const schema = this.tc.require().schemaName;
         try {
-          const saved = await this.ds.transaction(async (manager) => {
-            const obra = await manager.query<Array<{ id: string }>>(
-              `INSERT INTO "${schema}"."obras" (id,codigo,nome,descricao,tipo,status,tipo_financiamento,modo_duracao,data_inicio,data_prazo,acao_conveniada,prioritaria,exibir_camera_ao_vivo,camera_url,privado,invisivel,considerar_sabado,considerar_domingo,seguir_automatico,vincular_pagamento_percentual,corresponsaveis_podem_editar,orgao_id,setor_id,localidade_id,subclassificacao_id,eixo_id,classificacao_id,tipologia_id,subtipologia_id,programa_ppa,acao_estrategica,acao_orcamentaria,unidade_medida,quantidade,secretario,data_pactuada,criado_por_usuario_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39) RETURNING id`,
-              [
-                entity.toObject().id,
-                codigo,
-                entity.toObject().nome,
-                entity.toObject().descricao,
-                entity.toObject().tipo,
-                entity.toObject().status,
-                entity.toObject().tipoFinanciamento,
-                entity.toObject().modoDuracao,
-                entity.toObject().dataInicio,
-                entity.toObject().dataPrazo,
-                entity.toObject().acaoConveniada,
-                entity.toObject().prioritaria,
-                entity.toObject().exibirCameraAoVivo,
-                entity.toObject().cameraUrl,
-                entity.toObject().privado,
-                entity.toObject().invisivel,
-                entity.toObject().considerarSabado,
-                entity.toObject().considerarDomingo,
-                entity.toObject().seguirAutomatico,
-                entity.toObject().vincularPagamentoPercentual,
-                entity.toObject().corresponsaveisPodemEditar,
-                entity.toObject().orgaoId,
-                entity.toObject().setorId,
-                entity.toObject().localidadeId,
-                entity.toObject().subclassificacaoId,
-                entity.toObject().eixoId,
-                entity.toObject().classificacaoId,
-                entity.toObject().tipologiaId,
-                entity.toObject().subtipologiaId,
-                entity.toObject().programaPpa,
-                entity.toObject().acaoEstrategica,
-                entity.toObject().acaoOrcamentaria,
-                entity.toObject().unidadeMedida,
-                entity.toObject().quantidade,
-                entity.toObject().secretario,
-                entity.toObject().dataPactuada,
-                entity.toObject().criadoPorUsuarioId,
-                entity.toObject().createdAt,
-                entity.toObject().updatedAt,
-              ],
-            );
-            const obraId = obra[0].id;
+          const saved = await withManager(this.ds, this.tc, async (manager) => {
+            const obraModel = await manager
+              .getRepository(ObraModel)
+              .save(
+                manager
+                  .getRepository(ObraModel)
+                  .create(ObraMapper.toModel(entity)),
+              );
+            const obraId = obraModel.id;
             const responsavel = ObraResponsavelEntity.createResponsible({
               tenantId: p.tenantId,
               obraId,
               usuarioId: p.responsavelUsuarioId,
+              role: userResult.value.role,
             });
-            await manager.query(
-              `INSERT INTO "${schema}"."obra_responsaveis" (id,tenant_id,obra_id,usuario_id,tipo,created_at) VALUES ($1,$2,$3,$4,$5,$6)`,
-              [
-                responsavel.toObject().id,
-                p.tenantId,
-                obraId,
-                p.responsavelUsuarioId,
-                'RESPONSAVEL',
-                responsavel.toObject().createdAt,
-              ],
-            );
-            for (const orcamento of p.orcamentos) {
-              const orcamentoEntity = ObraOrcamentoPrevistoEntity.create({
-                tenantId: p.tenantId,
-                obraId,
-                fonteId: orcamento.fonteId,
-                valor: orcamento.valor,
-              });
-              await manager.query(
-                `INSERT INTO "${schema}"."obra_orcamento_previsto" (id,tenant_id,obra_id,fonte_id,valor) VALUES ($1,$2,$3,$4,$5)`,
-                [
-                  orcamentoEntity.toObject().id,
-                  p.tenantId,
-                  obraId,
-                  orcamento.fonteId,
-                  orcamento.valor,
-                ],
+            await manager
+              .getRepository(ObraResponsavelModel)
+              .save(
+                manager
+                  .getRepository(ObraResponsavelModel)
+                  .create(ObraItemsMapper.responsavelToModel(responsavel)),
               );
-            }
-            if (entity.toObject().seguirAutomatico) {
+            await manager.getRepository(ObraOrcamentoPrevistoModel).save(
+              p.orcamentos.map((orcamento) => {
+                const budget = ObraOrcamentoPrevistoEntity.create({
+                  tenantId: p.tenantId,
+                  obraId,
+                  fonteId: orcamento.fonteId,
+                  valor: orcamento.valor,
+                });
+                return manager
+                  .getRepository(ObraOrcamentoPrevistoModel)
+                  .create(ObraItemsMapper.orcamentoToModel(budget));
+              }),
+            );
+            if (entity.seguirAutomatico) {
               const seguidor = ObraSeguidorEntity.create({
                 tenantId: p.tenantId,
                 obraId,
                 usuarioId: p.criadoPorUsuarioId,
               });
-              await manager.query(
-                `INSERT INTO "${schema}"."obra_seguidores" (id,tenant_id,obra_id,usuario_id,seguido_em) VALUES ($1,$2,$3,$4,$5)`,
-                [
-                  seguidor.toObject().id,
-                  p.tenantId,
-                  obraId,
-                  p.criadoPorUsuarioId,
-                  seguidor.toObject().seguidoEm,
-                ],
-              );
+              await manager
+                .getRepository(ObraSeguidorModel)
+                .save(ObraItemsMapper.seguidorToModel(seguidor));
             }
-            return entity;
+            return ObraMapper.toEntity(obraModel);
           });
           this.events.emitirObraCriada({
             tenantId: p.tenantId,

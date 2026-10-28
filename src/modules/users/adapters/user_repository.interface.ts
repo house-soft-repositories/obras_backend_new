@@ -3,6 +3,7 @@ import PageEntity from '@/core/pagination/domain/entities/page.entity';
 import PageOptionsEntity from '@/core/pagination/domain/entities/page_options.entity';
 import AsyncResult from '@/core/types/async_result';
 import UserEntity from '@/modules/users/domain/entities/user.entity';
+import { UserRole } from '@/modules/users/domain/enums/user_role.enum';
 import { UsuarioWithOrganizationalReadModel } from '@/modules/users/infra/read-models/usuario_with_organizational_read_model';
 
 export interface SectorReference {
@@ -11,7 +12,8 @@ export interface SectorReference {
 }
 
 export interface FindUserQuery {
-  email: string;
+  id?: string;
+  email?: string;
   tenantId: string | null;
 }
 
@@ -22,6 +24,7 @@ export default interface IUserRepository {
   listWithOrganizational(
     pageOptions: PageOptionsEntity,
     tenantId: string | null,
+    filters?: { role?: UserRole; orgaoId?: string; setorId?: string },
   ): AsyncResult<AppException, PageEntity<UsuarioWithOrganizationalReadModel>>;
   save(user: UserEntity): AsyncResult<AppException, UserEntity>;
   existsLocalidade(

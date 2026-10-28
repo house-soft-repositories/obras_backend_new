@@ -10,6 +10,7 @@ import IListUsersUseCase, {
   ListUsersParam,
 } from '@/modules/users/domain/usecase/list_users.usecase';
 import { UsuarioWithOrganizationalReadModel } from '@/modules/users/infra/read-models/usuario_with_organizational_read_model';
+
 import UserServiceException from '@/modules/users/exceptions/user_service.exception';
 
 export default class ListUsersService implements IListUsersUseCase {
@@ -48,9 +49,17 @@ export default class ListUsersService implements IListUsersUseCase {
       param.page,
       param.take,
     );
+    const filters = {
+      role: param.role,
+      orgaoId: param.orgaoId,
+      setorId: param.setorId,
+    };
     return this.repository.listWithOrganizational(
       pageOptions,
       param.requester.tenantId,
+      Object.values(filters).some((value) => value !== undefined)
+        ? filters
+        : undefined,
     );
   }
 }
