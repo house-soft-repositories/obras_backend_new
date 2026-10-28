@@ -562,6 +562,7 @@ import { DataSource } from 'typeorm';
         AUTO_INFRACAO_REPOSITORY,
         HABITE_SE_REPOSITORY,
         OBRA_PRIVADA_OBSERVACAO_REPOSITORY,
+        OBRA_PRIVADA_ARQUIVO_REPOSITORY,
       ],
       useFactory: (
         alvaraRepository: IAlvaraRepository,
@@ -569,6 +570,7 @@ import { DataSource } from 'typeorm';
         autoInfracaoRepository: IAutoInfracaoRepository,
         habiteSeRepository: IHabiteSeRepository,
         observacaoRepository: IObraPrivadaObservacaoRepository,
+        arquivoRepository: IObraPrivadaArquivoRepository,
       ): IListObraPrivadaTimelineUseCase =>
         new ListObraPrivadaTimelineService(
           alvaraRepository,
@@ -576,6 +578,7 @@ import { DataSource } from 'typeorm';
           autoInfracaoRepository,
           habiteSeRepository,
           observacaoRepository,
+          arquivoRepository,
         ),
     },
     {

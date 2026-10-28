@@ -45,7 +45,8 @@ export default class IniciarUploadArquivoService
             statusCode: 404,
           }),
         );
-      const prefix = this.tenantContext.require().schemaName;
+      const tenant = this.tenantContext.require();
+      const prefix = tenant.schemaName;
       const preparados: UploadArquivoPreparado[] = [];
       const criados: ObraPrivadaArquivoEntity[] = [];
       for (const item of param.arquivos) {
@@ -55,7 +56,7 @@ export default class IniciarUploadArquivoService
           item.nomeOriginal,
         );
         const entity = ObraPrivadaArquivoEntity.create({
-          tenantId: found.value.toObject().tenantId,
+          tenantId: tenant.tenantId,
           obraPrivadaId: param.obraPrivadaId,
           vinculo: param.vinculo,
           vinculoId: param.vinculoId,

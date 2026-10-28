@@ -6,6 +6,7 @@ import IAutoInfracaoRepository from '@/modules/obras-privadas/adapters/auto_infr
 import IFiscalizacaoRepository from '@/modules/obras-privadas/adapters/fiscalizacao_repository.interface';
 import IHabiteSeRepository from '@/modules/obras-privadas/adapters/habite_se_repository.interface';
 import IObraPrivadaObservacaoRepository from '@/modules/obras-privadas/adapters/obra_privada_observacao_repository.interface';
+import IObraPrivadaArquivoRepository from '@/modules/obras-privadas/adapters/obra_privada_arquivo_repository.interface';
 import IListObraPrivadaTimelineUseCase, {
   ListObraPrivadaTimelineParam,
   ObraPrivadaTimelineItem,
@@ -20,6 +21,7 @@ export default class ListObraPrivadaTimelineService
     private readonly autoInfracaoRepository: IAutoInfracaoRepository,
     private readonly habiteSeRepository: IHabiteSeRepository,
     private readonly observacaoRepository: IObraPrivadaObservacaoRepository,
+    private readonly arquivoRepository: IObraPrivadaArquivoRepository,
   ) {}
 
   async execute(
@@ -45,6 +47,10 @@ export default class ListObraPrivadaTimelineService
       param.obraPrivadaId,
     );
     if (observacoes.isLeft()) return left(observacoes.value);
+    const arquivos = await this.arquivoRepository.list({
+      obraPrivadaId: param.obraPrivadaId,
+    });
+    if (arquivos.isLeft()) return left(arquivos.value);
 
     const items: ObraPrivadaTimelineItem[] = [
       ...alvaras.value.map((entity) => {
@@ -104,8 +110,23 @@ export default class ListObraPrivadaTimelineService
           observacoes: value.texto,
         };
       }),
+      ...arquivos.value.map((entity) => {
+        const value = entity.toObject();
+        return {
+          id: value.id,
+          tipo: 'ARQUIVO' as const,
+          data: value.createdAt.toISOString(),
+          titulo: `Arquivo ${value.nome}`,
+          situacao: value.categoria,
+          observacoes: value.descricao,
+        };
+      }),
     ];
 
-    return right(items.sort((a, b) => b.data.localeCompare(a.data)));
+    return right(
+      items.sort(
+        (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime(),
+      ),
+    );
   }
 }

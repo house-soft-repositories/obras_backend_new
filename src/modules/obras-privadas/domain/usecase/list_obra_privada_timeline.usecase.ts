@@ -8,7 +8,8 @@ export type ObraPrivadaTimelineItem = {
     | 'FISCALIZACAO'
     | 'AUTO_INFRACAO'
     | 'HABITE_SE'
-    | 'OBSERVACAO';
+    | 'OBSERVACAO'
+    | 'ARQUIVO';
   data: string;
   titulo: string;
   situacao: string | null;
